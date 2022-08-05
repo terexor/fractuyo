@@ -1,0 +1,18 @@
+#Para reemplazar el index faltante.
+DirectoryIndex index.html
+
+#Para que la base de reescritura final anexe el directorio actual.
+RewriteEngine on
+RewriteBase /
+
+#Forzar a quitar extensiones cuando el navegador pide HTML
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.html
+RewriteRule ^/?(.*)\.html$ /$1 [L,R=301]
+
+#Para quitar el slash final
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+#Para quitar las extensiones finales
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.html [NC,L]

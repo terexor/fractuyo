@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="Terexor">
+		<link rel="icon" href="">
+		<title>FracTuyo</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+	</head>
+	<body>
+		<main id="lienzo">
+			<div class="container-fluid">
+				<div class="row">
+					<nav class="navbar bg-light fixed-top">
+						<div class="container-fluid">
+						    <a class="navbar-brand text-muted" href="#">
+                                <img src="/assets/images/logo-bootstrap.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
+                                <strong> FracTuyo</strong>
+                            </a>
+							<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+								<span class="navbar-toggler-icon"></span>
+							</button>
+							<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+								<div class="offcanvas-header">
+									<h5 class="offcanvas-title" id="offcanvasNavbarLabel">Navegación</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+								</div>
+								<div class="offcanvas-body">
+									<ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+										<li class="nav-item text-center pb-auto">
+											<span data-feather="user"></span>
+											<strong class="nav-link fw-bold pb-0" id="usuario-tag">Demonio</strong>
+										</li>
+										<li class="nav-item text-center">
+											<a class="nav-link disable pt-0" href="#"><em class="text-info" id="correo-tag">demo@demonio.pe</em></a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" aria-current="page" href="/"><span data-feather="home"></span>  Inicio</a>
+										</li>
+										<li class="nav-item dropdown">
+										    <a class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false"><span data-feather="table"></span> <strong>Facturar</strong></a>
+										      <ul class="dropdown-menu dropdown-menu-ligth">
+                                                  <li><a class="dropdown-item" href="/">Sub menú</li>
+										      </ul>
+                                        </li>
+										<li class="nav-item">
+											<a class="nav-link text-danger" aria-current="page" href=""><span data-feather="log-out"></span> Salir</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</nav>
+                </div>
+				<div class="row mt-5">
+				    <div class="container-fluid mt-3">
+				        <div class="card">
+  <div class="card-body">
+    <div class="container mb-5 mt-3">
+      <div class="row d-flex align-items-baseline">
+        <div class="col-lg-10 col-sm-12">
+          <p class="text-lg-start text-sm-center text-center" style="font-size: 20px;">Factura <strong>F000-1</strong></p>
+        </div>
+        <div class="col-lg-2 col-sm-12 text-sm-center text-center float-end">
+            <a class="btn btn-outline-primary text-capitalize border-0"><span data-feather="printer"></span></a>
+            <a class="btn btn-outline-primary text-capitalize border-0"><span data-feather="save"></span></a>
+            <a class="btn btn-outline-secondary text-capitalize border-0"><span data-feather="unlock"></span></a>
+        </div>
+      </div>
+      <div class="row d-flex align-items-baseline">
+          <div class="col-lg-12 col-sm-12 col-12 text-lg-start text-sm-center text-center ">
+              <p class="badge bg-warning text-black fw-bold">Edición</p>
+          </div>
+      </div>
+      <div class="row d-flex align-items-baseline">
+          <div class="col-lg-12 col-sm-12">
+              <p class="text-lg-start text-sm-center text-center text-muted"><em>Con el respaldo de <a href="https://www.terexor.com">Terexor</a></em></p>
+          </div>
+        <hr>
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-8 align-self-start">
+                  <div class="mb-2 row">
+                      <label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
+                      <div class="col-sm-4">
+                            <div class="input-group">
+                                <input type="number" class="form-control" placeholder="Buscar en mis facturas" aria-label="Buscar por documento" aria-describedby="buscador" id="numeroDocumento">
+                                <button class="btn btn-outline-primary" id="buscarDocumentos"><span data-feather="search"></span></button>
+                            </div>
+                      </div>
+                  </div>
+                  <div class="mb-2 row">
+                      <label for="razonSocial" class="col-sm-3 col-form-label">Razón social</label>
+                      <div class="col-sm-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="razonSocial">
+                                <button class="btn btn-outline-secondary" disabled id="editarRazonSocial"><span data-feather="edit"></span></button>
+                            </div>
+                          <!-- <input type="text" class="form-control" id="razonSocial"> -->
+                      </div>
+                  </div>
+                  <div class="mb-2 row">
+                      <label for="direccionCliente" class="col-sm-3 col-form-label">Dirección del cliente</label>
+                      <div class="col-sm-7">
+                            <div class="input-group">
+                                <input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente">
+                                <button class="btn btn-outline-secondary" disabled id="editarDireccionCliente"><span data-feather="edit"></span></button>
+                            </div>
+                      </div>
+                  </div>
+          </div>
+          <div class="col-xl-4 align-self-end">
+                  <div class="mb-2 row align-items-start">
+                      <p class="text-muted">Almacenamiento local</p>
+                  </div>
+                  <div class="mb-2 row align-items-end">
+                      <div class="col-sm-6 col-12 mb-lg-0 mb-2">
+                          <div class="form-floating">
+                              <select class="form-select" id="moneda" aria-label="Moneda de la factura">
+                                  <option value="1" selected>Soles</option>
+                                  <option value="2">Dólares</option>
+                              </select>
+                              <label for="moneda">Moneda</label>
+                          </div>
+                      </div><div class="col-sm-6 col-12">
+                          <div class="form-floating">
+                              <input id="fechaEmision" type="date" value="2022-08-03" class="form-control" />
+                              <label for="fechaEmision">Fecha de emisión</label>
+                          </div>
+                      </div>
+                  </div>
+          </div>
+        </div>
+
+        <div class="row my-2 mx-1 justify-content-center">
+			<table class="table table-primary table-striped w-auto table-hover table-responsive">
+				<caption class="text-muted"> Detalle de la factura </caption>
+				<thead class="fw-bold">
+					<tr>
+						<!-- <th scope="col">#</th> -->
+						<!-- <th scope="col">Tipo</th> -->
+						<!-- <th scope="col">Afecto</th> -->
+						<!-- <th scope="col">Código</th> -->
+						<th scope="col">Descripción</th>
+						<th scope="col">Cantidad</th>
+						<th scope="col">Valor unitario</th>
+					</tr>
+            </thead>
+            <tbody class="table-group-divider">
+              <tr class="table-light">
+                <!-- <th scope="row">1</th> -->
+                <!-- <td>Bien</td> -->
+                <!-- <td>Gravado</td> -->
+                <!-- <td>CER01</td> -->
+                <td>
+					<div class="row">
+						<div class="col-12">
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="Descripción o código" aria-label="Buscar por código del producto" aria-describedby="buscadorDeProductos" id="codigoProducto">
+								<button class="btn btn-outline-primary" id="buscarProducto"><span data-feather="search"></span></button>
+							</div>
+						</div>
+						<!-- <div class="col-8 align-items-center"> -->
+						<!-- 	<p>Botellas de cerveza importadas desde Alemania --> 
+						<!-- </div> -->
+					</div>
+				</td>
+                <td>12</td>
+                <td>5</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-xl-8 align-self-end">
+              <div class="col-lg-4 col-sm-12 col-12 mb-lg-0 mb-2">
+                  <div class="form-floating">
+                      <input type="correo" class="form-control" id="correo" value="contacto@empresa.pe"/>
+                      <label for="correo">Correo electrónico</label>
+                  </div>
+              </div>
+          </div>
+          <div class="col-xl-3">
+            <ul class="list-unstyled">
+              <li class="text-muted ms-3"><span class="text-black me-4">Sub total</span>1110 S/</li>
+              <li class="text-muted ms-3"><span class="text-black me-4">Descuentos</span>0 S/</li>
+              <li class="text-muted ms-3"><span class="text-black me-4">ISC</span>1110 S/</li>
+              <li class="text-muted ms-3"><span class="text-black me-4">IGV</span>1110 S/</li>
+              <li class="text-muted ms-3"><span class="text-black me-4">ICBP</span>1110 S/</li>
+            </ul>
+            <p class="text-black float-start"><span class="text-black me-3"> Importe total</span><span
+                style="font-size: 25px;">1221 S/</span></p>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-xl-10">
+              <p>Con los métodos seguros y eficientes tus datos se guardan en tu propia computadora.</p>
+          </div>
+          <div class="col-xl-2">
+            <button type="button" class="btn btn-outline-primary text-capitalize fw-bold">Facturar</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+		<!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+		<!-- Iconos -->
+        <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+        <script>
+        feather.replace()
+        </script>
+	</body>
+</html>
