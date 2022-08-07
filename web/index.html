@@ -68,7 +68,8 @@
         <div class="col-lg-3 col-sm-12 text-sm-center text-center float-end text-lg-end">
             <a class="btn btn-outline-secondary text-capitalize border-0"><span data-feather="printer"></span></a>
             <a class="btn btn-outline-primary text-capitalize border-0"><span data-feather="save"></span></a>
-            <a class="btn btn-outline-info text-capitalize border-0"><span data-feather="cloud"></span></a>
+            <a class="btn btn-outline-secondary text-capitalize border-0"><span data-feather="file-plus"></span></a>
+            <a class="btn btn-outline-info text-capitalize border-0"><span data-feather="cloud-off"></span></a>
         </div>
       </div>
       <div class="row d-flex align-items-baseline">
@@ -173,35 +174,116 @@
 				<tbody class="table-group-divider">
 					<tr>
 						<td>
-							<div class="row position-relative mb-3">
-								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center">
-									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary">PR001</span></p>
-									<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado"><span data-feather="edit"></span></button>
+							<div class="row position-relative mb-2">
+								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
+									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">COD001</span></p>
+									<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
+										<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+									</div>
 									<button type="button" class="btn btn-outline-danger text-capitalize border-0" ><span data-feather="trash-2"></span></button>
 								</div>
 								<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
 									<div class="form-floating">
-										<textarea class="form-control" style="height: 85px" id="descripcion">Pollos para pollada bailable descontando el pescuezo</textarea>
-										<label for="descripcion">Descripción del producto</label>
+										<textarea class="form-control" style="height: 105px" id="descripcion">Pollos para pollada bailable descontando el pescuezo</textarea>
+										<label for="descripcion">Descripción del ítem</label>
 									</div>
-									<!-- <p class="text-danger fw-light fs-6">Código: <span> No tiene</span></p> -->
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento</span></p>
 								</div>
 								<div class="col-lg-4 col-12 align-self-center">
 									<div class="col-lg-12 col-12 mb-2">
 										<div class="input-group">
-											<input type="number" class="form-control" value="123" placeholder="Cantidad" aria-label="Cantidad">
-											<span class="input-group-text">kilogramos</span>
+											<input type="number" class="form-control w-25" value="123" placeholder="Cantidad" aria-label="Cantidad">
+											<span class="input-group-text w-50 d-inline-block text-truncate text-start">kilogramos</span>
+											<div class="input-group-text">
+												<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Configurar el ítem como servicio" id="selectorServicio">
+												<label class="form-check-label" for="selectorServicio">&nbsp;ZZ</label>
+											</div>
 										</div>
 									</div>
 									<div class="col-lg-12 col-12">
+										<div class="row">
+											<div class="input-group">
+												<span class="input-group-text">S/</span>
+												<input type="number" class="form-control" value="12.35" placeholder="Unitario" aria-label="Valor unitario">
+												<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
+													<option value="0" selected>Gravado (<strong>10</strong>)</option>
+													<option value="1">Inafecto (<strong>20</strong>)</option>
+													<option value="2">Exonerado (<strong>30</strong>)</option>
+												</select>
+											</div>
+										</div>
+										<div class="row mx-0 mb-0 mt-2">
+											<div class="col-5 m-0 p-0">
+												<div class="form-check form-switch text-start">
+													<input class="form-check-input" type="checkbox" role="switch" id="IGV" checked>
+													<label class="form-check-label" for="IGV">Inc. IGV <em></em></label>
+												</div>
+											</div>
+											<div class="col-7 text-end p-0 m-0">
+												<p class="text-muted"> Importe&ensp;<strong>S/ 1000.00 </strong></p>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="row position-relative mb-2">
+								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
+									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-warning" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">Sin código</span></p>
+									<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
+										<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+									</div>
+									<button type="button" class="btn btn-outline-danger text-capitalize border-0" ><span data-feather="trash-2"></span></button>
+								</div>
+								<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
+									<div class="form-floating">
+										<textarea class="form-control" style="height: 105px" id="descripcion">Pollos para pollada bailable descontando el pescuezo</textarea>
+										<label for="descripcion">Descripción del ítem</label>
+									</div>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica descuento"><span class="badge rounded-pill text-bg-dark">Descuento</span></p>
+								</div>
+								<div class="col-lg-4 col-12 align-self-center">
+									<div class="col-lg-12 col-12 mb-2">
 										<div class="input-group">
-											<span class="input-group-text">S/</span>
-											<input type="number" class="form-control" value="12.35" placeholder="Unitario" aria-label="Valor unitario">
-											<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
-												<option value="0" selected>Gravado - <strong>10</strong></option>
-												<option value="2">Inafecto - <strong>20</strong></option>
-												<option value="3">Exonerado - <strong>30</strong></option>
-											</select>
+											<input type="number" class="form-control w-25" value="123" placeholder="Cantidad" aria-label="Cantidad">
+											<span class="input-group-text w-50 d-inline-block text-truncate text-start">kilogramos</span>
+											<div class="input-group-text">
+												<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Configurar el ítem como servicio" id="selectorServicio">
+												<label class="form-check-label" for="selectorServicio">&nbsp;ZZ</label>
+											</div>
+										</div>
+									</div>
+									<div class="col-lg-12 col-12">
+										<div class="row">
+											<div class="input-group">
+												<span class="input-group-text">S/</span>
+												<input type="number" class="form-control" value="12.35" placeholder="Unitario" aria-label="Valor unitario">
+												<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
+													<option value="0">Gravado (<strong>10</strong>)</option>
+													<option value="1" selected>Inafecto (<strong>20</strong>)</option>
+													<option value="2">Exonerado (<strong>30</strong>)</option>
+												</select>
+											</div>
+										</div>
+										<div class="row mx-0 mb-0 mt-2">
+											<div class="col-5 m-0 p-0">
+												<div class="form-check form-switch text-start">
+													<input class="form-check-input" type="checkbox" role="switch" id="IGV">
+													<label class="form-check-label" for="IGV">Inc. IGV <em></em></label>
+												</div>
+											</div>
+											<div class="col-7 text-end p-0 m-0">
+												<p class="text-muted"> Importe&ensp;<strong>S/ 1000.00 </strong></p>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -211,82 +293,65 @@
 					<tr>
 						<td>
 							<div class="row position-relative mb-3">
-								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center">
-									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary">Sin código</span></p>
-									<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado"><span data-feather="edit"></span></button>
+								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
+									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">COD022</span></p>
+									<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
+										<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+									</div>
 									<a class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></a>
 								</div>
 								<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
 									<div class="form-floating">
-										<textarea class="form-control" style="height: 85px" id="descripcion">Cemento sol</textarea>
-										<label for="descripcion">Descripción del producto</label>
+										<textarea class="form-control" style="height: 105px" id="descripcion">Pollos para pollada bailable descontando el pescuezo</textarea>
+										<label for="descripcion">Descripción del ítem</label>
 									</div>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
+									<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento</span></p>
 								</div>
 								<div class="col-lg-4 col-12 align-self-center">
 									<div class="col-lg-12 col-12 mb-2">
 										<div class="input-group">
-											<input type="number" class="form-control" placeholder="Cantidad" aria-label="Cantidad" value="12">
-											<span class="input-group-text">unidades</span>
+											<input type="number" class="form-control w-25" value="123" placeholder="Cantidad" aria-label="Cantidad">
+											<span class="input-group-text w-50 d-inline-block text-truncate text-start">kilogramos</span>
+											<div class="input-group-text">
+												<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Configurar el ítem como servicio" id="selectorServicio" checked>
+												<label class="form-check-label" for="selectorServicio">&nbsp;ZZ</label>
+											</div>
 										</div>
 									</div>
 									<div class="col-lg-12 col-12">
-										<div class="input-group">
-											<span class="input-group-text">S/</span>
-											<input type="number" value="55.00" class="form-control" placeholder="Unitario" aria-label="Valor unitario">
-											<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
-												<option value="0" selected>Gravado 10</option>
-												<option value="2">Inafecto</option>
-												<option value="3">Exonerado</option>
-											</select>
+										<div class="row">
+											<div class="input-group">
+												<span class="input-group-text">S/</span>
+												<input type="number" class="form-control" value="12.35" placeholder="Unitario" aria-label="Valor unitario">
+												<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
+													<option value="0" selected>Gravado (<strong>10</strong>)</option>
+													<option value="1">Inafecto (<strong>20</strong>)</option>
+													<option value="2">Exonerado (<strong>30</strong>)</option>
+												</select>
+											</div>
+										</div>
+										<div class="row mx-0 mb-0 mt-2">
+											<div class="col-5 m-0 p-0">
+												<div class="form-check form-switch text-start">
+													<input class="form-check-input" type="checkbox" role="switch" id="IGV" checked>
+													<label class="form-check-label" for="IGV">Inc. IGV <em></em></label>
+												</div>
+											</div>
+											<div class="col-7 text-end p-0 m-0">
+												<p class="text-muted"> Importe&ensp;<strong>S/ 1000.00 </strong></p>
+											</div>
 										</div>
 									</div>
 								</div>
-					<!-- <div class="position-absolute top-100 start-50 translate-middle mt-4 text-center"> -->
-					<!-- 	<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio"><span data-feather="plus-circle"></span></button> -->
-					<!-- </div> -->
+								<div class="position-absolute top-100 start-50 translate-middle mt-4 text-center">
+									<button type="button" class="btn btn-outline-primary text-capitalize border-0 round-100" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo ítem"><span data-feather="plus-circle"></span></button>
+								</div>
 							</div>
 						</td>
 					</tr>
-					<tr>
-						<td>
-							<div class="row position-relative mb-3">
-								<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center">
-									<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-success">MAT001</span></p>
-									<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado"><span data-feather="edit"></span></button>
-									<a class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></a>
-								</div>
-								<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
-									<div class="form-floating">
-										<textarea class="form-control" style="height: 85px" id="descripcion"></textarea>
-										<label for="descripcion">Descripción del servicio</label>
-									</div>
-								</div>
-								<div class="col-lg-4 col-12 align-self-center">
-									<div class="col-lg-12 col-12 mb-2">
-										<div class="input-group">
-											<input type="number" class="form-control" placeholder="Cantidad" aria-label="Cantidad">
-											<span class="input-group-text">unidades</span>
-										</div>
-									</div>
-									<div class="col-lg-12 col-12">
-										<div class="input-group">
-											<span class="input-group-text">S/</span>
-											<input type="number" class="form-control" placeholder="Unitario" aria-label="Valor unitario">
-											<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="IGV">
-												<option value="0" selected>Gravado</option>
-												<option value="2">Inafecto</option>
-												<option value="3">Exonerado</option>
-											</select>
-										</div>
-									</div>
-								</div>
-					<div class="position-absolute top-100 start-50 translate-middle mt-4 text-center">
-						<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio"><span data-feather="plus-circle"></span></button>
-					</div>
-							</div>
-						</td>
-					</tr>
-					</div>
 				</tbody>
 			</table>
         </div>
@@ -324,14 +389,13 @@
         </div>
         <hr>
         <div class="row">
-          <div class="col-lg-10 col-xl-10 col-12">
-              <p>Con métodos seguros y eficientes tus datos se guardan en tu propia computadora.</p>
-          </div>
-          <div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center">
-            <button type="button" class="btn btn-outline-primary text-capitalize fw-bold">Facturar</button>
-          </div>
-        </div>
-
+			<div class="col-lg-10 col-xl-10 col-12">
+				<p>Con métodos seguros y eficientes tus datos se guardan en tu propia computadora.</p>
+			</div>
+			<div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center">
+				<button type="button" class="btn btn-outline-primary text-capitalize fw-bold">Facturar</button>
+			</div>
+		</div>
       </div>
     </div>
   </div>
