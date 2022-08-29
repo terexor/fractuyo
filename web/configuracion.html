@@ -68,14 +68,20 @@
 						<div class="card">
 							<div class="card-header">Configuración del sistema</div>
 							<div class="card-body">
-								<form onsubmit="guardar(this);return false">
-									<input name="ruc" type="text" maxlength="11" placeholder="RUC" />
+								<form onsubmit="fractuyo.saveData(this);return false">
+									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required />
+									<input name="nombre" type="text" maxlength="128" placeholder="Nombre o Razón social" required />
+									<input name="direccion" type="text" maxlength="128" placeholder="Dirección" />
+									<hr>
+									<input name="usuario" type="text" placeholder="Usuario secundario para Sunat" />
+									<input name="clave" type="text" placeholder="Contraseña para Sunat" />
+									<hr>
 									<textarea name="cert" placeholder="Certificado" rows="5"></textarea>
 									<textarea name="key" placeholder="Clave" rows="5"></textarea>
+									<button type="button" class="btn btn-secondary" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
 									<button type="submit" class="btn btn-warning">Encriptar sesión</button>
 								</form>
-								<button type="button" class="btn btn-secondary" onclick="certificar()">Elegir directorio de trabajo</button>
-								<button type="button" class="btn btn-primary" onclick="facturar()">Crear archivo</button>
+								<button type="button" class="btn btn-primary" onclick="fractuyo.createInvoice()">Probar</button>
 							</div>
 						</div><!-- .card -->
 					</div>

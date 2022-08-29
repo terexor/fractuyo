@@ -2,14 +2,141 @@ const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 const version = "0.0.1"
-var app, fractuyo, passcode
+var app, fractuyo
 
 "use strict"
+
+/**
+ * State machine and all together.
+ */
+var Fractuyo = function() {
+	var globalDirHandle
+	var passcode, storage
+
+	this.chooseDirHandle = async function() {
+		globalDirHandle = await window.showDirectoryPicker()
+	}
+
+	this.setDirHandle = function(dirHandler) {
+		if(dirHandler instanceof FileSystemDirectoryHandle) {
+			globalDirHandle = dirHandler
+			return
+		}
+
+		throw new Error("No es directorio.")
+	}
+
+	/**
+	 * View if everything needed is inside.
+	 */
+	this.checkDirHandle = async function(ruc) {
+		let fileHandle, file, content
+
+		fileHandle = await globalDirHandle.getFileHandle("data.bin", {})
+		file = await fileHandle.getFile()
+		content = await file.arrayBuffer()
+		return content
+	}
+
+	this.saveData = async function(form) {
+		const ruc = form.elements.ruc.value.trim()
+		if(!validateRuc(ruc)) {
+			Notiflix.Report.warning(
+				"RUC inválido",
+				"El número de RUC no existe.",
+				"Aceptar"
+			)
+			return
+		}
+		if(globalDirHandle == undefined) {
+			Notiflix.Report.warning(
+				"Falta directorio",
+				"Debes elegir una carpeta en tu dispositivo para almacenar todos los datos de este formulario.",
+				"Aceptar"
+			)
+			return
+		}
+
+		let data = ruc + form.elements.nombre.value.trim()
+
+		await Notiflix.Confirm.prompt(
+			"Seguridad de datos",
+			"Escribe contraseña nueva", "",
+			"Guardar", "Cancelar",
+			async (pin) => {
+				await passcode.setupPasscode(pin)
+				let encryptedRuc = await passcode.encryptSession(ruc)
+				const oSession = {
+					ruc: encryptedRuc,
+					dir: globalDirHandle
+				}
+				storage.add(oSession)
+
+				let encryptedData = await passcode.encryptSession(data)
+
+				let fileHandle = await globalDirHandle.getFileHandle("data.bin", { create: true })
+
+				const writable = await fileHandle.createWritable()
+
+				await writable.write(encryptedData)
+				await writable.close()
+			}
+		)
+	}
+
+	this.initData = function(event) {
+		storage.setDb(event.target.result)
+		storage.countRegisters(block, guide)
+	}
+
+	this.init = function() {
+		passcode = new Passcode()
+		storage = new Storage(this)
+	}
+
+	var block = function(count) {
+		console.log("Hay", count, "registros.")
+	}
+
+	var guide = function() {
+		Notiflix.Report.info(
+			"Bienvenido a Fractuyo",
+			"Debes configurar una cuenta de negocios para empezar a generar tus comprobantes de pago.",
+			"Aceptar"
+		)
+	}
+
+	this.createInvoice = async function() {
+		if(globalDirHandle == undefined) {
+			Notiflix.Report.warning(
+				"Falta directorio",
+				"Debes elegir una carpeta en tu dispositivo para almacenar todos los datos de este formulario.",
+				"Aceptar"
+			)
+			return
+		}
+
+		const invoice = new Invoice()
+		invoice.setSerie("F001")
+		invoice.setNumeration(7357)
+		// Find directory structure
+		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
+		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
+
+		let fileHandle = await handleDirectoryXml.getFileHandle(invoice.getId() + ".xml", { create: true })
+
+		const writable = await fileHandle.createWritable()
+
+		await writable.write("<contenido XML></contenido XML>")
+		await writable.close()
+	}
+}
 
 window.onload = function() {
 	console.log("\ud83d\ude92 FracTuyo -", version)
 
-	passcode = new Passcode()
+	fractuyo = new Fractuyo()
+	fractuyo.init()
 
 	app = new senna.App()
 	app.addSurfaces(["navegador", "lienzo"])
@@ -20,56 +147,105 @@ window.onload = function() {
 	app.on("endNavigate", function(event) {
 		if(event.error) {
 			if(event.error.invalidStatus) {
-				Notiflix.Report.Info("Página no disponible","No se puede mostrar la página solicitada.<br>Tal vez no esté disponible por ahora.<br>Prueba navegando a otras secciones.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
+				Notiflix.Report.info("Página no disponible","No se puede mostrar la página solicitada.<br>Tal vez no esté disponible por ahora.<br>Prueba navegando a otras secciones.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
 			}
 
 			if(event.error.requestError) {
-				Notiflix.Report.Failure("Error de navegación","No se puede solicitar página.<br>Comprueba tu conexión a Internet.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
+				Notiflix.Report.failure("Error de navegación","No se puede solicitar página.<br>Comprueba tu conexión a Internet.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
 			}
 
 			if(event.error.timeout) {
-				Notiflix.Report.Warning("Demora en la red","No se pudo traer la página solicitada.<br>La conexión a Internet está tardando mucho.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
+				Notiflix.Report.warning("Demora en la red","No se pudo traer la página solicitada.<br>La conexión a Internet está tardando mucho.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
 			}
 		}
 	})
 }
 
-var contabilidad = 1
+/**
+ * For managing encrypted "sessions".
+ * @ref https://www.tutorialspoint.com/html5/html5_indexeddb.htm
+ */
+var Storage = function(fractuyo) {
+	var db
 
-async function facturar(formulario) {
-	// Find directory structure
-	let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
-	let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
+	var request = window.indexedDB.open("business", 1)
 
-	let fileHandle = await handleDirectoryXml.getFileHandle("F001-" + ++contabilidad + ".xml", { create: true })
-	//~ const newFile = await fileHandle.getFile()
+	request.onerror = function(event) {
+		console.log("error: ");
+	}
 
-	//~ const handle = await window.showSaveFilePicker(options);
-	const writable = await fileHandle.createWritable()
+	request.onsuccess = fractuyo.initData
 
-	await writable.write("<contenido XML></contenido XML>")
-	await writable.close()
-}
+	this.setDb = function(indexeddb) {
+		db = indexeddb
+	}
 
-var globalDirHandle
+	request.onupgradeneeded = function(event) {
+		db = event.target.result;
+		let objectStore = db.createObjectStore("session", {keyPath: "ruc"})
+		objectStore.createIndex("ruc", "ruc", { unique: true })
+	}
 
-async function certificar() {
-	globalDirHandle = await window.showDirectoryPicker();
-	await dirHandler(globalDirHandle)
-}
+	this.add = function(oSession) {
+		var request = db.transaction(["session"], "readwrite")
+			.objectStore("session")
+			//~ .add({ ruc: "20606...", dir: FileHandler })
+			.add(oSession)
 
-async function dirHandler(dirHandle) {
-	let fileHandle, file, content
+		request.onsuccess = function(event) {
+			Notiflix.Report.success("Datos guardados.", "Ahora podrás usar Fractuyo con los datos proporcionados.")
+		}
 
-	fileHandle = await dirHandle.getFileHandle("cert.pem", {})
-	file = await fileHandle.getFile()
-	content = await file.text()
-	window.localStorage.setItem("cert", content)
+		request.onerror = function(event) {
+			alert("Unable to add data.");
+		}
+	}
 
-	fileHandle = await dirHandle.getFileHandle("key.pem", {})
-	file = await fileHandle.getFile()
-	content = await file.text()
-	window.localStorage.setItem("pkey", content)
+	this.readAll = async function(oPasscode, passcode, ruc) {
+		let objectStore = db.transaction("session").objectStore("session");
+		objectStore.openCursor().onsuccess = async function(event) {
+			let cursor = event.target.result
+
+			if(cursor) {
+				try {
+					fractuyo.setDirHandle(cursor.dir)
+					const dataEncrypted = await fractuyo.checkDirHandle(ruc)
+					const isDecrypted = await oPasscode.decryptSession(passcode, ruc, dataEncrypted)
+
+					if( isDecrypted ) {
+						return
+					}
+					cursor.continue()
+				}
+				catch(e) {
+					//There's no directory or data inside is wrong
+					Notiflix.Report.failure("Error de directorio", "Hay inconsistencias de datos y se ha detenido la operación", "Aceptar")
+				}
+			}
+			else {
+				return null
+			}
+		}
+	}
+
+	this.countRegisters = function(fnFull, fnEmpty) {
+		const request = db.transaction(["session"], "readonly")
+		const objectStore = request.objectStore("session")
+
+		const myIndex = objectStore.index("ruc")
+		const countRequest = myIndex.count()
+		countRequest.onsuccess = () => {
+			if(countRequest.result == 0) {
+				fnEmpty()
+			}
+			else {
+				fnFull(countRequest.result)
+			}
+		}
+	}
+
+	this.remove = function() {
+	}
 }
 
 /**
@@ -82,17 +258,39 @@ var Passcode = function() {
 
 	var currentPasscodeHash
 
+	var dataSession
+
 	this.setupPasscode = async function(passcode) {
 		currentPasscodeHash = await sha256(passcode)
 	}
 
-	this.decryptSession = async function(passcode, dataEncrypted) {
+	/**
+	 * Decrypt data that must be inside files.
+	 * @passcode PIN or password
+	 * @ruc
+	 * @dataEncrypted is all serialized data needed.
+	 */
+	this.decryptSession = async function(passcode, ruc, dataEncrypted) {
 		const passcodeHash = await sha256(passcode)
 		currentPasscodeHash = passcodeHash
-		const data = await aesDecrypt(dataEncrypted, passcodeHash)
-		return data
+
+		const decryptedRuc = await aesDecrypt(dataEncrypted, passcodeHash)
+		if( validateRuc( decryptedRuc ) && ruc == decryptedRuc ) {
+			return false
+		}
+
+		const decryptedData = await aesDecrypt(dataEncrypted, passcodeHash)
+		dataSession = decryptedData
+		return true
 	}
 
+	this.getDataSession = function() {
+		return dataSession
+	}
+
+	/**
+	 * @data is all serialized data needed.
+	 */
 	this.encryptSession = async function(data) {
 		if(!currentPasscodeHash) {
 			throw new Error("Clave no asignada")
@@ -322,11 +520,9 @@ const namespaces = {
 
 function validateRuc(ruc) {
 	if( parseInt(ruc) < 11 ) {
-		debugger
 		return false
 	}
 	if( ! ["10", "15", "17", "20"].includes( ruc.substring(0, 2) ) ) {
-		debugger
 		return false
 	}
 
@@ -348,19 +544,6 @@ function validateRuc(ruc) {
 	return false
 }
 
-async function guardar(form) {
-	await Notiflix.Confirm.prompt(
-		"Seguridad de datos",
-		"Escribe contraseña nueva", "",
-		"Guardar", "Cancelar",
-		async (pin) => {
-			await passcode.setupPasscode(pin)
-			let encryptedRuc = await passcode.encryptSession(form.elements.ruc.value.trim())
-			window.localStorage.setItem("ruc", _arrayBufferToBase64(encryptedRuc))
-		}
-	)
-}
-
 async function revisarSesion() {
 	await Notiflix.Confirm.prompt(
 		"Seguridad de datos",
@@ -368,7 +551,6 @@ async function revisarSesion() {
 		"Descifrar", "Cancelar",
 		async (pin) => {
 			let encryptedRuc = _base64ToArrayBuffer( window.localStorage.getItem("ruc") )
-			debugger
 			let decryptedRuc = await passcode.decryptSession(pin, encryptedRuc)
 			debugger
 		}
@@ -377,21 +559,21 @@ async function revisarSesion() {
 
 //https://stackoverflow.com/a/9458996
 function _arrayBufferToBase64( buffer ) {
-    var binary = '';
-    var bytes = new Uint8Array( buffer );
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
-    }
-    return window.btoa( binary );
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+		binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
 }
 
 function _base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
-    }
-    return bytes.buffer;
+	var binary_string = window.atob(base64);
+	var len = binary_string.length;
+	var bytes = new Uint8Array(len);
+	for (var i = 0; i < len; i++) {
+		bytes[i] = binary_string.charCodeAt(i);
+	}
+	return bytes.buffer;
 }
