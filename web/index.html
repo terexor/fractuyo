@@ -68,7 +68,7 @@
 							<div class="card-body">
 								<div class="container mb-5 mt-3">
 									<div class="row d-flex align-items-baseline">
-										<div class="col-lg-3 col-sm-12">
+										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="tipo" aria-label="Tipo de comprobante de pago">
 													<option value="03" selected>Boleta de Venta</option>
@@ -77,7 +77,7 @@
 												<label for="tipo">Tipo de comprobante</label>
 											</div>
 										</div>
-										<div class="col-lg-3 col-sm-12">
+										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago">
 													<option value="F000" selected>F000</option>
@@ -95,7 +95,7 @@
 										</div>
 									</div>
 									<div class="row d-flex align-items-baseline">
-										<div class="col-lg-12 col-sm-12 col-12 text-lg-start text-sm-center text-center ">
+										<div class="col-lg-12 col-sm-12 col-12 text-lg-start text-sm-center text-center mt-2">
 											<p class="badge bg-warning text-black fw-bold">Creando</p>
 										</div>
 									</div>
@@ -110,9 +110,9 @@
 											<div class="col-xl-8 align-self-start">
 												<div class="mb-2 row">
 													<label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
-													<div class="col-sm-4">
+													<div class="col-sm-5">
 														<div class="input-group">
-															<input type="number" class="form-control" placeholder="Buscar en mis facturas" aria-label="Buscar por documento" aria-describedby="buscarDocumentos" id="numeroDocumento">
+															<input type="search" pattern="[\d]{9}" class="form-control text-truncate" placeholder="Buscar clientes en mis facturas" aria-label="Buscar por documento" aria-describedby="buscarDocumentos" id="numeroDocumento">
 															<button class="btn btn-outline-primary" id="buscarDocumentos"><span data-feather="search"></span></button>
 														</div>
 													</div>
@@ -169,20 +169,32 @@
 														<th scope="col" class="table-info">
 															<div class="row d-flex align-items-baseline">
 																<div class="col-12 col-lg-8 text-lg-start text-center">
-																	<p class="m-lg-0">Productos y/o servicios</p>
+																	<p class="m-lg-0">Ítems - Productos y/o servicios</p>
 																</div>
 																<div class="col-12 col-lg-4 float-end text-lg-end text-center">
-																	<button class="btn mb-1 btn-outline-primary border-0 text-capitalize" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" data-bs-placement="left" data-bs-dismiss="btn" aria-expanded="false" aria-controls="collapseExample">
-																		<span data-feather="search"></span>
-																	</button>
-																	<div class="collapse" id="collapseExample">
+																	<div class="input-group">
+																		<input type="search" list="listaCodigosItems" class="form-control text-truncate pe-2" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable">
+																		<span class="input-group-append"><button class="btn btn-outline-secondary bg-transparent border-start-0 border-bottom-0 border" type="button" style="margin-left:-48px"disabled><span data-feather="search"></span></button></span>
+																		<button class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
+																	</div>
+																	<datalist id="listaCodigosItems" class="border">
+																		<option value="COD001">
+																		<option value="RE923TT-1212">
+																		<option value="99231TTqwe">
+																		<option value="CRISTALOI123">
+																		<option value="LAB001">
+																		<option value="LAB002">
+																		<option value="ZZ001">
+																		<option value="COLD98-001">
+																	</datalist>
+																	<!--<div class="collapse" id="collapseExample">
 																		<div class="input-group">
-																			<input type="text" class="form-control" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable">
+																			<input type="search" class="form-control" placeholder="Buscar por código y agregar item" aria-label="Buscar por código y agregar item" aria-describedby="buscador" id="codigoProductoBuscable">
 																			<button class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
 																		</div>
-																	</div>
+																	</div>-->
 																	<!-- <button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio"><span data-feather="plus-circle"></span></button> -->
-																	<!-- <button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio" data-bs-target="#agregarProductoAvanzado"><span data-feather="plus-circle"></span></button> -->
+																	<!-- <button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio" data-bs-target="#edicionAvanzadaItem"><span data-feather="plus-circle"></span></button> -->
 																	<!-- <button type="button" class="btn btn-secondary" -->
 																	<!-- data-bs-toggle="tooltip" data-bs-placement="top" -->
 																	<!-- data-bs-custom-class="custom-tooltip" -->
@@ -199,22 +211,28 @@
 														<td>
 															<div class="row position-relative mb-2">
 																<input type="hidden" name="metadata" data-porcentajeigv="18">
-																<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
+																<div class="col-lg-1 col-sm-12 col-12 mb-2 mb-lg-0 text-center align-self-center">
 																	<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">COD001</span></p>
-																	<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
-																		<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																	<div class="row">
+																		<div class="col-lg-12 col-6 text-lg-center text-end">
+																			<div data-bs-toggle="modal" data-bs-target="#edicionAvanzadaItem">
+																				<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																			</div>
+																		</div>
+																		<div class="col-lg-12 col-6 text-lg-center text-start">
+																			<button type="button" class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></button>
+																		</div>
 																	</div>
-																	<button type="button" class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></button>
 																</div>
 																<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
 																	<div class="form-floating">
 																		<textarea class="form-control" style="height: 105px" id="descripcion-1">Pollos para pollada bailable descontando el pescuezo</textarea>
 																		<label for="descripcion-1">Descripción del ítem</label>
 																	</div>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV 50%</span></p>
 																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBP</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento 2%</span></p>
 																</div>
 																<div class="col-lg-4 col-12 align-self-center">
 																	<div class="col-lg-12 col-12 mb-2">
@@ -243,7 +261,7 @@
 																			<div class="col-5 m-0 p-0">
 																				<div class="form-check form-switch text-start">
 																					<input class="form-check-input" type="checkbox" role="switch" id="igv-1" checked>
-																					<label class="form-check-label" for="igv-1">Inc. IGV <em></em></label>
+																					<label class="form-check-label" for="igv-1">Inc. IGV</label>
 																				</div>
 																			</div>
 																			<div class="col-7 text-end p-0 m-0">
@@ -260,10 +278,16 @@
 															<div class="row position-relative mb-2">
 																<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
 																	<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-warning" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">Sin código</span></p>
-																	<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
-																		<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																	<div class="row">
+																		<div class="col-lg-12 col-6 text-lg-center text-end">
+																			<div data-bs-toggle="modal" data-bs-target="#edicionAvanzadaItem">
+																				<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																			</div>
+																		</div>
+																		<div class="col-lg-12 col-6 text-lg-center text-start">
+																			<button type="button" class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></button>
+																		</div>
 																	</div>
-																	<button type="button" class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></button>
 																</div>
 																<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
 																	<div class="form-floating">
@@ -272,7 +296,7 @@
 																	</div>
 																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-dark">IGV</span></p>
 																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBP</span></p>
 																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica descuento"><span class="badge rounded-pill text-bg-dark">Descuento</span></p>
 																</div>
 																<div class="col-lg-4 col-12 align-self-center">
@@ -319,20 +343,26 @@
 															<div class="row position-relative mb-3">
 																<div class="col-lg-1 col-12 mb-2 mb-lg-0 text-center align-self-center">
 																	<p class="m-0 text-muted mb-1"><span class="badge rounded-pill text-bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Código del ítem">COD022</span></p>
-																	<div data-bs-toggle="modal" data-bs-target="#agregarProductoAvanzado">
-																		<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																	<div class="row">
+																		<div class="col-lg-12 col-6 text-lg-center text-end">
+																			<div data-bs-toggle="modal" data-bs-target="#edicionAvanzadaItem">
+																				<button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Edición avanzada del ítem"><span data-feather="edit"></span></button>
+																			</div>
+																		</div>
+																		<div class="col-lg-12 col-6 text-lg-center text-start">
+																			<button type="button" class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></button>
+																		</div>
 																	</div>
-																	<a class="btn btn-outline-danger text-capitalize border-0"><span data-feather="trash-2"></span></a>
 																</div>
 																<div class="col-lg-7 col-12 mb-2 mb-lg-0 align-self-center">
 																	<div class="form-floating">
 																		<textarea class="form-control" style="height: 105px" id="descripcion-3">Pollos para pollada bailable descontando el pescuezo</textarea>
 																		<label for="descripcion-3">Descripción del ítem</label>
 																	</div>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica el Impuesto General a las Ventas"><span class="badge rounded-pill text-bg-info">IGV <strong>18%</strong></span></p>
 																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto Selectivo al Consumo"><span class="badge rounded-pill text-bg-dark">ISC</span></p>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBPER</span></p>
-																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="No aplica el Impuesto al Consumo de las Bolsas de Plástico"><span class="badge rounded-pill text-bg-dark">ICBP</span></p>
+																	<p class="ms-0 mb-0 me-1 text-muted mt-1 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Aplica descuento"><span class="badge rounded-pill text-bg-info">Descuento 5%</span></p>
 																</div>
 																<div class="col-lg-4 col-12 align-self-center">
 																	<div class="col-lg-12 col-12 mb-2">
@@ -425,7 +455,7 @@
 											</div>
 										</div>
 										<div class="hstack gap-2">
-											<div class="ms-auto"><span class="text-black">ICBPER&ensp;</span></div>
+											<div class="ms-auto"><span class="text-black">ICBP&ensp;</span></div>
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
@@ -455,7 +485,7 @@
 											<div class="col-lg-10 col-xl-10 col-12">
 												<p>Con métodos seguros y eficientes tus datos se procesan y almacenan en tu propio equipo.</p>
 											</div>
-											<div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center">
+											<div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center row m-0 p-0 px-3">
 												<button type="submit" class="btn btn-outline-primary text-capitalize fw-bold">Facturar</button>
 											</div>
 										</div>
@@ -468,25 +498,200 @@
 				</div>
 			</div>
 
-			<div class="modal modal-tour py-5" id="agregarProductoAvanzado">
+			<div class="modal modal-tour py-5" id="edicionAvanzadaItem">
 				<div class="modal-dialog">
 					<div class="modal-content rounded-4 shadow">
 						<div class="modal-header">
-							<h4 class="modal-title">Producto y/o servicio</h4>
+							<h4 class="modal-title">Edición avanzada del ítem</h4>
 							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 						</div>
 
 						<div class="modal-body">
 							<div class="container">
-								<div class="row">
-								</div>
-								<div class="row">
-								</div>
+								<form>
+									<div class="mb-2 row">
+										<label for="codigoItemEdicionAvanzada" class="col-sm-2 col-12 col-form-label">Código</label>
+										<div class="col-sm-10 col-12">
+											<div class="input-group">
+												<input type="search" class="form-control border text-truncate" list="listaCodigosItemsEdicionAvanzada" placeholder="Buscar o asignar código al ítem" aria-label="Guardar o buscar ítem por código" aria-describedby="buscarItem" id="codigoItemEdicionAvanzada">
+												<!--<button type="button" class="btn bg-transparent me-0 pe-0" id="eliminarTextoUnidadMedida" style="margin-left: -36px; z-index: 100;border:none; color:gray;"><span data-feather="x"></span></button> -->
+												<button class="btn btn-outline-primary" id="buscarItem"><span data-feather="search"></span></button>
+												<button class="btn btn-outline-secondary" id="guardarItem"><span data-feather="save"></span></button>
+											</div>
+											<datalist id="listaCodigosItemsEdicionAvanzada" class="border">
+												<option value="COD001">
+												<option value="RE923TT-1212">
+												<option value="99231TTqwe">
+												<option value="CRISTALOI123">
+												<option value="LAB001">
+												<option value="LAB002">
+												<option value="ZZ001">
+												<option value="COLD98-001">
+											</datalist>
+										</div>
+										<p class="col-lg-12 col-sm-12 col-12 text-start m-0 mt-1 fst-italic text-info" style="font-size:0.9em">Se usa para guardar y buscar ítems en el detalle del CPE.</p>
+									</div>
+									<hr />
+									<div class="mb-2 row">
+										<div class="col-lg-12 col-12 mb-2 mb-lg-0 align-self-center">
+											<div class="form-floating">
+												<textarea class="form-control" style="height: 105px" id="descripcionItemEdicionAvanzada">Pollos para pollada bailable descontando el pescuezo</textarea>
+												<label for="descripcionItemEdicionAvanzada">Descripción del ítem</label>
+											</div>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<label for="unidadMedidaItemEdicionAvanzada" class="col-sm-4 col-12 col-form-label">Unidad de medida</label>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<input type="search" class="form-control text-truncate" list="medidasFrecuentes" aria-label="Unidad de medida" aria-describedby="unidadMedida" id="unidadMedidaItemEdicionAvanzada">
+												<!-- <button type="button" class="btn bg-transparent me-0 pe-0" id="eliminarTextoUnidadMedida" style="margin-left: -40px; z-index: 100;border:none; color:gray;"><span data-feather="x"></span></button> -->
+												<div class="input-group-text">
+													<input class="form-check-input mt-0" type="checkbox" aria-label="Configurar el ítem como servicio" id="selectorServicio">
+													<label class="form-check-label" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Servicio" for="selectorServicio-3">&nbsp;ZZ</label>
+												</div>
+												<button class="btn btn-outline-secondary" id="guardarItem"><span data-feather="save"></span></button>
+											</div>
+										</div>
+										<datalist id="medidasFrecuentes">
+											<option value="Unidades (genérico)">
+											<option value="Unidades de servicio (genérico)">
+											<option value="Kilogramos">
+											<option value="Botellas">
+											<option value="Paquetes">
+											<option value="Galones">
+											<option value="Metro cúbico">
+											<option value="Cortes de cabello">
+											<option value="Mantemiento">
+											<option value="Limpieza">
+											<option value="Instalación">
+											<option value="Toneladas">
+											<option value="Balde">
+											<option value="Docena">
+											<option value="Gramos">
+											<option value="Metros">
+											<option value="Litros">
+											<option value="Cuerpos">
+											<option value="Cajas">
+										</datalist>
+									</div>
+									<div class="mb-2 row">
+										<label for="cantidadItemEdicionAvanzada" class="col-sm-4 col-12 col-form-label">Cantidad</label>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<input type="number" class="form-control text-truncate"  aria-label="Cantidad del ítem" aria-describedby="cantidadItemEdicionAvanzada" id="cantidadItemEdicionAvanzada" step="1" value="0">
+											</div>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<label for="valorUnitarioItemEdicionAvanzada" class="col-sm-4 col-12 col-form-label">Valor Unitario</label>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<input type="number" class="form-control text-truncate"  aria-label="Valor unitario del ítem" aria-describedby="valorUnitarioItemEdicionAvanzada" id="valorUnitarioItemEdicionAvanzada" step="0.01" value="0.00">
+											</div>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<div class="col-sm-4 col-12">
+											<label for="tipoAfectacionIGVItemEdicionAvanzada" class="col-form-label mb-0 p-0">Afectación al IGV</label>
+											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info p-0" style="font-size:0.9em"><a href="https://www.sunat.gob.pe/legislacion/superin/2017/anexoVII-117-2017.pdf" target="_blank">Más información</a></p>
+										</div>
+										<div class="col-sm-8 col-12">
+											<select class="form-control text-start form-select d-inline-block text-truncate" aria-label="Tipo de afectación al IGV">
+												<option value="10" selected>Gravado - Operación Onerosa (10)</option>
+												<option value="11">Gravado - Retiro por premio (11)</option>
+												<option value="12">Gravado - Retiro por donación (12)</option>
+												<option value="13">Gravado - Retiro (13)</option>
+												<option value="14">Gravado - Retiro por publicidad (14)</option>
+												<option value="15">Gravado - Bonificaciones (15)</option>
+												<option value="16">Gravado - Retiro por entrega a trabajadores (16)</option>
+												<option value="17">Gravado - IVAP (17)</option>
+												<option value="20">Exonerado - Operación Onerosa (20)</option>
+												<option value="21">Exonerado - Transferencia Gratuita (21)</option>
+												<option value="30">Inafecto - Operación Onerosa (30)</option>
+												<option value="31">Inafecto - Retiro por Bonificación(31)</option>
+												<option value="32">Inafecto - Retiro (32)</option>
+												<option value="33">Inafecto - Retiro por Muestras Médicas (33)</option>
+												<option value="34">Inafecto - Retiro por Convenio Colectivo (34)</option>
+												<option value="35">Inafecto - Retiro por Premio (35)</option>
+												<option value="36">Inafecto - Retiro por Publicidad (36)</option>
+												<option value="40">Exportación (40)</option>
+											</select>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<label for="IGVItemEdicionAvanzada" class="col-sm-4 col-12 col-form-label">IGV</label>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<input type="number" class="form-control text-truncate"  aria-label="Porcentaje del IGV" aria-describedby="IGVItemEdicionAvanzada" id="IGVItemEdicionAvanzada" step="1" value="18">
+												<span class="input-group-text">%</span>
+											</div>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<label for="descuentoItemEdicionAvanzada" class="col-sm-4 col-12 col-form-label">Descuento</label>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<div class="input-group-text">
+													<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Cuadro de selección para aplicar descuento">
+												</div>
+												<input type="number" class="form-control text-truncate"  aria-label="Descuento" aria-describedby="descuentoItemEdicionAvanzada" id="descuentoItemEdicionAvanzada" step="0.01" value="0.00">
+												<span class="input-group-text">%</span>
+											</div>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<div class="col-sm-4 col-12">
+											<label for="ISCItemEdicionAvanzada" class="col-form-label mb-0 p-0">ISC</label>
+											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info p-0 m-0" style="font-size:0.9em"><a href="https://www.gob.pe/7923-como-calcular-el-impuesto-selectivo-al-consumo-isc" target="_blank">Más información</a></p>
+										</div>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<div class="input-group-text">
+													<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Cuadro de selección para aplicar descuento">
+												</div>
+												<select class="input-group-text form-select m-0 p-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Se puede aplicar un monto fijo o porcentual" aria-label="Formato">
+													<option value="0" selected>S/</option>
+													<option value="1">%</option>
+												</select>
+												<input type="number" class="form-control text-truncate"  aria-label="Valor del ISC" aria-describedby="ISCItemEdicionAvanzada" id="ISCItemEdicionAvanzada" step="1" value="0.00">
+											</div>
+											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info" style="font-size:0.9em">Aplica por unidad.</p>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<div class="col-sm-4 col-12">
+											<label for="ICBPItemEdicionAvanzada" class="col-form-label mb-0 p-0">ICBP</label>
+											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info m-0 p-0" style="font-size:0.9em"><a href="https://www.gob.pe/7941" target="_blank">Más información</a></p>
+										</div>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<div class="input-group-text">
+													<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Cuadro de selección para aplicar descuento">
+												</div>
+												<span class="input-group-text">S/</span>
+												<input type="number" class="form-control text-truncate"  aria-label="Valor del ICBP" aria-describedby="ICBPItemEdicionAvanzada" id="ICBPItemEdicionAvanzada" step="1" value="0.40" disabled>
+											</div>
+											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info" style="font-size:0.9em">Aplica por cada bolsa de plástico.</p>
+										</div>
+									</div>
+									<div class="mb-2 row">
+										<div class="col-sm-4 col-12">
+											<label for="importeTotalItemEdicionAvanzada" class="col-form-label mb-0 p-0">Importe total</label>
+										</div>
+										<div class="col-sm-8 col-12">
+											<div class="input-group">
+												<span class="input-group-text">S/</span>
+												<input type="number" class="form-control text-truncate"  aria-label="Importe total del ítem" aria-describedby="importeTotalItemEdicionAvanzada" id="importeTotalItemEdicionAvanzada" value="100.00" disabled>
+											</div>
+										</div>
+									</div>
+								</form>
 							</div>
 						</div>
 
-						<div class="modal-footer">
-							<button type="button" class="btn btn-outline-primary">Guardar</button>
+						<div class="modal-footer row m-0 mx-5">
+							<button type="button" class="btn btn-outline-primary m-0">Guardar</button>
 						</div>
 					</div>
 				</div>
@@ -513,5 +718,4 @@
 			feather.replace()
 		</script>
 	</body>
-
 </html>
