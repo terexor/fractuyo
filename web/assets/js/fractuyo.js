@@ -11,23 +11,37 @@ var app, fractuyo
  */
 var Fractuyo = function() {
 	var globalDirHandle
-	var passcode, storage
+	var passcode, storage, /*current*/company
 
 	this.chooseDirHandle = async function() {
 		globalDirHandle = await window.showDirectoryPicker()
 	}
 
-	this.setDirHandle = function(dirHandler) {
+	this.setDirHandle = async function(dirHandler) {
 		if(dirHandler instanceof FileSystemDirectoryHandle) {
 			globalDirHandle = dirHandler
-			return
+
+			//https://stackoverflow.com/a/66500919
+			const options = {
+				mode: "readwrite"
+			}
+			// Check if permission was already granted. If so, return true.
+			if((await globalDirHandle.queryPermission(options)) === "granted") {
+				return true
+			}
+			// Request permission. If the user grants permission, return true.
+			if ((await globalDirHandle.requestPermission(options)) === "granted") {
+				return true
+			}
+			// The user didn't grant permission, so return false.
+			return false
 		}
 
 		throw new Error("No es directorio.")
 	}
 
 	/**
-	 * View if everything needed is inside.
+	 * View if everything needed is inside and load it.
 	 */
 	this.checkDirHandle = async function(ruc) {
 		let fileHandle, file, content
@@ -57,7 +71,19 @@ var Fractuyo = function() {
 			return
 		}
 
-		let data = ruc + form.elements.nombre.value.trim()
+		const name = form.elements.nombre.value.trim()
+		const address = form.elements.direccion.value.trim()
+		const solUser = form.elements.usuario.value.trim()
+		const solPass = form.elements.clave.value.trim()
+		const cer = form.elements.cert.value.trim()
+		const key = form.elements.key.value.trim()
+
+		//Getting size and appending using 16 bits (x6) after RUC
+		const sizes = String.fromCharCode(name.length, address.length, solUser.length, solPass.length, cer.length, key.length)
+
+		const data = ruc
+			+ sizes
+			+ name + address + solUser + solPass + cer + key
 
 		await Notiflix.Confirm.prompt(
 			"Seguridad de datos",
@@ -65,9 +91,8 @@ var Fractuyo = function() {
 			"Guardar", "Cancelar",
 			async (pin) => {
 				await passcode.setupPasscode(pin)
-				let encryptedRuc = await passcode.encryptSession(ruc)
 				const oSession = {
-					ruc: encryptedRuc,
+					ruc: ruc,
 					dir: globalDirHandle
 				}
 				storage.add(oSession)
@@ -92,6 +117,7 @@ var Fractuyo = function() {
 	this.init = function() {
 		passcode = new Passcode()
 		storage = new Storage(this)
+		company = new Company()
 	}
 
 	var block = function(count) {
@@ -127,8 +153,38 @@ var Fractuyo = function() {
 
 		const writable = await fileHandle.createWritable()
 
-		await writable.write("<contenido XML></contenido XML>")
+		await writable.write("<contenidoXML></contenidoXML>")
 		await writable.close()
+	}
+
+	this.unlock = async function(form) {
+		passcode.setupPasscode(form.elements.clave.value.trim())
+		await storage.read(form.elements.ruc.value.trim())
+	}
+
+	this.handleUnlocked = async function(event) {
+		if(event.target.result) {
+			try {
+				await fractuyo.setDirHandle(event.target.result.dir)
+				const encryptedData = await fractuyo.checkDirHandle()
+				await passcode.decryptSession(encryptedData)
+
+				const decryptedSession = passcode.getDataSession()
+				company.setRuc(decryptedSession.substring(0, 11))
+				Notiflix.Notify.success("Desencriptado para " + company.getRuc())
+			}
+			catch(e) {
+				Notiflix.Notify.failure("Intento incorrecto")
+				console.error(e)
+			}
+		}
+		else {
+			Notiflix.Notify.warning("No hay datos.")
+		}
+	}
+
+	this.viewData = function() {
+		return passcode.getDataSession()
 	}
 }
 
@@ -161,6 +217,29 @@ window.onload = function() {
 	})
 }
 
+var Company = function() {
+	var name, ruc
+
+	this.setName = function(n) {
+		name = n
+	}
+
+	this.setRuc = function(r) {
+		if(validateRuc(r)) {
+			ruc = r
+			return
+		}
+		throw new Error("RUC inconsistente.")
+	}
+
+	this.getRuc = function() {
+		return ruc
+	}
+
+	this.clearData = function() {
+		name = ruc = null
+	}
+}
 /**
  * For managing encrypted "sessions".
  * @ref https://www.tutorialspoint.com/html5/html5_indexeddb.htm
@@ -187,9 +266,8 @@ var Storage = function(fractuyo) {
 	}
 
 	this.add = function(oSession) {
-		var request = db.transaction(["session"], "readwrite")
+		const request = db.transaction(["session"], "readwrite")
 			.objectStore("session")
-			//~ .add({ ruc: "20606...", dir: FileHandler })
 			.add(oSession)
 
 		request.onsuccess = function(event) {
@@ -201,31 +279,15 @@ var Storage = function(fractuyo) {
 		}
 	}
 
-	this.readAll = async function(oPasscode, passcode, ruc) {
-		let objectStore = db.transaction("session").objectStore("session");
-		objectStore.openCursor().onsuccess = async function(event) {
-			let cursor = event.target.result
+	this.read = async function(ruc) {
+		let objectStore = db.transaction(["session"]).objectStore("session")
+		let request = objectStore.get(ruc)
 
-			if(cursor) {
-				try {
-					fractuyo.setDirHandle(cursor.dir)
-					const dataEncrypted = await fractuyo.checkDirHandle(ruc)
-					const isDecrypted = await oPasscode.decryptSession(passcode, ruc, dataEncrypted)
-
-					if( isDecrypted ) {
-						return
-					}
-					cursor.continue()
-				}
-				catch(e) {
-					//There's no directory or data inside is wrong
-					Notiflix.Report.failure("Error de directorio", "Hay inconsistencias de datos y se ha detenido la operación", "Aceptar")
-				}
-			}
-			else {
-				return null
-			}
+		request.onerror = function(event) {
+			alert("Unable to retrieve data from database!");
 		}
+
+		request.onsuccess = fractuyo.handleUnlocked
 	}
 
 	this.countRegisters = function(fnFull, fnEmpty) {
@@ -244,7 +306,14 @@ var Storage = function(fractuyo) {
 		}
 	}
 
-	this.remove = function() {
+	this.remove = function(ruc) {
+		const request = db.transaction(["session"], "readwrite")
+			.objectStore("session")
+			.delete(ruc)
+
+		request.onsuccess = function(event) {
+			Notiflix.Notify.success("Directorio y RUC de " + ruc + " quitados.")
+		}
 	}
 }
 
@@ -270,18 +339,10 @@ var Passcode = function() {
 	 * @ruc
 	 * @dataEncrypted is all serialized data needed.
 	 */
-	this.decryptSession = async function(passcode, ruc, dataEncrypted) {
-		const passcodeHash = await sha256(passcode)
-		currentPasscodeHash = passcodeHash
+	this.decryptSession = async function(dataEncrypted) {
+		const decryptedData = await aesDecrypt(dataEncrypted, currentPasscodeHash)
 
-		const decryptedRuc = await aesDecrypt(dataEncrypted, passcodeHash)
-		if( validateRuc( decryptedRuc ) && ruc == decryptedRuc ) {
-			return false
-		}
-
-		const decryptedData = await aesDecrypt(dataEncrypted, passcodeHash)
 		dataSession = decryptedData
-		return true
 	}
 
 	this.getDataSession = function() {
@@ -320,11 +381,10 @@ var Passcode = function() {
 	var aesDecrypt = async function(data, pwHash) {
 		const dataArray = new Uint8Array(data)
 		const iv = dataArray.slice(0, IV_LENGTH)
-		const alg = { name: 'AES-GCM', iv }
-		const key = await crypto.subtle.importKey('raw', pwHash, alg, false, ['decrypt'])
+		const alg = { name: "AES-GCM", iv }
+		const key = await crypto.subtle.importKey("raw", pwHash, alg, false, ["decrypt"])
 		const ct = dataArray.slice(IV_LENGTH)
 		const plainBuffer = await crypto.subtle.decrypt(alg, key, ct)
-
 		return new TextDecoder().decode(plainBuffer)
 	}
 }
