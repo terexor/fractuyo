@@ -145,6 +145,8 @@ var Fractuyo = function() {
 		const invoice = new Invoice()
 		invoice.setSerie("F001")
 		invoice.setNumeration(7357)
+		invoice.toXml()
+		invoice.sign(company.getCert(), company.getKey())
 		// Find directory structure
 		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
@@ -162,6 +164,31 @@ var Fractuyo = function() {
 		await storage.read(form.elements.ruc.value.trim())
 	}
 
+	var populateCompanyData = function(decryptedSession) {
+		let sizeIndex = 11 //We start position after RUC
+		let startCutter = 0, endCutter = 11 //substring range
+
+		company.setRuc(decryptedSession.substring(startCutter, endCutter))
+		startCutter += 17
+		endCutter = startCutter + decryptedSession.charCodeAt(sizeIndex)
+		company.setName(decryptedSession.substring(startCutter, endCutter))
+		startCutter = endCutter
+		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
+		company.setAddress(decryptedSession.substring(startCutter, endCutter))
+		startCutter = endCutter
+		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
+		company.setSolUser(decryptedSession.substring(startCutter, endCutter))
+		startCutter = endCutter
+		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
+		company.setSolPass(decryptedSession.substring(startCutter, endCutter))
+		startCutter = endCutter
+		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
+		company.setCert(decryptedSession.substring(startCutter, endCutter))
+		startCutter = endCutter
+		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
+		company.setKey(decryptedSession.substring(startCutter, endCutter))
+	}
+
 	this.handleUnlocked = async function(event) {
 		if(event.target.result) {
 			try {
@@ -169,9 +196,9 @@ var Fractuyo = function() {
 				const encryptedData = await fractuyo.checkDirHandle()
 				await passcode.decryptSession(encryptedData)
 
-				const decryptedSession = passcode.getDataSession()
-				company.setRuc(decryptedSession.substring(0, 11))
-				Notiflix.Notify.success("Desencriptado para " + company.getRuc())
+				populateCompanyData(passcode.getDataSession())
+
+				Notiflix.Notify.success("Desencriptado para " + company.getName())
 			}
 			catch(e) {
 				Notiflix.Notify.failure("Intento incorrecto")
@@ -219,6 +246,13 @@ window.onload = function() {
 
 var Company = function() {
 	var name, ruc
+	var cert, key
+	var solUser, solPass
+	var address
+
+	this.getName = function() {
+		return name
+	}
 
 	this.setName = function(n) {
 		name = n
@@ -236,8 +270,36 @@ var Company = function() {
 		return ruc
 	}
 
+	this.setCert = function(c) {
+		cert = c
+	}
+
+	this.getKey = function() {
+		return key
+	}
+
+	this.getKey = function() {
+		return key
+	}
+
+	this.setKey = function(k) {
+		key = k
+	}
+
+	this.setSolUser = function(su) {
+		solUser = su
+	}
+
+	this.setSolPass = function(sp) {
+		solPass = sp
+	}
+
+	this.setAddress = function(a) {
+		address = a
+	}
+
 	this.clearData = function() {
-		name = ruc = null
+		name = ruc = cert = key = null
 	}
 }
 /**
@@ -514,49 +576,47 @@ var Invoice = function() {
 		console.log( new XMLSerializer().serializeToString(xmlDocument) )
 	}
 
-	this.sign = async function() {
+	this.sign = async function(certPem, keyPem, algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
-		const alg = getAlgorithm();
+		const alg = getAlgorithm(algorithmName)
 
 		// Read cert
-		const certPem = document.getElementById("cert").value
 		const certDer = pem2der(certPem)
 
 		// Read key
-		const keyPem = document.getElementById("pkey").value
-		const keyDer = pem2der(keyPem);
-		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"]);
+		const keyDer = pem2der(keyPem)
+		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = preparePem(certPem);
+		const x509 = preparePem(certPem)
 
-		var transforms = [];
-		if (isEnveloped())
-			transforms.push("enveloped");
-		transforms.push(getCanonMethod());
-		console.log(transforms);
+		const transforms = []
+		if (isEnveloped) {
+			transforms.push("enveloped")
+		}
+		transforms.push(canonMethod)
 
 		Promise.resolve()
 			.then(function () {
-				return generateKey(alg);
+				return crypto.subtle.generateKey(alg, false, ["sign", "verify"])
 			})
 			.then(function () {
-				const signature = new XAdES.SignedXml();
+				const signature = new XAdES.SignedXml()
 
 				return signature.Sign(
 					alg,        // algorithm
 					key,        // key
 					xmlDocument,// document
-					{                                       // options
-						//~ keyValue: useKeyValue() ? keys.publicKey : void 0,
+					{           // options
 						references: [
-							{ uri: "", hash: getHashAlgorithm(), transforms: transforms }
+							{ uri: "", hash: hashAlgorithm, transforms: transforms }
 						],
 						x509: [x509],
 						//~ signerRole: { claimed: ["BOSS"] },
 						signingCertificate: x509
-					});
+					}
+				)
 			})
 			.then(function (signature) {
 				// Add signature to document
@@ -565,8 +625,8 @@ var Invoice = function() {
 				console.log(new XMLSerializer().serializeToString(xmlDocument))
 			})
 			.catch(function (e) {
-				console.error(e);
-			});
+				console.error(e)
+			})
 	}
 }
 
@@ -604,19 +664,6 @@ function validateRuc(ruc) {
 	return false
 }
 
-async function revisarSesion() {
-	await Notiflix.Confirm.prompt(
-		"Seguridad de datos",
-		"Escribe contraseña nueva", "",
-		"Descifrar", "Cancelar",
-		async (pin) => {
-			let encryptedRuc = _base64ToArrayBuffer( window.localStorage.getItem("ruc") )
-			let decryptedRuc = await passcode.decryptSession(pin, encryptedRuc)
-			debugger
-		}
-	)
-}
-
 //https://stackoverflow.com/a/9458996
 function _arrayBufferToBase64( buffer ) {
 	var binary = '';
@@ -636,4 +683,49 @@ function _base64ToArrayBuffer(base64) {
 		bytes[i] = binary_string.charCodeAt(i);
 	}
 	return bytes.buffer;
+}
+
+function preparePem(pem) {
+	return pem
+		// remove BEGIN/END
+		.replace(/-----(BEGIN|END)[\w\d\s]+-----/g, "")
+		// remove \r, \n
+		.replace(/[\r\n]/g, "")
+}
+
+function pem2der(pem) {
+	pem = preparePem(pem)
+	// convert base64 to ArrayBuffer
+	return _base64ToArrayBuffer(pem)
+}
+
+function getAlgorithm(name) {
+	var alg = {};
+	switch (name) {
+		case "rsapss":
+			alg = {
+				name: "RSA-PSS",
+				hash: "SHA-256",
+				modulusLength: 1024,
+				publicExponent: new Uint8Array([1, 0, 1]),
+				saltLength: 32
+			}
+			break
+		case "ecdsa":
+			alg = {
+				name: "ECDSA",
+				hash: "SHA-256",
+				namedCurve: "P-256"
+			}
+			break
+		case "rsassa":
+		default:
+			alg = {
+				name: "RSASSA-PKCS1-v1_5",
+				hash: "SHA-256",
+				modulusLength: 1024,
+				publicExponent: new Uint8Array([1, 0, 1])
+			}
+	}
+	return alg
 }
