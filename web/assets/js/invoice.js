@@ -1,0 +1,222 @@
+var Invoice = function(company) {
+	var items = Array()
+	var numeration, serie
+	var typeCode, orderReference
+
+	var paymentTerms = Array()
+
+	this.ublVersion = "2.1"
+	this.customizationId = "2.0"
+
+	var xmlDocument
+
+	/**
+	 * Format serie and number: F000-00000001
+	 */
+	this.getId = function() {
+		if(serie == undefined || numeration == undefined) {
+			throw new Error("Serie o número incompletos.")
+		}
+		return serie + '-' + String(numeration).padStart(8, '0')
+	}
+
+	this.addPaymentTerm = function(paymentTerm) {
+		paymentTerms.push(paymentTerm)
+	}
+
+	this.setUblVersion = function(ublVersion) {
+		this.ublVersion = ublVersion
+	}
+
+	this.setSerie = function(_serie) {
+		if(_serie.length != 4) {
+			throw new Error("Serie inconsistente")
+		}
+		serie = _serie
+	}
+
+	this.setNumeration = function(number) {
+		if(number > 0x5F5E0FF) {
+			throw new Error("Numeración supera el límite.")
+		}
+		numeration = number
+	}
+
+	this.setId = function(serie, numeration) {
+		this.setSerie(serie)
+		this.setNumeration(numeration)
+	}
+
+	this.setTypeCode = function(code) {
+		typeCode = code
+	}
+
+	this.addItem = function(item) {
+		items.push(item)
+	}
+
+	this.getXml = function() {
+		if(xmlDocument == undefined) {
+			throw new Error("XML no creado.")
+		}
+		return xmlDocument
+	}
+
+	this.setOrderReference = function(reference) {
+		orderReference = reference
+	}
+
+	this.toXml = function() {
+		//We create elements using this: xmlDocument.createElement
+		xmlDocument = document.implementation.createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
+		xmlDocument.documentElement.setAttribute("xmlns:cac", namespaces.cac)
+		xmlDocument.documentElement.setAttribute("xmlns:cbc", namespaces.cbc)
+		xmlDocument.documentElement.setAttribute("xmlns:ds", namespaces.ds)
+		xmlDocument.documentElement.setAttribute("xmlns:ext", namespaces.ext)
+
+		const extUblExtensions = xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtensions")
+		xmlDocument.documentElement.appendChild(extUblExtensions)
+
+		const extUblExtension = xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtension")
+		extUblExtensions.appendChild(extUblExtension)
+
+		const extExtensionContent = xmlDocument.createElementNS(namespaces.ext, "ext:ExtensionContent")
+		extUblExtension.appendChild(extExtensionContent)
+
+		const cbcUblVersionId = xmlDocument.createElementNS(namespaces.cbc, "cbc:UBLVersionID")
+		cbcUblVersionId.appendChild( document.createTextNode(this.ublVersion) )
+		xmlDocument.documentElement.appendChild(cbcUblVersionId)
+
+		const cbcCustomizationId = xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomizationID")
+		cbcCustomizationId.appendChild( document.createTextNode(this.customizationId) )
+		xmlDocument.documentElement.appendChild(cbcCustomizationId)
+
+		const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+		cbcId.appendChild( document.createTextNode(this.getId()) )
+		xmlDocument.documentElement.appendChild(cbcId)
+
+		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
+		cbcInvoiceTypeCode.setAttribute("listID", "0101")
+		cbcInvoiceTypeCode.appendChild( document.createTextNode(typeCode) )
+		xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+
+		if(orderReference) {
+			const cacOrderReference = xmlDocument.createElementNS(namespaces.cac, "cac:OrderReference")
+			xmlDocument.documentElement.appendChild(cacOrderReference)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.appendChild( document.createTextNode(orderReference) )
+			cacOrderReference.appendChild(cbcId)
+		}
+
+		{ //Signer data
+			const cacSignature = xmlDocument.createElementNS(namespaces.cbc, "cac:Signature")
+			xmlDocument.documentElement.appendChild(cacSignature)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cacSignature.appendChild(cbcId)
+
+			{
+				const cacSignatoreParty = xmlDocument.createElementNS(namespaces.cac, "cac:SignatoreParty")
+				cacSignature.appendChild(cacSignatoreParty)
+
+				const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
+				cacSignatoreParty.appendChild(cacPartyIdentification)
+
+				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcId.appendChild( document.createTextNode(company.getRuc()) )
+				cacPartyIdentification.appendChild(cbcId)
+
+				const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
+				cacSignatoreParty.appendChild(cacPartyName)
+
+				const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+				cbcName.appendChild( document.createTextNode(company.getName(true)) )
+				cacPartyName.appendChild(cbcName)
+			}
+		}
+		{ //Supplier (current company)
+			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cbc, "cac:AccountingSupplierParty")
+			xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
+
+			const cacParty = xmlDocument.createElementNS(namespaces.cbc, "cac:Party")
+			cacAccountingSupplierParty.appendChild(cacParty)
+
+			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyIdentification)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.setAttribute("schemeID", "6")
+			cbcId.setAttribute("schemeName", "PE:SUNAT")
+			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyName = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyName")
+			cacParty.appendChild(cacPartyName)
+		}
+	}
+
+	this.sign = async function(algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+		if(xmlDocument == undefined) {
+			throw new Error("Documento XML no existe.")
+		}
+		const alg = getAlgorithm(algorithmName)
+
+		// Read cert
+		const certDer = pem2der(company.getCert())
+
+		// Read key
+		const keyDer = pem2der(company.getKey())
+		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
+
+		const x509 = preparePem(company.getCert())
+
+		const transforms = []
+		if(isEnveloped) {
+			transforms.push("enveloped")
+		}
+		transforms.push(canonMethod)
+
+		return Promise.resolve()
+			.then(function () {
+				const signature = new XAdES.SignedXml()
+
+				return signature.Sign(
+					alg,        // algorithm
+					key,        // key
+					xmlDocument,// document
+					{           // options
+						references: [
+							{ uri: "", hash: hashAlgorithm, transforms: transforms }
+						],
+						x509: [x509],
+						//~ signerRole: { claimed: ["BOSS"] },
+						signingCertificate: x509
+					}
+				)
+			})
+			.then(function(signature) {
+				// Add signature to document
+				const xmlEl = xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
+				xmlEl.appendChild(signature.GetXml())
+				return true
+			})
+			.catch(function (e) {
+				console.error(e)
+				return false
+			})
+	}
+}
+
+var PaymentTerm = function() {
+}
+
+var Item = function(_description) {
+	var description = _description
+
+	this.getDescription = function() {
+		return `<![CDATA[ ${description} ]]>`
+	}
+}
