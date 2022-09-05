@@ -132,7 +132,7 @@ var Fractuyo = function() {
 		)
 	}
 
-	this.createInvoice = async function() {
+	this.createInvoice = async function(formulario) {
 		if(globalDirHandle == undefined) {
 			Notiflix.Report.warning(
 				"Falta directorio",
@@ -142,11 +142,13 @@ var Fractuyo = function() {
 			return
 		}
 
-		const invoice = new Invoice()
-		invoice.setSerie("F001")
+		const invoice = new Invoice(company)
+		invoice.setSerie(formulario.elements["serie"].value)
+		invoice.setTypeCode(formulario.elements["type-code"].value)
 		invoice.setNumeration(7357)
+		invoice.setOrderReference("11")
 		invoice.toXml()
-		invoice.sign(company.getCert(), company.getKey())
+		await invoice.sign()
 		// Find directory structure
 		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
@@ -155,8 +157,15 @@ var Fractuyo = function() {
 
 		const writable = await fileHandle.createWritable()
 
-		await writable.write("<contenidoXML></contenidoXML>")
+		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
 		await writable.close()
+	}
+
+	this.lock = function() {
+		company.clearData()
+		document.getElementById("company-tag").textContent = "Nombre encriptado"
+		document.getElementById("ruc-tag").textContent = "RUC encriptado"
+		app.navigate("/bloqueo")
 	}
 
 	this.unlock = async function(form) {
@@ -187,6 +196,10 @@ var Fractuyo = function() {
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
 		company.setKey(decryptedSession.substring(startCutter, endCutter))
+
+		//Modify in view
+		document.getElementById("company-tag").textContent = company.getName()
+		document.getElementById("ruc-tag").textContent = company.getRuc()
 	}
 
 	this.handleUnlocked = async function(event) {
@@ -199,6 +212,8 @@ var Fractuyo = function() {
 				populateCompanyData(passcode.getDataSession())
 
 				Notiflix.Notify.success("Desencriptado para " + company.getName())
+
+				app.navigate("/")
 			}
 			catch(e) {
 				Notiflix.Notify.failure("Intento incorrecto")
@@ -250,8 +265,8 @@ var Company = function() {
 	var solUser, solPass
 	var address
 
-	this.getName = function() {
-		return name
+	this.getName = function(withCdata = false) {
+		return withCdata ? `<![CDATA[ ${name} ]]>` : name
 	}
 
 	this.setName = function(n) {
@@ -272,6 +287,10 @@ var Company = function() {
 
 	this.setCert = function(c) {
 		cert = c
+	}
+
+	this.getCert = function() {
+		return cert
 	}
 
 	this.getKey = function() {
@@ -462,7 +481,7 @@ var Item = function(_description) {
 	}
 }
 
-var Invoice = function() {
+var Invoice = function(company) {
 	var items = Array()
 	var numeration, serie
 	var typeCode, orderReference
@@ -547,60 +566,103 @@ var Invoice = function() {
 		const extExtensionContent = xmlDocument.createElementNS(namespaces.ext, "ext:ExtensionContent")
 		extUblExtension.appendChild(extExtensionContent)
 
-		const cbcUblVersionId = xmlDocument.createElementNS(namespaces.ext, "cbc:UBLVersionID")
+		const cbcUblVersionId = xmlDocument.createElementNS(namespaces.cbc, "cbc:UBLVersionID")
 		cbcUblVersionId.appendChild( document.createTextNode(this.ublVersion) )
 		xmlDocument.documentElement.appendChild(cbcUblVersionId)
 
-		const cbcCustomizationId = xmlDocument.createElementNS(namespaces.ext, "cbc:CustomizationID")
+		const cbcCustomizationId = xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomizationID")
 		cbcCustomizationId.appendChild( document.createTextNode(this.customizationId) )
 		xmlDocument.documentElement.appendChild(cbcCustomizationId)
 
-		const cbcId = xmlDocument.createElementNS(namespaces.ext, "cbc:ID")
+		const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 		cbcId.appendChild( document.createTextNode(this.getId()) )
 		xmlDocument.documentElement.appendChild(cbcId)
 
-		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.ext, "cbc:InvoiceTypeCode")
+		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
 		cbcInvoiceTypeCode.setAttribute("listID", "0101")
 		cbcInvoiceTypeCode.appendChild( document.createTextNode(typeCode) )
 		xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 
 		if(orderReference) {
-			const cacOrderReference = xmlDocument.createElementNS(namespaces.ext, "cac:OrderReference")
+			const cacOrderReference = xmlDocument.createElementNS(namespaces.cac, "cac:OrderReference")
 			xmlDocument.documentElement.appendChild(cacOrderReference)
 
-			const cbcId = xmlDocument.createElementNS(namespaces.ext, "cbc:ID")
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 			cbcId.appendChild( document.createTextNode(orderReference) )
 			cacOrderReference.appendChild(cbcId)
 		}
 
-		console.log( new XMLSerializer().serializeToString(xmlDocument) )
+		{ //Signer data
+			const cacSignature = xmlDocument.createElementNS(namespaces.cbc, "cac:Signature")
+			xmlDocument.documentElement.appendChild(cacSignature)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cacSignature.appendChild(cbcId)
+
+			{
+				const cacSignatoreParty = xmlDocument.createElementNS(namespaces.cac, "cac:SignatoreParty")
+				cacSignature.appendChild(cacSignatoreParty)
+
+				const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
+				cacSignatoreParty.appendChild(cacPartyIdentification)
+
+				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcId.appendChild( document.createTextNode(company.getRuc()) )
+				cacPartyIdentification.appendChild(cbcId)
+
+				const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
+				cacSignatoreParty.appendChild(cacPartyName)
+
+				const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+				cbcName.appendChild( document.createTextNode(company.getName(true)) )
+				cacPartyName.appendChild(cbcName)
+			}
+		}
+		{ //Supplier (current company)
+			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cbc, "cac:AccountingSupplierParty")
+			xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
+
+			const cacParty = xmlDocument.createElementNS(namespaces.cbc, "cac:Party")
+			cacAccountingSupplierParty.appendChild(cacParty)
+
+			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyIdentification)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.setAttribute("schemeID", "6")
+			cbcId.setAttribute("schemeName", "PE:SUNAT")
+			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyName = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyName")
+			cacParty.appendChild(cacPartyName)
+		}
 	}
 
-	this.sign = async function(certPem, keyPem, algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+	this.sign = async function(algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
 		const alg = getAlgorithm(algorithmName)
 
 		// Read cert
-		const certDer = pem2der(certPem)
+		const certDer = pem2der(company.getCert())
 
 		// Read key
-		const keyDer = pem2der(keyPem)
+		const keyDer = pem2der(company.getKey())
 		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = preparePem(certPem)
+		const x509 = preparePem(company.getCert())
 
 		const transforms = []
-		if (isEnveloped) {
+		if(isEnveloped) {
 			transforms.push("enveloped")
 		}
 		transforms.push(canonMethod)
 
-		Promise.resolve()
-			.then(function () {
-				return crypto.subtle.generateKey(alg, false, ["sign", "verify"])
-			})
+		return Promise.resolve()
 			.then(function () {
 				const signature = new XAdES.SignedXml()
 
@@ -618,14 +680,15 @@ var Invoice = function() {
 					}
 				)
 			})
-			.then(function (signature) {
+			.then(function(signature) {
 				// Add signature to document
 				const xmlEl = xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
 				xmlEl.appendChild(signature.GetXml())
-				console.log(new XMLSerializer().serializeToString(xmlDocument))
+				return true
 			})
 			.catch(function (e) {
 				console.error(e)
+				return false
 			})
 	}
 }
@@ -655,7 +718,7 @@ function validateRuc(ruc) {
 			currentFactor = 2
 		}
 
-		sum +=  currentFactor * parseInt( ruc.charAt(i) )
+		sum += currentFactor * parseInt( ruc.charAt(i) )
 	}
 
 	if( ( 11 - ( sum % 11 ) ) % 10 == parseInt(ruc.charAt(10)) ) {
@@ -666,21 +729,21 @@ function validateRuc(ruc) {
 
 //https://stackoverflow.com/a/9458996
 function _arrayBufferToBase64( buffer ) {
-	var binary = '';
-	var bytes = new Uint8Array( buffer );
-	var len = bytes.byteLength;
+	var binary = ''
+	var bytes = new Uint8Array( buffer )
+	var len = bytes.byteLength
 	for (var i = 0; i < len; i++) {
-		binary += String.fromCharCode( bytes[ i ] );
+		binary += String.fromCharCode( bytes[ i ] )
 	}
-	return window.btoa( binary );
+	return window.btoa( binary )
 }
 
 function _base64ToArrayBuffer(base64) {
-	var binary_string = window.atob(base64);
-	var len = binary_string.length;
-	var bytes = new Uint8Array(len);
+	var binary_string = window.atob(base64)
+	var len = binary_string.length
+	var bytes = new Uint8Array(len)
 	for (var i = 0; i < len; i++) {
-		bytes[i] = binary_string.charCodeAt(i);
+		bytes[i] = binary_string.charCodeAt(i)
 	}
 	return bytes.buffer;
 }

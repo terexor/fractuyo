@@ -13,18 +13,17 @@
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/senna@2.7.9/build/senna.css" rel="stylesheet">
 		<link href="/assets/css/fractuyo.css" rel="stylesheet">
 	</head>
-
 	<body>
-		<main id="lienzo">
+		<main>
 			<div class="container-fluid">
 				<div class="row">
 					<nav class="navbar bg-light fixed-top">
 						<div class="container-fluid">
-							<a class="navbar-brand text-muted" href="#">
+							<a class="navbar-brand text-muted" href="/">
 								<img src="/assets/images/logo-bootstrap.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
 								<strong> FracTuyo</strong>
 							</a>
-							<a class="btn btn-outline-secondary text-capitalize border-0"><span data-feather="unlock"></span></a>
+							<button class="btn btn-outline-secondary text-capitalize border-0" onclick="fractuyo.lock()" type="button"><span data-feather="unlock"></span></button>
 							<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
 								<span class="navbar-toggler-icon"></span>
 							</button>
@@ -34,39 +33,39 @@
 									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 								</div>
 								<div class="offcanvas-body">
-									<ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
-										<li class="nav-item text-center pb-auto">
-											<span data-feather="user"></span>
-											<strong class="nav-link fw-bold pb-0" id="usuario-tag">Demonio</strong>
-										</li>
-										<li class="nav-item text-center">
-											<a class="nav-link disable pt-0" href="#"><em class="text-info" id="correo-tag">demo@demonio.pe</em></a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link" aria-current="page" href="/"><span data-feather="home"></span> Inicio</a>
-										</li>
-										<li class="nav-item dropdown">
-											<a class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false"><span data-feather="table"></span> <strong>Facturar</strong></a>
-											<ul class="dropdown-menu dropdown-menu-ligth">
-												<li><a class="dropdown-item" href="/">Sub menú</a></li>
-											</ul>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link" aria-current="page" href="/configuracion"><span data-feather="home"></span> Configuración</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link text-danger" aria-current="page" href=""><span data-feather="log-out"></span> Salir</a>
-										</li>
-									</ul>
+									<div class="text-center pb-auto">
+										<span data-feather="user"></span>
+										<strong class="nav-link fw-bold pb-0" id="company-tag">Nombre no asignado</strong>
+										<em class="text-info" id="ruc-tag">RUC no asignado</em>
+									</div>
+									<div id="navegador">
+										<ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+											<li class="nav-item">
+												<a class="nav-link" aria-current="page" href="/"><span data-feather="home"></span> Inicio</a>
+											</li>
+											<li class="nav-item dropdown">
+												<a class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false"><span data-feather="table"></span> <strong>Facturar</strong></a>
+												<ul class="dropdown-menu dropdown-menu-ligth">
+													<li><a class="dropdown-item" href="/">Sub menú</a></li>
+												</ul>
+											</li>
+											<li class="nav-item">
+												<a class="nav-link" aria-current="page" href="/configuracion"><span data-feather="home"></span> Configuración</a>
+											</li>
+											<li class="nav-item">
+												<a class="nav-link text-danger" aria-current="page" href=""><span data-feather="log-out"></span> Salir</a>
+											</li>
+										</ul>
+									</div>
 								</div>
 							</div>
 						</div>
 					</nav>
 				</div>
 				<div class="row mt-5">
-					<div class="container-fluid my-3">
+					<div class="container-fluid my-3" id="lienzo">
 						<div class="card">
-							<div class="card-header">Configuración del sistema</div>
+							<div class="card-header">Desbloquear datos</div>
 							<div class="card-body">
 								<form onsubmit="fractuyo.unlock(this);return false">
 									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required />
