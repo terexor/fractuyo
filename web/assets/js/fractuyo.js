@@ -3,7 +3,7 @@
  */
 var Fractuyo = function() {
 	var globalDirHandle
-	var passcode, storage, /*current*/company
+	var passcode, storage, taxpayer
 
 	this.chooseDirHandle = async function() {
 		globalDirHandle = await window.showDirectoryPicker()
@@ -109,7 +109,7 @@ var Fractuyo = function() {
 	this.init = function() {
 		passcode = new Passcode()
 		storage = new Storage(this)
-		company = new Company()
+		taxpayer = new Taxpayer()
 	}
 
 	var block = function(count) {
@@ -134,7 +134,10 @@ var Fractuyo = function() {
 			return
 		}
 
-		const invoice = new Invoice(company)
+		const customer = new Person()
+		customer.setName(formulario.elements["customer-name"].value.trim())
+
+		const invoice = new Invoice(taxpayer, customer)
 		invoice.setSerie(formulario.elements["serie"].value)
 		invoice.setTypeCode(formulario.elements["type-code"].value)
 		invoice.setNumeration(7357)
@@ -154,7 +157,7 @@ var Fractuyo = function() {
 	}
 
 	this.lock = function() {
-		company.clearData()
+		taxpayer.clearData()
 		document.getElementById("company-tag").textContent = "Nombre encriptado"
 		document.getElementById("ruc-tag").textContent = "RUC encriptado"
 		app.navigate("/bloqueo")
@@ -165,33 +168,33 @@ var Fractuyo = function() {
 		await storage.read(form.elements.ruc.value.trim())
 	}
 
-	var populateCompanyData = function(decryptedSession) {
+	var populateTaxpayerData = function(decryptedSession) {
 		let sizeIndex = 11 //We start position after RUC
 		let startCutter = 0, endCutter = 11 //substring range
 
-		company.setRuc(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setRuc(decryptedSession.substring(startCutter, endCutter))
 		startCutter += 17
 		endCutter = startCutter + decryptedSession.charCodeAt(sizeIndex)
-		company.setName(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setName(decryptedSession.substring(startCutter, endCutter))
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		company.setAddress(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setAddress(decryptedSession.substring(startCutter, endCutter))
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		company.setSolUser(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setSolUser(decryptedSession.substring(startCutter, endCutter))
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		company.setSolPass(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setSolPass(decryptedSession.substring(startCutter, endCutter))
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		company.setCert(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setCert(decryptedSession.substring(startCutter, endCutter))
 		startCutter = endCutter
 		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		company.setKey(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setKey(decryptedSession.substring(startCutter, endCutter))
 
 		//Modify in view
-		document.getElementById("company-tag").textContent = company.getName()
-		document.getElementById("ruc-tag").textContent = company.getRuc()
+		document.getElementById("company-tag").textContent = taxpayer.getName()
+		document.getElementById("ruc-tag").textContent = taxpayer.getRuc()
 	}
 
 	this.handleUnlocked = async function(event) {
@@ -201,9 +204,9 @@ var Fractuyo = function() {
 				const encryptedData = await fractuyo.checkDirHandle()
 				await passcode.decryptSession(encryptedData)
 
-				populateCompanyData(passcode.getDataSession())
+				populateTaxpayerData(passcode.getDataSession())
 
-				Notiflix.Notify.success("Desencriptado para " + company.getName() + ".")
+				Notiflix.Notify.success("Desencriptado para " + taxpayer.getName() + ".")
 
 				app.navigate("/")
 			}

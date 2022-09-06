@@ -1,7 +1,5 @@
-var Company = function() {
+var Person = function() {
 	var name, ruc
-	var cert, key
-	var solUser, solPass
 	var address
 
 	this.getName = function(withCdata = false) {
@@ -9,7 +7,9 @@ var Company = function() {
 	}
 
 	this.setName = function(n) {
-		name = n
+		if(n.length > 0) {
+			name = n
+		}
 	}
 
 	this.setRuc = function(r) {
@@ -23,6 +23,19 @@ var Company = function() {
 	this.getRuc = function() {
 		return ruc
 	}
+
+	this.setAddress = function(a) {
+		address = a
+	}
+
+	this.getAddress = function(withCdata = false) {
+		return withCdata ? `<![CDATA[ ${address} ]]>` : address
+	}
+}
+
+var Taxpayer = function() {
+	var cert, key
+	var solUser, solPass
 
 	this.setCert = function(c) {
 		cert = c
@@ -52,11 +65,9 @@ var Company = function() {
 		solPass = sp
 	}
 
-	this.setAddress = function(a) {
-		address = a
-	}
-
 	this.clearData = function() {
 		name = ruc = cert = key = null
 	}
 }
+
+Taxpayer.prototype = new Person()

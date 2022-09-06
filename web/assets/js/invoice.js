@@ -1,4 +1,4 @@
-var Invoice = function(company) {
+var Invoice = function(taxpayer, customer) {
 	var items = Array()
 	var numeration, serie
 	var typeCode, orderReference
@@ -114,7 +114,7 @@ var Invoice = function(company) {
 			xmlDocument.documentElement.appendChild(cacSignature)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
 			cacSignature.appendChild(cbcId)
 
 			{
@@ -125,18 +125,18 @@ var Invoice = function(company) {
 				cacSignatoreParty.appendChild(cacPartyIdentification)
 
 				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcId.appendChild( document.createTextNode(company.getRuc()) )
+				cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
 				cacPartyIdentification.appendChild(cbcId)
 
 				const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
 				cacSignatoreParty.appendChild(cacPartyName)
 
 				const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-				cbcName.appendChild( document.createTextNode(company.getName(true)) )
+				cbcName.appendChild( document.createTextNode(taxpayer.getName(true)) )
 				cacPartyName.appendChild(cbcName)
 			}
 		}
-		{ //Supplier (current company)
+		{ //Supplier (current taxpayer)
 			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cbc, "cac:AccountingSupplierParty")
 			xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
 
@@ -150,11 +150,45 @@ var Invoice = function(company) {
 			cbcId.setAttribute("schemeID", "6")
 			cbcId.setAttribute("schemeName", "PE:SUNAT")
 			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.appendChild( document.createTextNode(company.getRuc()) )
+			cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
 			cacPartyIdentification.appendChild(cbcId)
 
 			const cacPartyName = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyName")
 			cacParty.appendChild(cacPartyName)
+		}
+		{ //Customer
+			const cacAccountingCustomerParty = xmlDocument.createElementNS(namespaces.cbc, "cac:AccountingCustomerParty")
+			xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
+
+			const cacParty = xmlDocument.createElementNS(namespaces.cbc, "cac:Party")
+			cacAccountingCustomerParty.appendChild(cacParty)
+
+			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyIdentification)
+
+			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.setAttribute("schemeID", "6")
+			cbcId.setAttribute("schemeName", "PE:SUNAT")
+			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+			cbcId.appendChild( document.createTextNode(customer.getRuc()) )
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyLegalEntity)
+
+			const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
+			cbcRegistrationName.appendChild( document.createTextNode(customer.getName(true)) )
+			cacPartyLegalEntity.appendChild(cbcRegistrationName)
+
+			const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cbc, "cac:RegistrationAddress")
+			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+
+			const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+			cacRegistrationAddress.appendChild(cacAddressLine)
+
+			const cbcLine = xmlDocument.createElementNS(namespaces.cac, "cbc:Line")
+			cbcLine.appendChild( document.createTextNode(customer.getAddress(true)) )
+			cacRegistrationAddress.appendChild(cbcLine)
 		}
 	}
 
@@ -165,13 +199,13 @@ var Invoice = function(company) {
 		const alg = getAlgorithm(algorithmName)
 
 		// Read cert
-		const certDer = pem2der(company.getCert())
+		const certDer = pem2der(taxpayer.getCert())
 
 		// Read key
-		const keyDer = pem2der(company.getKey())
+		const keyDer = pem2der(taxpayer.getKey())
 		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = preparePem(company.getCert())
+		const x509 = preparePem(taxpayer.getCert())
 
 		const transforms = []
 		if(isEnveloped) {
