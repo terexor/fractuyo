@@ -32,7 +32,10 @@ window.onload = function() {
 				Notiflix.Report.warning("Demora en la red","No se pudo traer la página solicitada.<br>La conexión a Internet está tardando mucho.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
 			}
 		}
+		feather.replace()
 	})
+
+	feather.replace()
 }
 
 
@@ -135,4 +138,252 @@ function getAlgorithm(name) {
 			}
 	}
 	return alg
+}
+
+function addRowForItem(object) {
+	const items = document.getElementById("items")
+	if(!items) {
+		Notiflix.Notify.failure("No se puede agregar.")
+		return
+	}
+	const item = document.createElement("div")
+	item.setAttribute("class", "row position-relative py-4 border-bottom")
+	items.appendChild(item)
+
+	const colControles = document.createElement("div")
+	colControles.setAttribute("class", "col-lg-1 col-12 mb-2 mb-lg-0 text-center")
+	item.appendChild(colControles)
+
+	const rowBotones = document.createElement("div")
+	rowBotones.setAttribute("class", "row align-items-center")
+	colControles.appendChild(rowBotones)
+
+	const codigo = document.createElement("span")
+	codigo.setAttribute("class", "badge rounded-pill text-bg-warning")
+	codigo.setAttribute("data-bs-toggle", "tooltip")
+	codigo.setAttribute("data-bs-placement", "top")
+	codigo.setAttribute("data-bs-custom-class", "custom-tooltip")
+	codigo.setAttribute("data-bs-title", "Código del ítem")
+	codigo.appendChild(document.createTextNode("Sin código"))
+	const colCodigo = document.createElement("div")
+	colCodigo.setAttribute("class", "col-lg-12 col-6 text-center mb-1")
+	colCodigo.appendChild(codigo)
+	rowBotones.appendChild(colCodigo)
+
+	const colBotonEditar = document.createElement("div")
+	colBotonEditar.setAttribute("class", "col-lg-12 col-3 text-lg-center text-end mb-1")
+	rowBotones.appendChild(colBotonEditar)
+
+	const iconoBotonEditar = document.createElement("span")
+	iconoBotonEditar.setAttribute("data-feather", "edit")
+
+	const botonEditar = document.createElement("button")
+	botonEditar.type = "button"
+	botonEditar.setAttribute("class", "btn btn-outline-primary border-0")
+	botonEditar.onclick = showItemEditor
+	botonEditar.appendChild(iconoBotonEditar)
+	colBotonEditar.appendChild(botonEditar)
+
+	const colBotonBorrar = document.createElement("div")
+	colBotonBorrar.setAttribute("class", "col-lg-12 col-3 text-lg-center text-start mb-1")
+	rowBotones.appendChild(colBotonBorrar)
+
+	const iconoBotonBorrar = document.createElement("span")
+	iconoBotonBorrar.setAttribute("data-feather", "trash-2")
+
+	//Must call: remove iteam
+	const botonBorrar = document.createElement("button")
+	botonBorrar.type = "button"
+	botonBorrar.setAttribute("class", "btn btn-outline-danger border-0")
+	botonBorrar.appendChild(iconoBotonBorrar)
+	botonBorrar.onclick = autoRemoveItem
+	colBotonBorrar.appendChild(botonBorrar)
+
+	const colDescripcion = document.createElement("div")
+	colDescripcion.setAttribute("class", "col-lg-7 col-12 mb-2 mb-lg-0")
+	item.appendChild(colDescripcion)
+
+	const floatingTextarea = document.createElement("div")
+	floatingTextarea.setAttribute("class", "form-floating h-75 mb-1")
+	colDescripcion.appendChild(floatingTextarea)
+
+	const textareaDescripcion = document.createElement("textarea")
+	textareaDescripcion.setAttribute("class", "form-control h-100")
+	textareaDescripcion.placeholder = "Cualquier descripción"
+	floatingTextarea.appendChild(textareaDescripcion)
+
+	const etiquetaDescripcion = document.createElement("label")
+	etiquetaDescripcion.appendChild(document.createTextNode("Descripción del item"))
+	floatingTextarea.appendChild(etiquetaDescripcion)
+
+	const etiquetaIgv = document.createElement("span")
+	etiquetaIgv.setAttribute("class", "badge rounded-pill text-bg-info")
+	etiquetaIgv.setAttribute("data-bs-toggle", "tooltip")
+	etiquetaIgv.setAttribute("data-bs-placement", "top")
+	etiquetaIgv.setAttribute("data-bs-custom-class", "custom-tooltip")
+	etiquetaIgv.setAttribute("data-bs-title", "Impuesto General a las Ventas")
+	etiquetaIgv.appendChild(document.createTextNode("IGV 18%"))
+	colDescripcion.appendChild(etiquetaIgv)
+
+	const etiquetaIsc = document.createElement("span")
+	etiquetaIsc.setAttribute("class", "badge rounded-pill text-bg-info")
+	etiquetaIsc.setAttribute("data-bs-toggle", "tooltip")
+	etiquetaIsc.setAttribute("data-bs-placement", "top")
+	etiquetaIsc.setAttribute("data-bs-custom-class", "custom-tooltip")
+	etiquetaIsc.setAttribute("data-bs-title", "Impuesto Selectivo al Consumo")
+	etiquetaIsc.appendChild(document.createTextNode("ISC"))
+	colDescripcion.appendChild( document.createTextNode( '\u00A0' ) )
+	colDescripcion.appendChild(etiquetaIsc)
+
+	//Add more taxes
+
+	const colNumeros = document.createElement("div")
+	colNumeros.setAttribute("class", "col-lg-4 col-12 align-self-center")
+	item.appendChild(colNumeros)
+
+	const rowNumeros = document.createElement("div")
+	rowNumeros.setAttribute("class", "row")
+	colNumeros.appendChild(rowNumeros)
+
+	const colCantidad = document.createElement("div")
+	colCantidad.setAttribute("class", "col-lg-12 col-12 mb-2")
+	rowNumeros.appendChild(colCantidad)
+
+	const groupCantidad = document.createElement("div")
+	groupCantidad.setAttribute("class", "input-group")
+	colCantidad.appendChild(groupCantidad)
+
+	const entradaCantidad = document.createElement("input")
+	entradaCantidad.type = "number"
+	entradaCantidad.placeholder = "Cantidad"
+	entradaCantidad.setAttribute("class", "form-control w-25")
+	entradaCantidad.setAttribute("aria-label", "Cantidad")
+	groupCantidad.appendChild(entradaCantidad)
+
+	const nombreServicii = document.createElement("span")
+	nombreServicii.setAttribute("class", "input-group-text w-50 d-inline-block text-truncate text-start")
+	nombreServicii.appendChild(document.createTextNode("unidades"))
+	groupCantidad.appendChild(nombreServicii)
+
+	const groupMarcadorServicii = document.createElement("div")
+	groupMarcadorServicii.setAttribute("class", "input-group-text")
+	groupCantidad.appendChild(groupMarcadorServicii)
+
+	const marcador = document.createElement("input")
+	marcador.type = "checkbox"
+	marcador.setAttribute("class", "form-check-input mt-0")
+	marcador.setAttribute("aria-label", "Configurar el ítem como servicio")
+	groupMarcadorServicii.appendChild(marcador)
+
+	const etiquetaMarcador = document.createElement("label")
+	etiquetaMarcador.setAttribute("class", "form-check-label")
+	etiquetaMarcador.appendChild(document.createTextNode("ZZ"))
+	etiquetaMarcador.setAttribute("data-bs-toggle", "tooltip")
+	etiquetaMarcador.setAttribute("data-bs-placement", "top")
+	etiquetaMarcador.setAttribute("data-bs-custom-class", "custom-tooltip")
+	etiquetaMarcador.setAttribute("data-bs-title", "Marca para establecer como servicio")
+	groupMarcadorServicii.appendChild( document.createTextNode( '\u00A0' ) )
+	groupMarcadorServicii.appendChild(etiquetaMarcador)
+
+	const colPrecio = document.createElement("div")
+	colPrecio.setAttribute("class", "col-lg-12 col-12")
+	rowNumeros.appendChild(colPrecio)
+
+	const rowPreciosTotales = document.createElement("div")
+	rowPreciosTotales.setAttribute("class", "row")
+	colPrecio.appendChild(rowPreciosTotales)
+
+	const groupPrecio = document.createElement("div")
+	groupPrecio.setAttribute("class", "input-group")
+	rowPreciosTotales.appendChild(groupPrecio)
+
+	const etiquetaMoneda = document.createElement("span")
+	etiquetaMoneda.setAttribute("class", "input-group-text")
+	etiquetaMoneda.appendChild(document.createTextNode("S/"))
+	groupPrecio.appendChild(etiquetaMoneda)
+
+	const entradaPrecio = document.createElement("input")
+	entradaPrecio.type = "number"
+	entradaPrecio.placeholder = "Precio"
+	entradaPrecio.setAttribute("class", "form-control")
+	entradaPrecio.setAttribute("aria-label", "Precio unitario")
+	groupPrecio.appendChild(entradaPrecio)
+
+	const selectorGravoso = document.createElement("select")
+	selectorGravoso.setAttribute("class", "input-group-text text-start text-lg-center form-select d-inline-block text-truncate")
+	selectorGravoso.setAttribute("aria-label", "Afectación del IGV")
+	selectorGravoso.setAttribute("data-bs-toggle", "tooltip")
+	selectorGravoso.setAttribute("data-bs-placement", "top")
+	selectorGravoso.setAttribute("data-bs-custom-class", "custom-tooltip")
+	groupPrecio.appendChild(selectorGravoso)
+
+	const opcionGravada = document.createElement("option")
+	opcionGravada.value = "10"
+	opcionGravada.appendChild(document.createTextNode("Gravado (10)"))
+	selectorGravoso.appendChild(opcionGravada)
+	const opcionInafecta = document.createElement("option")
+	opcionInafecta.value = "20"
+	opcionInafecta.appendChild(document.createTextNode("Inafecto (20)"))
+	selectorGravoso.appendChild(opcionInafecta)
+	const opcionExonerada = document.createElement("option")
+	opcionExonerada.value = "30"
+	opcionExonerada.appendChild(document.createTextNode("Exonerado (30)"))
+	selectorGravoso.appendChild(opcionExonerada)
+
+	const rowTotales = document.createElement("div")
+	rowTotales.setAttribute("class", "row mx-0 mb-0 mt-2 align-items-center")
+	colPrecio.appendChild(rowTotales)
+
+	const colIncIgv = document.createElement("div")
+	colIncIgv.setAttribute("class", "col-5 m-0 p-0")
+	rowTotales.appendChild(colIncIgv)
+
+	const switchIncIgv = document.createElement("div")
+	switchIncIgv.setAttribute("class", "form-check form-switch text-start")
+	colIncIgv.appendChild(switchIncIgv)
+
+	const marcadorIncIgv = document.createElement("input")
+	marcadorIncIgv.type = "checkbox"
+	marcadorIncIgv.setAttribute("class", "form-check-input")
+	marcadorIncIgv.setAttribute("role", "switch")
+	switchIncIgv.appendChild(marcadorIncIgv)
+
+	const etiquetaIncIgv = document.createElement("label")
+	etiquetaIncIgv.setAttribute("class", "form-check-label")
+	etiquetaIncIgv.appendChild(document.createTextNode("Inc. IGV"))
+	switchIncIgv.appendChild(etiquetaIncIgv)
+
+	const colSubtotal = document.createElement("div")
+	colSubtotal.setAttribute("class", "col-7 text-end p-0 m-0")
+	rowTotales.appendChild(colSubtotal)
+
+	const groupSubtotal = document.createElement("div")
+	groupSubtotal.setAttribute("class", "input-group")
+	colSubtotal.appendChild(groupSubtotal)
+
+	groupSubtotal.appendChild(etiquetaMoneda.cloneNode(true))
+
+	const entradaSubtotal = document.createElement("input")
+	entradaSubtotal.type = "number"
+	entradaSubtotal.placeholder = "Subtotal"
+	entradaSubtotal.setAttribute("readonly", "true")
+	entradaSubtotal.setAttribute("class", "form-control")
+	entradaSubtotal.setAttribute("aria-label", "Subtotal")
+	groupSubtotal.appendChild(entradaSubtotal)
+
+	feather.replace()
+}
+
+function showItemEditor() {
+	let modal = new bootstrap.Modal("#edicionAvanzadaItem")
+	modal.show()
+}
+
+function autoRemoveItem() {
+	const item = this.parentNode.parentNode.parentNode.parentNode
+	Notiflix.Confirm.show("Eliminando item", "¿Desea eliminar el item?", "Sí", "No",
+		function() {
+			item.remove()
+		}
+	)
 }
