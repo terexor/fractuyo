@@ -387,3 +387,44 @@ function autoRemoveItem() {
 		}
 	)
 }
+
+
+async function testHomomorphic(p, q) {
+	const { publicKey, privateKey } = await generateKeys(p, q, 1024, true)
+
+	const m1 = 101n
+	const m2 = 9n
+
+	// encryption/decryption
+	const c1 = publicKey.encrypt(m1)
+	console.log(privateKey.decrypt(c1)) // 12345678901234567890n
+
+	// homomorphic addition of two ciphertexts (encrypted numbers)
+	const c2 = publicKey.encrypt(m2)
+	const encryptedSum = publicKey.addition(c1, c2)
+	console.log(privateKey.decrypt(encryptedSum)) // m1 + m2 = 12345678901234567895n
+
+	// multiplication by k
+	const k = 10n
+	const encryptedMul = publicKey.multiply(c1, k)
+	console.log(privateKey.decrypt(encryptedMul)) // k · m1 = 123456789012345678900n
+
+	// addition with plain
+	const one = 1
+	const encryptedSumPlain = publicKey.plaintextAddition(c1, 1)
+	console.log(privateKey.decrypt(encryptedSumPlain))
+}
+
+async function unpackRsa(pem) {
+	var ASN1 = window.ASN1  // 62 lines
+	var Enc = window.Enc    // 27 lines
+	var PEM = window.PEM    //  6 lines
+
+	var der = PEM.parseBlock(pem).der
+	const json = ASN1.parse(der)
+
+	let p = BigInt("0x" + Enc.bufToHex(json.children[2].children[0].children[4].value))
+	let q = BigInt("0x" + Enc.bufToHex(json.children[2].children[0].children[5].value))
+
+	await testHomomorphic(p, q)
+}

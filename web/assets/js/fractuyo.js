@@ -4,6 +4,7 @@
 var Fractuyo = function() {
 	var globalDirHandle
 	var passcode, storage, taxpayer
+	var dbCustomer, dbProduct
 
 	this.chooseDirHandle = async function() {
 		globalDirHandle = await window.showDirectoryPicker()
@@ -38,10 +39,43 @@ var Fractuyo = function() {
 	this.checkDirHandle = async function(ruc) {
 		let fileHandle, file, content
 
-		fileHandle = await globalDirHandle.getFileHandle("data.bin", {})
+		fileHandle = await globalDirHandle.getFileHandle("session.bin", {})
 		file = await fileHandle.getFile()
-		content = await file.arrayBuffer()
-		return content
+		const encryptedSessionContent = await file.arrayBuffer()
+
+		try {
+			fileHandle = await globalDirHandle.getFileHandle("cust.dat", {})
+			file = await fileHandle.getFile()
+			content = await file.getText()
+			dbCustomer = TAFFY( JSON.parse(content) )
+		}
+		catch(e) {
+			console.log(e)
+			if(e.name == "SyntaxError") {
+				Notiflix.Notify.warning("Archivo no tiene estructura.")
+			}
+			else {
+				Notiflix.Notify.failure("Inconveniente procesando datos de clientes.")
+			}
+		}
+
+		try {
+			fileHandle = await globalDirHandle.getFileHandle("prod.dat", {})
+			file = await fileHandle.getFile()
+			content = await file.getText()
+			dbProduct = TAFFY( JSON.parse(content) )
+		}
+		catch(e) {
+			console.log(e)
+			if(e.name == "SyntaxError") {
+				Notiflix.Notify.warning("Archivo no tiene estructura.")
+			}
+			else {
+				Notiflix.Notify.failure("Inconveniente procesando datos de productos.")
+			}
+		}
+
+		return encryptedSessionContent
 	}
 
 	this.saveData = async function(form) {
@@ -91,7 +125,7 @@ var Fractuyo = function() {
 
 				let encryptedData = await passcode.encryptSession(data)
 
-				let fileHandle = await globalDirHandle.getFileHandle("data.bin", { create: true })
+				let fileHandle = await globalDirHandle.getFileHandle("session.bin", { create: true })
 
 				const writable = await fileHandle.createWritable()
 
