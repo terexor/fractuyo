@@ -6,6 +6,14 @@ var Fractuyo = function() {
 	var passcode, storage, taxpayer
 	var dbCustomer, dbProduct
 
+	this.getDbCustomer = function() {
+		return dbCustomer
+	}
+
+	this.getDbProduct = function() {
+		return dbProduct
+	}
+
 	this.chooseDirHandle = async function() {
 		globalDirHandle = await window.showDirectoryPicker()
 	}
@@ -38,44 +46,46 @@ var Fractuyo = function() {
 	 */
 	this.checkDirHandle = async function(ruc) {
 		let fileHandle, file, content
+		let contentArray = new Array()
 
 		fileHandle = await globalDirHandle.getFileHandle("session.bin", {})
 		file = await fileHandle.getFile()
-		const encryptedSessionContent = await file.arrayBuffer()
+		content = await file.arrayBuffer()
+		contentArray.push(content)
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("cust.dat", {})
+			fileHandle = await globalDirHandle.getFileHandle("customer.dat", {})
 			file = await fileHandle.getFile()
 			content = await file.getText()
-			dbCustomer = TAFFY( JSON.parse(content) )
+			contentArray.push(content)
 		}
 		catch(e) {
-			console.log(e)
+			contentArray.push(null)
 			if(e.name == "SyntaxError") {
 				Notiflix.Notify.warning("Archivo no tiene estructura.")
 			}
 			else {
-				Notiflix.Notify.failure("Inconveniente procesando datos de clientes.")
+				console.log(e)
 			}
 		}
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("prod.dat", {})
+			fileHandle = await globalDirHandle.getFileHandle("product.dat", {})
 			file = await fileHandle.getFile()
 			content = await file.getText()
-			dbProduct = TAFFY( JSON.parse(content) )
+			contentArray.push(content)
 		}
 		catch(e) {
-			console.log(e)
+			contentArray.push(null)
 			if(e.name == "SyntaxError") {
 				Notiflix.Notify.warning("Archivo no tiene estructura.")
 			}
 			else {
-				Notiflix.Notify.failure("Inconveniente procesando datos de productos.")
+				console.log(e)
 			}
 		}
 
-		return encryptedSessionContent
+		return contentArray
 	}
 
 	this.saveData = async function(form) {
@@ -231,14 +241,24 @@ var Fractuyo = function() {
 		document.getElementById("ruc-tag").textContent = taxpayer.getRuc()
 	}
 
+	var populateDatabases = function(decryptedDatabases) {
+		if(decryptedDatabases[0] != null) {
+			dbProduct = TAFFY( JSON.parse(decryptedDatabases[0]) )
+		}
+		if(decryptedDatabases[1] != null) {
+			dbCustomer = TAFFY( JSON.parse(decryptedDatabases[1]) )
+		}
+	}
+
 	this.handleUnlocked = async function(event) {
 		if(event.target.result) {
 			try {
 				await fractuyo.setDirHandle(event.target.result.dir)
-				const encryptedData = await fractuyo.checkDirHandle()
-				await passcode.decryptSession(encryptedData)
+				const encryptedDataArray = await fractuyo.checkDirHandle()
+				await passcode.decryptSession(encryptedDataArray)
 
 				populateTaxpayerData(passcode.getDataSession())
+				populateDatabases(passcode.getDataBases())
 
 				Notiflix.Notify.success("Desencriptado para " + taxpayer.getName() + ".")
 

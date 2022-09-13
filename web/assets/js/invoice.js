@@ -190,6 +190,27 @@ var Invoice = function(taxpayer, customer) {
 			cbcLine.appendChild( document.createTextNode(customer.getAddress(true)) )
 			cacRegistrationAddress.appendChild(cbcLine)
 		}
+
+		for(const item in items) { //Items
+			const cacInvoiceLine = xmlDocument.createElementNS(namespaces.cac, "cac:InvoiceLine")
+			xmlDocument.documentElement.appendChild(cacInvoiceLine)
+
+			const cbcID = xmlDocument.createElementNS(namespaces.cac, "cbc:ID")
+			cbcID.appendChild( document.createTextNode(item) )
+			cacInvoiceLine.appendChild(cbcID)
+
+			const cbcInvoicedQuantity = xmlDocument.createElementNS(namespaces.cac, "cbc:InvoicedQuantity")
+			cbcInvoicedQuantity.setAttribute("unitCode", items[item].getUnitCode())
+			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
+			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
+			cbcInvoicedQuantity.appendChild( document.createTextNode(items[item].getQuantity()) )
+			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
+
+			const cbcLineExtensionAmount  = xmlDocument.createElementNS(namespaces.cac, "cbc:LineExtensionAmount")
+			cbcLineExtensionAmount.setAttribute("currencyID", items[item].getCurrencyId())
+			cbcLineExtensionAmount.appendChild( document.createTextNode(items[item].getAmount()) )
+			cacInvoiceLine.appendChild(cbcLineExtensionAmount)
+		}
 	}
 
 	this.sign = async function(algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
@@ -249,8 +270,41 @@ var PaymentTerm = function() {
 
 var Item = function(_description) {
 	var description = _description
+	var quantity
+	var unitCode
+	var currencyId
 
 	this.getDescription = function() {
 		return `<![CDATA[ ${description} ]]>`
+	}
+
+	this.setDescription = function(d) {
+		description = d
+	}
+
+	this.getQuantity = function() {
+		return quantity.toFixed(2)
+	}
+
+	this.setQuantity = function(q) {
+		quantity = q
+	}
+
+	this.getAmount = function() {
+		return
+	}
+
+	/**
+	 * According roll 03.
+	 */
+	this.setUnitCode = function(uc) {
+	}
+
+	this.getUnitCode = function() {
+		return unitCode
+	}
+
+	this.getCurrencyId = function() {
+		return currencyId
 	}
 }
