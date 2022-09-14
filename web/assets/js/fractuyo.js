@@ -157,7 +157,14 @@ var Fractuyo = function() {
 	}
 
 	var block = function(count) {
-		console.log("Hay", count, "registros.")
+		Notiflix.Report.success(
+			"Hay " + count + " registros",
+			"Debes desbloquear los datos para generar tus comprobantes de pago.",
+			"Desbloquear",
+			() => {
+				app.navigate("/bloqueo")
+			}
+		)
 	}
 
 	var guide = function() {
@@ -198,6 +205,8 @@ var Fractuyo = function() {
 
 		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
 		await writable.close()
+
+		Notiflix.Report.Success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
 	}
 
 	this.lock = function() {

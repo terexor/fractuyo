@@ -17,8 +17,6 @@ var Passcode = function() {
 
 	/**
 	 * Decrypt data that must be inside files.
-	 * @passcode PIN or password
-	 * @ruc
 	 * @encryptedDataArray is all serialized data needed inside array.
 	 */
 	this.decryptSession = async function(encryptedDataArray) {
