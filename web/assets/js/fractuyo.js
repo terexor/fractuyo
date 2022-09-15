@@ -206,7 +206,7 @@ var Fractuyo = function() {
 		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
 		await writable.close()
 
-		Notiflix.Report.Success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
+		Notiflix.Report.success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
 	}
 
 	this.lock = function() {
