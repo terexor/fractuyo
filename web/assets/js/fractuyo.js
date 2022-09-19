@@ -286,4 +286,8 @@ var Fractuyo = function() {
 	this.viewData = function() {
 		return passcode.getDataSession()
 	}
+
+	this.isUsable = function() {
+		return taxpayer.getKey() != null
+	}
 }

@@ -12,9 +12,18 @@ window.onload = function() {
 	fractuyo = new Fractuyo()
 	fractuyo.init()
 
+	let pHome = function(){}
+	pHome.prototype = new senna.HtmlScreen()
+	pHome.prototype.activate = function() {
+		if(fractuyo.isUsable()) {
+			document.getElementById("facturador").disabled = false
+		}
+	}
+
 	app = new senna.App()
 	app.addSurfaces(["navegador", "lienzo"])
 	app.addRoutes([
+		new senna.Route("/", pHome),
 		new senna.Route(/([\/]{1}.*\/?)/, senna.HtmlScreen)
 	])
 
@@ -34,6 +43,7 @@ window.onload = function() {
 		}
 		feather.replace()
 	})
+	app.dispatch()
 
 	feather.replace()
 }
