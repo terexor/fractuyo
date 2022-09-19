@@ -371,6 +371,11 @@ function addRowForItem(object) {
 	entradaSubtotal.setAttribute("aria-label", "Subtotal")
 	groupSubtotal.appendChild(entradaSubtotal)
 
+	const reemplazable = items.getElementsByClassName("replaceable")[0]
+	if(reemplazable) {
+		reemplazable.remove()
+	}
+
 	feather.replace()
 }
 
@@ -381,9 +386,18 @@ function showItemEditor() {
 
 function autoRemoveItem() {
 	const item = this.parentNode.parentNode.parentNode.parentNode
-	Notiflix.Confirm.show("Eliminando item", "¿Desea eliminar el item?", "Sí", "No",
+	Notiflix.Confirm.show("Eliminando ítem", "¿Desea eliminar el ítem?", "Sí", "No",
 		function() {
+			const items = item.parentNode
 			item.remove()
+			if(items.childElementCount == 0) {
+				const ayuda = document.createElement("i")
+				ayuda.appendChild(document.createTextNode("Acá aparecerán ítems agregados."))
+				const replaceable = document.createElement("div")
+				replaceable.setAttribute("class", "p-4 text-center replaceable")
+				replaceable.appendChild(ayuda)
+				items.appendChild(replaceable)
+			}
 		}
 	)
 }
