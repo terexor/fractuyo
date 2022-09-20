@@ -16,7 +16,9 @@ window.onload = function() {
 	pHome.prototype = new senna.HtmlScreen()
 	pHome.prototype.activate = function() {
 		if(fractuyo.isUsable()) {
-			document.getElementById("facturador").disabled = false
+			[...document.getElementsByClassName("crypto-alternate")].forEach((boton) => {
+				boton.disabled = false
+			})
 		}
 	}
 
