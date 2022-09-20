@@ -157,7 +157,7 @@ function addRowForItem(object) {
 		return
 	}
 	const item = document.createElement("div")
-	item.setAttribute("class", "row position-relative py-4 border-bottom")
+	item.setAttribute("class", "row position-relative py-4 border-bottom item")
 	items.appendChild(item)
 
 	const colControles = document.createElement("div")
@@ -267,6 +267,7 @@ function addRowForItem(object) {
 	entradaCantidad.type = "number"
 	entradaCantidad.placeholder = "Cantidad"
 	entradaCantidad.setAttribute("class", "form-control w-25")
+	entradaCantidad.setAttribute("data-type", "quantity")
 	entradaCantidad.setAttribute("aria-label", "Cantidad")
 	groupCantidad.appendChild(entradaCantidad)
 
@@ -317,6 +318,7 @@ function addRowForItem(object) {
 	entradaPrecio.placeholder = "Precio"
 	entradaPrecio.setAttribute("class", "form-control")
 	entradaPrecio.setAttribute("aria-label", "Precio unitario")
+	entradaPrecio.setAttribute("data-type", "price")
 	groupPrecio.appendChild(entradaPrecio)
 
 	const selectorGravoso = document.createElement("select")

@@ -185,10 +185,39 @@ var Fractuyo = function() {
 			return
 		}
 
+		const items = document.getElementsByClassName("item")
+		if(items == undefined || items.length == 0) {
+			Notiflix.Report.warning(
+				"No hay ítems",
+				"No se puede procesar un comprobante de pago sin elementos.",
+				"Aceptar"
+			)
+			return
+		}
+
 		const customer = new Person()
 		customer.setName(formulario.elements["customer-name"].value.trim())
 
 		const invoice = new Invoice(taxpayer, customer)
+
+		let productIndex = 0
+		try {
+			for(const item of items) {
+				++productIndex
+				const product = new Item(item.getElementsByTagName("textarea")[0].value.trim())
+				product.setQuantity(item.querySelector("[data-type='quantity']").value.trim())
+				invoice.addItem(product)
+			}
+		}
+		catch(e) {
+			Notiflix.Report.warning(
+				`Ítem ${productIndex} con error`,
+				e.message,
+				"Aceptar"
+			)
+			return
+		}
+
 		invoice.setSerie(formulario.elements["serie"].value)
 		invoice.setTypeCode(formulario.elements["type-code"].value)
 		invoice.setNumeration(7357)
@@ -218,7 +247,12 @@ var Fractuyo = function() {
 
 	this.unlock = async function(form) {
 		passcode.setupPasscode(form.elements.clave.value.trim())
-		await storage.read(form.elements.ruc.value.trim())
+		const ruc = form.elements.ruc.value.trim()
+		if(validateRuc(ruc)) {
+			await storage.read(ruc)
+			return
+		}
+		Notiflix.Notify.warning("RUC no es válido.")
 	}
 
 	var populateTaxpayerData = function(decryptedSession) {

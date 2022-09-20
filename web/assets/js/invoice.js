@@ -196,7 +196,7 @@ var Invoice = function(taxpayer, customer) {
 			xmlDocument.documentElement.appendChild(cacInvoiceLine)
 
 			const cbcID = xmlDocument.createElementNS(namespaces.cac, "cbc:ID")
-			cbcID.appendChild( document.createTextNode(item) )
+			cbcID.appendChild( document.createTextNode(item + 1) )
 			cacInvoiceLine.appendChild(cbcID)
 
 			const cbcInvoicedQuantity = xmlDocument.createElementNS(namespaces.cac, "cbc:InvoicedQuantity")
@@ -269,17 +269,22 @@ var PaymentTerm = function() {
 }
 
 var Item = function(_description) {
-	var description = _description
+	var description
 	var quantity
 	var unitCode
 	var currencyId
+	var igvPercentage, iscPercentage
 
 	this.getDescription = function() {
 		return `<![CDATA[ ${description} ]]>`
 	}
 
 	this.setDescription = function(d) {
-		description = d
+		if( ( typeof d === "string" || d instanceof String ) && d.length > 0 ) {
+			description = d
+			return
+		}
+		throw new Error("No hay descripción válida.")
 	}
 
 	this.getQuantity = function() {
@@ -287,7 +292,10 @@ var Item = function(_description) {
 	}
 
 	this.setQuantity = function(q) {
-		quantity = q
+		quantity = parseFloat(q)
+		if(isNaN(quantity)) {
+			throw new Error("Cantidad no es un número.")
+		}
 	}
 
 	this.getAmount = function() {
@@ -307,4 +315,21 @@ var Item = function(_description) {
 	this.getCurrencyId = function() {
 		return currencyId
 	}
+
+	this.setIscPercentage = function(ip) {
+		iscPercentage = ip
+	}
+
+	this.setIgvPercentage = function(ip) {
+		igvPercentage = ip
+	}
+
+	this.calcMounts = function() {
+	}
+
+	this.getTaxTotal = function() {
+		return
+	}
+
+	this.setDescription(_description)
 }
