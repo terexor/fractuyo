@@ -197,6 +197,13 @@ var Fractuyo = function() {
 
 		const customer = new Person()
 		customer.setName(formulario.elements["customer-name"].value.trim())
+		try {
+			customer.setIdentification(new Identification().setIdentity(formulario.elements["customer-identification"].value.trim(), formulario.elements["customer-identification-type"].value))
+		}
+		catch(e) {
+			Notiflix.Report.warning("Inconsistencia", e.message, "Aceptar")
+			return
+		}
 
 		const invoice = new Invoice(taxpayer, customer)
 
@@ -259,7 +266,7 @@ var Fractuyo = function() {
 		let sizeIndex = 11 //We start position after RUC
 		let startCutter = 0, endCutter = 11 //substring range
 
-		taxpayer.setRuc(decryptedSession.substring(startCutter, endCutter))
+		taxpayer.setIdentification( new Identification().setIdentity( decryptedSession.substring(startCutter, endCutter), 6 ) )
 		startCutter += 17
 		endCutter = startCutter + decryptedSession.charCodeAt(sizeIndex)
 		taxpayer.setName(decryptedSession.substring(startCutter, endCutter))
@@ -281,7 +288,7 @@ var Fractuyo = function() {
 
 		//Modify in view
 		document.getElementById("company-tag").textContent = taxpayer.getName()
-		document.getElementById("ruc-tag").textContent = taxpayer.getRuc()
+		document.getElementById("ruc-tag").textContent = taxpayer.getIdentification().getNumber()
 	}
 
 	var populateDatabases = function(decryptedDatabases) {

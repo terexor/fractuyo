@@ -60,6 +60,25 @@ const namespaces = {
 	ext: "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
 }
 
+function validateDocumentNumber(documentType, number) {
+	switch(documentType) {
+		case 0:
+			return true
+		case 1://DNI o libreta electoral
+			//longitud: 8: exacta
+			//caracter: numérico
+			return ( number != null && number.length === 8 && !isNaN(number) )
+		case 4:
+			//longitud: 12: máxima
+			//caracter: alfanumérico
+			return ( number != null && number.length < 13 )
+		case 6:
+			return validateRuc(number)
+		default:
+			return false
+	}
+}
+
 function validateRuc(ruc) {
 	if( parseInt(ruc) < 11 ) {
 		return false

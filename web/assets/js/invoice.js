@@ -114,7 +114,7 @@ var Invoice = function(taxpayer, customer) {
 			xmlDocument.documentElement.appendChild(cacSignature)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
+			cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
 			cacSignature.appendChild(cbcId)
 
 			{
@@ -125,7 +125,7 @@ var Invoice = function(taxpayer, customer) {
 				cacSignatoreParty.appendChild(cacPartyIdentification)
 
 				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
+				cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
 				cacPartyIdentification.appendChild(cbcId)
 
 				const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
@@ -147,10 +147,10 @@ var Invoice = function(taxpayer, customer) {
 			cacParty.appendChild(cacPartyIdentification)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.setAttribute("schemeID", "6")
+			cbcId.setAttribute("schemeID", taxpayer.getIdentification().getType())
 			cbcId.setAttribute("schemeName", "PE:SUNAT")
 			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.appendChild( document.createTextNode(taxpayer.getRuc()) )
+			cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
 			cacPartyIdentification.appendChild(cbcId)
 
 			const cacPartyName = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyName")
@@ -167,10 +167,10 @@ var Invoice = function(taxpayer, customer) {
 			cacParty.appendChild(cacPartyIdentification)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.setAttribute("schemeID", "6")
+			cbcId.setAttribute("schemeID", customer.getIdentification().getType())
 			cbcId.setAttribute("schemeName", "PE:SUNAT")
 			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.appendChild( document.createTextNode(customer.getRuc()) )
+			cbcId.appendChild( document.createTextNode(customer.getIdentification().getNumber()) )
 			cacPartyIdentification.appendChild(cbcId)
 
 			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
@@ -196,7 +196,7 @@ var Invoice = function(taxpayer, customer) {
 			xmlDocument.documentElement.appendChild(cacInvoiceLine)
 
 			const cbcID = xmlDocument.createElementNS(namespaces.cac, "cbc:ID")
-			cbcID.appendChild( document.createTextNode(item + 1) )
+			cbcID.appendChild( document.createTextNode(parseInt(item) + 1) )
 			cacInvoiceLine.appendChild(cbcID)
 
 			const cbcInvoicedQuantity = xmlDocument.createElementNS(namespaces.cac, "cbc:InvoicedQuantity")

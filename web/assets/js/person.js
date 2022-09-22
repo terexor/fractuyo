@@ -1,9 +1,34 @@
+var Identification = function() {
+	var number, type
+
+	/**
+	 * Set document number according type
+	 * @var t integer type according catalog 06
+	 */
+	this.setIdentity = function(n, t) {
+		if(validateDocumentNumber(parseInt(t, 16), n)) {
+			number = n
+			type = t
+			return this
+		}
+		throw new Error("Número de identificación inconsistente.")
+	}
+
+	this.getNumber = function() {
+		return number
+	}
+
+	this.getType = function() {
+		return type
+	}
+}
+
 var Person = function() {
-	var name, ruc
+	var name, identification
 	var address
 
 	this.getName = function(withCdata = false) {
-		return withCdata ? `<![CDATA[ ${name} ]]>` : name
+		return withCdata ? `<![CDATA[${name}]]>` : name
 	}
 
 	this.setName = function(n) {
@@ -12,16 +37,12 @@ var Person = function() {
 		}
 	}
 
-	this.setRuc = function(r) {
-		if(validateRuc(r)) {
-			ruc = r
-			return
-		}
-		throw new Error("RUC inconsistente.")
+	this.setIdentification = function(i) {
+		identification = i
 	}
 
-	this.getRuc = function() {
-		return ruc
+	this.getIdentification = function() {
+		return identification
 	}
 
 	this.setAddress = function(a) {
@@ -29,7 +50,11 @@ var Person = function() {
 	}
 
 	this.getAddress = function(withCdata = false) {
-		return withCdata ? `<![CDATA[ ${address} ]]>` : address
+		return withCdata ? `<![CDATA[${address}]]>` : address
+	}
+
+	this.isNatural = function() {
+		return isNatural
 	}
 }
 
@@ -66,7 +91,7 @@ var Taxpayer = function() {
 	}
 
 	this.clearData = function() {
-		name = ruc = cert = key = null
+		name = identity = cert = key = null
 	}
 }
 
