@@ -11,7 +11,7 @@
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
 		<link href="https://cdn.jsdelivr.net/npm/notiflix@3.2.5/dist/notiflix-3.2.5.min.css" rel="stylesheet" integrity="sha256-4spYVEf9eBpgOmHFVl/GwBZTYdG8zbUZ0u4qDJ9FnSw=" crossorigin="anonymous">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/senna@2.7.9/build/senna.css" rel="stylesheet">
-		<link href="/assets/css/fractuyo.css" rel="stylesheet">
+		<link data-senna-track="permanent" href="/assets/css/fractuyo.css" rel="stylesheet">
 	</head>
 	<body>
 		<main>
@@ -67,12 +67,13 @@
 						<!-- <div class="card"> form -->
 						<form class="card" onsubmit="fractuyo.createInvoice(this);return false">
 							<div class="card-body">
-								<div class="container mb-5 mt-3">
+								<div class="container-fluid mb-5 mt-3">
 									<div class="row d-flex align-items-baseline">
 										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="tipo" aria-label="Tipo de comprobante de pago" name="type-code" required>
-													<option value="03" selected>Boleta de Venta</option>
+													<option value="">Elegir&hellip;</option>
+													<option value="03">Boleta de Venta</option>
 													<option value="01">Factura</option>
 												</select>
 												<label for="tipo">Tipo de comprobante</label>
@@ -81,7 +82,8 @@
 										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago" name="serie" required>
-													<option value="F000" selected>F000</option>
+													<option value="">Elegir&hellip;</option>
+													<option value="F000">F000</option>
 													<option value="F001">F001</option>
 													<option value="F002">F002</option>
 												</select>
@@ -106,9 +108,9 @@
 										</div>
 										<hr>
 									</div>
-									<div class="container">
+									<div class="container-fluid">
 										<div class="row">
-											<div class="col-xl-8 align-self-start">
+											<div class="col-xl-8 col-lg-8 align-self-start">
 												<div class="mb-2 row">
 													<label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
 													<div class="col-sm-8">
@@ -119,7 +121,7 @@
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" />
+															<input type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification">
 															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos"><span data-feather="search"></span></button>
 														</div>
 													</div>
@@ -128,7 +130,7 @@
 													<label for="razonSocial" class="col-sm-3 col-form-label">Nombre del cliente</label>
 													<div class="col-sm-8">
 														<div class="input-group">
-															<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="razonSocial" name="customer-name" placeholder="Nombre o razón social" />
+															<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="razonSocial" name="customer-name" placeholder="Nombre o razón social">
 															<button type="button" class="btn btn-outline-secondary" disabled id="editarRazonSocial"><span data-feather="edit"></span></button>
 														</div>
 													</div>
@@ -137,13 +139,13 @@
 													<label for="direccionCliente" class="col-sm-3 col-form-label">Dirección del cliente</label>
 													<div class="col-sm-8">
 														<div class="input-group">
-															<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente" name="customer-address" placeholder="Dirección opcional" />
+															<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente" name="customer-address" placeholder="Dirección opcional">
 															<button type="button" class="btn btn-outline-secondary" disabled id="editarDireccionCliente"><span data-feather="edit"></span></button>
 														</div>
 													</div>
 												</div>
 											</div>
-											<div class="col-xl-4 align-self-end">
+											<div class="col-xl-4 col-lg-4 align-self-end">
 												<div class="mb-2 row align-items-start">
 													<p class="text-muted">Almacenamiento local</p>
 												</div>
@@ -159,8 +161,8 @@
 													</div>
 													<div class="col-sm-6 col-12">
 														<div class="form-floating">
-															<input id="fechaEmision" type="date" value="2022-08-03" class="form-control" />
-															<label for="fechaEmision">Fecha de emisión</label>
+															<input id="fechaVencimiento" type="date" value="2022-08-03" class="form-control">
+															<label for="fechaVencimiento">Vencimiento</label>
 														</div>
 													</div>
 												</div>
@@ -176,33 +178,13 @@
 													<div class="col-12 col-lg-4 float-end text-lg-end text-center">
 														<div class="input-group">
 															<input type="search" list="listaCodigosItems" class="form-control text-truncate pe-2" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable">
-															<span class="input-group-append"><button class="btn btn-outline-secondary bg-transparent border-start-0 border-bottom-0 border" type="button" style="margin-left:-48px"disabled><span data-feather="search"></span></button></span>
+															<span class="input-group-append"><button class="btn btn-outline-secondary bg-transparent border-start-0 border-bottom-0 border" type="button" style="margin-left:-48px" disabled><span data-feather="search"></span></button></span>
 															<button class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
 														</div>
 														<datalist id="listaCodigosItems" class="border">
-															<option value="COD001">
-															<option value="RE923TT-1212">
-															<option value="99231TTqwe">
-															<option value="CRISTALOI123">
-															<option value="LAB001">
-															<option value="LAB002">
-															<option value="ZZ001">
-															<option value="COLD98-001">
+															<option value="COD001">Codejemplo 1</option>
+															<option value="RE923TT-1212">Codejemplo 2</option>
 														</datalist>
-														<!--<div class="collapse" id="collapseExample">
-															<div class="input-group">
-																<input type="search" class="form-control" placeholder="Buscar por código y agregar item" aria-label="Buscar por código y agregar item" aria-describedby="buscador" id="codigoProductoBuscable">
-																<button class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
-															</div>
-														</div>-->
-														<!-- <button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio"><span data-feather="plus-circle"></span></button> -->
-														<!-- <button type="button" class="btn btn-outline-primary text-capitalize border-0" data-bs-toggle="modal" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo producto y/o servicio" data-bs-target="#edicionAvanzadaItem"><span data-feather="plus-circle"></span></button> -->
-														<!-- <button type="button" class="btn btn-secondary" -->
-														<!-- data-bs-toggle="tooltip" data-bs-placement="top" -->
-														<!-- data-bs-custom-class="custom-tooltip" -->
-														<!-- data-bs-title="This top tooltip is themed via CSS variables."> -->
-														<!-- Custom tooltip -->
-														<!-- </button> -->
 													</div>
 												</div>
 											</div>
@@ -218,7 +200,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="gravado-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Monto de operaciones gravadas" readonly />
+													<input type="number" name="gravado-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Monto de operaciones gravadas" readonly>
 												</div>
 											</div>
 										</div>
@@ -227,7 +209,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="inafecto-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Monto de operaciones inafectas" readonly />
+													<input type="number" name="inafecto-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Monto de operaciones inafectas" readonly>
 												</div>
 											</div>
 										</div>
@@ -236,7 +218,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="descuento-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Descuentos" readonly />
+													<input type="number" name="descuento-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Descuentos" readonly>
 												</div>
 											</div>
 										</div>
@@ -245,7 +227,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="igv-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto general a las ventas" readonly />
+													<input type="number" name="igv-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto general a las ventas" readonly>
 												</div>
 											</div>
 										</div>
@@ -254,7 +236,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="isc-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto selectivo al consumo" readonly />
+													<input type="number" name="isc-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto selectivo al consumo" readonly>
 												</div>
 											</div>
 										</div>
@@ -263,7 +245,7 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="icbper-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto al consumo de bolsas plásticas" readonly />
+													<input type="number" name="icbper-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Impuesto al consumo de bolsas plásticas" readonly>
 												</div>
 											</div>
 										</div>
@@ -272,14 +254,14 @@
 											<div class="p-1 text-end">
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
-													<input type="number" name="total-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Total" readonly />
+													<input type="number" name="total-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Total" readonly>
 												</div>
 											</div>
 										</div>
 										<div class="row">
 											<div class="col-lg-3 col-sm-12 col-12 mb-lg-0 mb-2">
 												<div class="form-floating">
-													<input type="email" class="form-control" id="correo" value="contacto@empresa.pe" />
+													<input type="email" class="form-control" id="correo" value="contacto@empresa.pe">
 													<label for="correo">Correo electrónico del cliente</label>
 												</div>
 											</div>
@@ -335,7 +317,7 @@
 										</div>
 										<p class="col-lg-12 col-sm-12 col-12 text-start m-0 mt-1 fst-italic text-info" style="font-size:0.9em">Se usa para guardar y buscar ítems en el detalle del CPE.</p>
 									</div>
-									<hr />
+									<hr>
 									<div class="mb-2 row">
 										<div class="col-lg-12 col-12 mb-2 mb-lg-0 align-self-center">
 											<div class="form-floating">
@@ -352,9 +334,9 @@
 												<!-- <button type="button" class="btn bg-transparent me-0 pe-0" id="eliminarTextoUnidadMedida" style="margin-left: -40px; z-index: 100;border:none; color:gray;"><span data-feather="x"></span></button> -->
 												<div class="input-group-text">
 													<input class="form-check-input mt-0" type="checkbox" aria-label="Configurar el ítem como servicio" id="selectorServicio">
-													<label class="form-check-label" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Servicio" for="selectorServicio-3">&nbsp;ZZ</label>
+													<label class="form-check-label" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Servicio" for="selectorServicio">&nbsp;ZZ</label>
 												</div>
-												<button class="btn btn-outline-secondary" id="guardarItem"><span data-feather="save"></span></button>
+												<button class="btn btn-outline-secondary"><span data-feather="save"></span></button>
 											</div>
 										</div>
 										<datalist id="medidasFrecuentes">
@@ -401,7 +383,7 @@
 											<p class="col-lg-12 col-sm-12 col-12 text-start m-0 fst-italic text-info p-0" style="font-size:0.9em"><a href="https://www.sunat.gob.pe/legislacion/superin/2017/anexoVII-117-2017.pdf" target="_blank">Más información</a></p>
 										</div>
 										<div class="col-sm-8 col-12">
-											<select class="form-control text-start form-select d-inline-block text-truncate" aria-label="Tipo de afectación al IGV">
+											<select class="form-control text-start form-select d-inline-block text-truncate" aria-label="Tipo de afectación al IGV" id="tipoAfectacionIGVItemEdicionAvanzada">
 												<option value="10" selected>Gravado - Operación Onerosa (10)</option>
 												<option value="11">Gravado - Retiro por premio (11)</option>
 												<option value="12">Gravado - Retiro por donación (12)</option>
@@ -471,7 +453,7 @@
 										<div class="col-sm-8 col-12">
 											<div class="input-group">
 												<div class="input-group-text">
-													<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Cuadro de selección para aplicar descuento">
+													<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Cuadro de selección para aplicar descuento" id="ICBPItemEdicionAvanzada">
 												</div>
 												<input type="number" class="form-control text-truncate"  aria-label="Cantidad de bolsas de plástico" aria-describedby="cantidadICBPItemEdicionAvanzada" id="cantidadICBPItemEdicionAvanzada" step="1" value="0" min="0" placeholder="Cantidad">
 												<span class="input-group-text">S/</span>
