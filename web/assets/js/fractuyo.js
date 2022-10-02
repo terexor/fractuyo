@@ -212,7 +212,11 @@ var Fractuyo = function() {
 			for(const item of items) {
 				++productIndex
 				const product = new Item(item.getElementsByTagName("textarea")[0].value.trim())
+				product.setIscPercentage(0)
+				product.setIscPercentage(18)
 				product.setQuantity(item.querySelector("[data-type='quantity']").value.trim())
+				product.setUnitValue(item.querySelector("[data-type='unit-value']").value.trim(), item.querySelector("[data-type='inc-igv']").checked)
+				product.calcMounts()
 				invoice.addItem(product)
 			}
 		}

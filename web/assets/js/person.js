@@ -61,6 +61,28 @@ var Person = function() {
 var Taxpayer = function() {
 	var cert, key
 	var solUser, solPass
+	var tradeName
+	/**
+	 * Vector holding address metadata.
+	 */
+	var metaAddress
+
+	this.setMetaAddress = function(country, ubigeo, typecode, urbanization, city, subentity, district) {
+		if(metaAddress == undefined) {
+			metaAddress = Array(7)
+		}
+		metaAddress[0] = country
+		metaAddress[1] = ubigeo
+		metaAddress[2] = typecode
+		metaAddress[3] = urbanization
+		metaAddress[4] = city
+		metaAddress[5] = subentity
+		metaAddress[6] = district
+	}
+
+	this.getMetaAddress = function() {
+		return metaAddress
+	}
 
 	this.setCert = function(c) {
 		cert = c
@@ -88,6 +110,14 @@ var Taxpayer = function() {
 
 	this.setSolPass = function(sp) {
 		solPass = sp
+	}
+
+	this.setTradeName = function(tn) {
+		tradeName = tn
+	}
+
+	this.getTradeName = function(withCdata = false) {
+		return withCdata ? `<![CDATA[${tradeName}]]>` : tradeName
 	}
 
 	this.clearData = function() {

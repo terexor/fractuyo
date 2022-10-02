@@ -339,7 +339,7 @@ function addRowForItem(object) {
 	entradaPrecio.placeholder = "Precio"
 	entradaPrecio.setAttribute("class", "form-control")
 	entradaPrecio.setAttribute("aria-label", "Precio unitario")
-	entradaPrecio.setAttribute("data-type", "price")
+	entradaPrecio.setAttribute("data-type", "unit-value")
 	groupPrecio.appendChild(entradaPrecio)
 
 	const selectorGravoso = document.createElement("select")
@@ -379,6 +379,7 @@ function addRowForItem(object) {
 	marcadorIncIgv.type = "checkbox"
 	marcadorIncIgv.setAttribute("class", "form-check-input")
 	marcadorIncIgv.setAttribute("role", "switch")
+	marcadorIncIgv.setAttribute("data-type", "inc-igv")
 	switchIncIgv.appendChild(marcadorIncIgv)
 
 	const etiquetaIncIgv = document.createElement("label")
