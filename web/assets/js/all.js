@@ -334,13 +334,13 @@ function addRowForItem(object) {
 	etiquetaMoneda.appendChild(document.createTextNode("S/"))
 	groupPrecio.appendChild(etiquetaMoneda)
 
-	const entradaPrecio = document.createElement("input")
-	entradaPrecio.type = "number"
-	entradaPrecio.placeholder = "Precio"
-	entradaPrecio.setAttribute("class", "form-control")
-	entradaPrecio.setAttribute("aria-label", "Precio unitario")
-	entradaPrecio.setAttribute("data-type", "unit-value")
-	groupPrecio.appendChild(entradaPrecio)
+	const entradaValorUnitario = document.createElement("input")
+	entradaValorUnitario.type = "number"
+	entradaValorUnitario.placeholder = "Valor unitario"
+	entradaValorUnitario.setAttribute("class", "form-control")
+	entradaValorUnitario.setAttribute("aria-label", "Valor unitario")
+	entradaValorUnitario.setAttribute("data-type", "unit-value")
+	groupPrecio.appendChild(entradaValorUnitario)
 
 	const selectorGravoso = document.createElement("select")
 	selectorGravoso.setAttribute("class", "input-group-text text-start text-lg-center form-select d-inline-block text-truncate")
@@ -410,7 +410,15 @@ function addRowForItem(object) {
 		reemplazable.remove()
 	}
 
+	entradaSubtotal.onkeyup = entradaCantidad.onkeyup = entradaValorUnitario.onkeyup = marcadorIncIgv.onchange = function() {
+		calcular(entradaSubtotal, entradaCantidad, entradaValorUnitario, marcadorIncIgv)
+	}
+
 	feather.replace()
+}
+
+function calcular(entradaSubtotal, entradaCantidad, entradaValorUnitario, marcadorIncIgv) {
+	entradaSubtotal.value = entradaCantidad.value * entradaValorUnitario.value
 }
 
 function showItemEditor() {
@@ -461,18 +469,4 @@ async function testHomomorphic(p, q) {
 	const one = 1
 	const encryptedSumPlain = publicKey.plaintextAddition(c1, 1)
 	console.log(privateKey.decrypt(encryptedSumPlain))
-}
-
-async function unpackRsa(pem) {
-	var ASN1 = window.ASN1  // 62 lines
-	var Enc = window.Enc    // 27 lines
-	var PEM = window.PEM    //  6 lines
-
-	var der = PEM.parseBlock(pem).der
-	const json = ASN1.parse(der)
-
-	let p = BigInt("0x" + Enc.bufToHex(json.children[2].children[0].children[4].value))
-	let q = BigInt("0x" + Enc.bufToHex(json.children[2].children[0].children[5].value))
-
-	await testHomomorphic(p, q)
 }

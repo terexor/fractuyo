@@ -108,18 +108,54 @@ var Fractuyo = function() {
 		}
 
 		const name = form.elements.nombre.value.trim()
+		const tradename = form.elements.marca.value.trim()
+		const country = form.elements.pais.value.trim()
 		const address = form.elements.direccion.value.trim()
+		const ubigeo = form.elements.ubigeo.value.trim()
+		const local = form.elements.local.value.trim()
+		const urbanizacion = form.elements.urbanizacion.value.trim()
+		const departamento = form.elements.departamento.value.trim()
+		const provincia = form.elements.provincia.value.trim()
+		const distrito = form.elements.distrito.value.trim()
 		const solUser = form.elements.usuario.value.trim()
 		const solPass = form.elements.clave.value.trim()
 		const cer = form.elements.cert.value.trim()
 		const key = form.elements.key.value.trim()
 
-		//Getting size and appending using 16 bits (x6) after RUC
-		const sizes = String.fromCharCode(name.length, address.length, solUser.length, solPass.length, cer.length, key.length)
+		//Creating session file
+		const der = window.Encoding.hexToBuf(
+			ASN1.Any('30' // session Sequence
+				, ASN1.Any('13', window.Encoding.strToHex(ruc))
+				, ASN1.Any('13', window.Encoding.strToHex(name))
+				, ASN1.Any('13', window.Encoding.strToHex(tradename))
+				, ASN1.Any('30' // address Sequence
+					, ASN1.Any('13', window.Encoding.strToHex(country))
+					, ASN1.Any('13', window.Encoding.strToHex(ubigeo))
+					, ASN1.Any('13', window.Encoding.strToHex(local))
+					, ASN1.Any('13', window.Encoding.strToHex(urbanizacion))
+					, ASN1.Any('13', window.Encoding.strToHex(departamento))
+					, ASN1.Any('13', window.Encoding.strToHex(provincia))
+					, ASN1.Any('13', window.Encoding.strToHex(distrito))
+					, ASN1.Any('13', window.Encoding.strToHex(address))
+				)
+				, ASN1.Any('30' // sunat Sequence
+					, ASN1.Any('13', window.Encoding.strToHex(solUser))
+					, ASN1.Any('13', window.Encoding.strToHex(solPass))
+				)
+				, ASN1.Any('30' // signer Sequence
+					, ASN1.Any('13', window.Encoding.strToHex(cer))
+					, ASN1.Any('13', window.Encoding.strToHex(key))
+				)
+				//~ , ASN1.Any('30' // paillier Sequence
+					//~ , ASN1.Any('13', window.Encoding.strToHex(cer))
+					//~ , ASN1.Any('13', window.Encoding.strToHex(key))
+				//~ )
+			)
+		)
 
-		const data = ruc
-			+ sizes
-			+ name + address + solUser + solPass + cer + key
+		const data = '-----BEGIN FRACTUYO-----\n'
+			+ window.Encoding.bufToBase64(der).match(/.{1,64}/g).join('\n') + '\n'
+			+ '-----END FRACTUYO-----'
 
 		await Notiflix.Confirm.prompt(
 			"Seguridad de datos",
@@ -213,7 +249,7 @@ var Fractuyo = function() {
 				++productIndex
 				const product = new Item(item.getElementsByTagName("textarea")[0].value.trim())
 				product.setIscPercentage(0)
-				product.setIscPercentage(18)
+				product.setIgvPercentage(18)
 				product.setQuantity(item.querySelector("[data-type='quantity']").value.trim())
 				product.setUnitValue(item.querySelector("[data-type='unit-value']").value.trim(), item.querySelector("[data-type='inc-igv']").checked)
 				product.calcMounts()
@@ -234,7 +270,14 @@ var Fractuyo = function() {
 		invoice.setNumeration(7357)
 		invoice.setOrderReference("11")
 		invoice.toXml()
-		await invoice.sign()
+		try {
+			await invoice.sign()
+		}
+		catch(e) {
+			Notiflix.Notify.failure("No se puede firmar.")
+			console.error(e)
+			return
+		}
 		// Find directory structure
 		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
@@ -267,28 +310,29 @@ var Fractuyo = function() {
 	}
 
 	var populateTaxpayerData = function(decryptedSession) {
-		let sizeIndex = 11 //We start position after RUC
-		let startCutter = 0, endCutter = 11 //substring range
+		const der =  window.Encoding.base64ToBuf( decryptedSession.split(/\n/).filter(function (line) {
+			return !/-----/.test(line)
+		}).join('') )
 
-		taxpayer.setIdentification( new Identification().setIdentity( decryptedSession.substring(startCutter, endCutter), 6 ) )
-		startCutter += 17
-		endCutter = startCutter + decryptedSession.charCodeAt(sizeIndex)
-		taxpayer.setName(decryptedSession.substring(startCutter, endCutter))
-		startCutter = endCutter
-		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		taxpayer.setAddress(decryptedSession.substring(startCutter, endCutter))
-		startCutter = endCutter
-		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		taxpayer.setSolUser(decryptedSession.substring(startCutter, endCutter))
-		startCutter = endCutter
-		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		taxpayer.setSolPass(decryptedSession.substring(startCutter, endCutter))
-		startCutter = endCutter
-		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		taxpayer.setCert(decryptedSession.substring(startCutter, endCutter))
-		startCutter = endCutter
-		endCutter = startCutter + decryptedSession.charCodeAt(++sizeIndex)
-		taxpayer.setKey(decryptedSession.substring(startCutter, endCutter))
+		const json = ASN1.parse({ der: der, json: false, verbose: true })
+
+		taxpayer.setIdentification( new Identification().setIdentity( window.Encoding.bufToStr(json.children[0].value), 6 ) )
+		taxpayer.setName(window.Encoding.bufToStr(json.children[1].value))
+		taxpayer.setTradeName(window.Encoding.bufToStr(json.children[2].value))
+		taxpayer.setSolUser(window.Encoding.bufToStr(json.children[4].children[0].value))
+		taxpayer.setSolPass(window.Encoding.bufToStr(json.children[4].children[1].value))
+		taxpayer.setCert(window.Encoding.bufToStr(json.children[5].children[0].value))
+		taxpayer.setKey(window.Encoding.bufToStr(json.children[5].children[1].value))
+		taxpayer.setAddress(window.Encoding.bufToStr(json.children[3].children[7].value))
+		taxpayer.setMetaAddress(
+			window.Encoding.bufToStr(json.children[3].children[0].value),
+			window.Encoding.bufToStr(json.children[3].children[1].value),
+			window.Encoding.bufToStr(json.children[3].children[2].value),
+			window.Encoding.bufToStr(json.children[3].children[3].value),
+			window.Encoding.bufToStr(json.children[3].children[4].value),
+			window.Encoding.bufToStr(json.children[3].children[5].value),
+			window.Encoding.bufToStr(json.children[3].children[6].value)
+		)
 
 		//Modify in view
 		document.getElementById("company-tag").textContent = taxpayer.getName()

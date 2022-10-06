@@ -68,12 +68,21 @@
 							<div class="card-header">Configuración del sistema</div>
 							<div class="card-body">
 								<form onsubmit="fractuyo.saveData(this);return false">
-									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required />
-									<input name="nombre" type="text" maxlength="128" placeholder="Nombre o Razón social" required />
-									<input name="direccion" type="text" maxlength="128" placeholder="Dirección" />
+									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required>
+									<input name="nombre" type="text" maxlength="128" placeholder="Nombre o Razón social" required>
+									<input name="marca" type="text" maxlength="128" placeholder="Nombre comercial" required>
 									<hr>
-									<input name="usuario" type="text" placeholder="Usuario secundario para Sunat" />
-									<input name="clave" type="text" placeholder="Contraseña para Sunat" />
+									<input name="pais" type="text" maxlength="2" placeholder="País" required>
+									<input name="direccion" type="text" maxlength="128" placeholder="Dirección" required>
+									<input name="ubigeo" type="text" maxlength="6" placeholder="Ubigeo" required>
+									<input name="local" type="text" maxlength="4" placeholder="Código de local" required>
+									<input name="urbanizacion" type="text" maxlength="64" placeholder="Urbanización" required>
+									<input name="departamento" type="text" maxlength="64" placeholder="Departamento" required>
+									<input name="provincia" type="text" maxlength="64" placeholder="Provincia" required>
+									<input name="distrito" type="text" maxlength="64" placeholder="Distrito" required>
+									<hr>
+									<input name="usuario" type="text" placeholder="Usuario secundario para Sunat" required>
+									<input name="clave" type="text" placeholder="Contraseña para Sunat" required>
 									<hr>
 									<textarea name="cert" placeholder="Certificado" rows="5"></textarea>
 									<textarea name="key" placeholder="Clave" rows="5"></textarea>
@@ -96,7 +105,7 @@
 		<script src="https://xadesjs.com/src/xades.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" integrity="sha256-rMfkFFWoB2W1/Zx+4bgHim0WC7vKRVrq6FTeZclH1Z4=" crossorigin="anonymous"></script>
 
-		<script data-senna-track="permanent" src="https://git.coolaj86.com/coolaj86/asn1-parser.js/raw/branch/master/asn1-parser.js"></script>
+		<script data-senna-track="permanent" src="https://git.coolaj86.com/coolaj86/asn1.js/raw/branch/master/dist/asn1.all.min.js"></script>
 		<script data-senna-track="permanent" src="https://cdnjs.cloudflare.com/ajax/libs/taffydb/2.7.3/taffy-min.js"></script>
 
 		<!-- Usabilidad -->
