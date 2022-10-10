@@ -9,43 +9,21 @@ var Passcode = function() {
 	var currentPasscodeHash
 
 	var dataSession
-	var databases = Array()
 
 	this.setupPasscode = async function(passcode) {
 		currentPasscodeHash = await sha256(passcode)
 	}
 
 	/**
-	 * Decrypt data that must be inside files.
-	 * @encryptedDataArray is all serialized data needed inside array.
+	 * Decrypt data that must be inside file.
+	 * @encryptedData is all serialized data needed.
 	 */
-	this.decryptSession = async function(encryptedDataArray) {
-		dataSession = await aesDecrypt(encryptedDataArray[0], currentPasscodeHash)
-
-		//Here we decrypt in order
-		let decryptedData
-		if(encryptedDataArray.length > 1) {
-			let saltar = -1
-			for(const encryptedData of encryptedDataArray) {
-				if(++saltar == 0) {
-					continue
-				}
-				if(encryptedData == null) {
-					databases.push(encryptedData)
-					continue
-				}
-				decryptedData = await aesDecrypt(encryptedData, currentPasscodeHash)
-				databases.push(decryptedData)
-			}
-		}
+	this.decryptSession = async function(encryptedData) {
+		dataSession = await aesDecrypt(encryptedData, currentPasscodeHash)
 	}
 
 	this.getDataSession = function() {
 		return dataSession
-	}
-
-	this.getDataBases = function() {
-		return databases
 	}
 
 	/**

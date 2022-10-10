@@ -29,7 +29,7 @@ var Storage = function(fractuyo) {
 			.add(oSession)
 
 		request.onsuccess = function(event) {
-			Notiflix.Report.success("Datos guardados.", "Ahora podrás usar Fractuyo con los datos proporcionados.")
+			Notiflix.Report.success("Datos guardados.", "Ahora podrás usar Fractuyo con los datos proporcionados.", "Gracias")
 		}
 
 		request.onerror = function(event) {

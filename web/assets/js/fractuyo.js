@@ -4,14 +4,16 @@
 var Fractuyo = function() {
 	var globalDirHandle
 	var passcode, storage, taxpayer
-	var dbCustomer, dbProduct
+	var SQL
+	var dbModules //Storing module tables
+	var dbInvoices //Storing a single table with header and footer of the invoice
 
-	this.getDbCustomer = function() {
-		return dbCustomer
+	this.getDbModules = function() {
+		return dbModules
 	}
 
-	this.getDbProduct = function() {
-		return dbProduct
+	this.getDbInvoices = function() {
+		return dbInvoices
 	}
 
 	this.chooseDirHandle = async function() {
@@ -50,42 +52,31 @@ var Fractuyo = function() {
 
 		fileHandle = await globalDirHandle.getFileHandle("session.bin", {})
 		file = await fileHandle.getFile()
-		content = await file.arrayBuffer()
-		contentArray.push(content)
+		let encryptedDataSession = await file.arrayBuffer()
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("customer.dat", {})
+			fileHandle = await globalDirHandle.getFileHandle("invoices.dat", {})
 			file = await fileHandle.getFile()
-			content = await file.getText()
-			contentArray.push(content)
+			content = await file.arrayBuffer()
+			dbCustomer = new SQL.Database(new Uint8Array(content))
 		}
 		catch(e) {
-			contentArray.push(null)
-			if(e.name == "SyntaxError") {
-				Notiflix.Notify.warning("Archivo no tiene estructura.")
-			}
-			else {
-				console.log(e)
-			}
+			Notiflix.Notify.warning("Faltan clientes.")
+			console.log(e)
 		}
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("product.dat", {})
+			fileHandle = await globalDirHandle.getFileHandle("modules.dat", {})
 			file = await fileHandle.getFile()
-			content = await file.getText()
-			contentArray.push(content)
+			content = await file.arrayBuffer()
+			dbProduct = new SQL.Database(new Uint8Array(content))
 		}
 		catch(e) {
-			contentArray.push(null)
-			if(e.name == "SyntaxError") {
-				Notiflix.Notify.warning("Archivo no tiene estructura.")
-			}
-			else {
-				console.log(e)
-			}
+			Notiflix.Notify.warning("Faltan productos.")
+			console.log(e)
 		}
 
-		return contentArray
+		return encryptedDataSession
 	}
 
 	this.saveData = async function(form) {
@@ -163,20 +154,66 @@ var Fractuyo = function() {
 			"Guardar", "Cancelar",
 			async (pin) => {
 				await passcode.setupPasscode(pin)
+
+				let encryptedData = await passcode.encryptSession(data)
+				let fileHandle = await globalDirHandle.getFileHandle("session.bin", { create: true })
+
+				let writable = await fileHandle.createWritable()
+				await writable.write(encryptedData)
+				await writable.close()
+
+				dbModules = new SQL.Database()
+				let sqlstr = "\
+					CREATE TABLE customer(\
+						number varchar(13) PRIMARY KEY,\
+						config int,\
+						name varchar(255),\
+						address varchar(128),\
+						note varchar(160)\
+					);\
+				"
+				dbModules.run(sqlstr)
+
+				fileHandle = await globalDirHandle.getFileHandle("modules.dat", { create: true })
+				writable = await fileHandle.createWritable()
+				await writable.write(dbModules.export())
+				await writable.close()
+
+				dbInvoices = new SQL.Database()
+				sqlstr = "\
+					CREATE TABLE invoice(\
+						id integer PRIMARY KEY autoincrement,\
+						fecha integer,\
+						config integer,\
+						serie char(4),\
+						numero integer,\
+						subtotal integer,\
+						gravado integer,\
+						exonerado integer,\
+						inafecto integer,\
+						isc integer,\
+						igv integer,\
+						icbp integer,\
+						total integer\
+					);\
+				"
+				dbInvoices.run(sqlstr)
+
+				fileHandle = await globalDirHandle.getFileHandle("invoices.dat", { create: true })
+				writable = await fileHandle.createWritable()
+				await writable.write(dbInvoices.export())
+				await writable.close()
+
 				const oSession = {
 					ruc: ruc,
 					dir: globalDirHandle
 				}
 				storage.add(oSession)
 
-				let encryptedData = await passcode.encryptSession(data)
+				populateTaxpayerData(data)
 
-				let fileHandle = await globalDirHandle.getFileHandle("session.bin", { create: true })
-
-				const writable = await fileHandle.createWritable()
-
-				await writable.write(encryptedData)
-				await writable.close()
+				Notiflix.Notify.success("Configurado para " + taxpayer.getName() + ".")
+				app.navigate("/")
 			}
 		)
 	}
@@ -186,10 +223,14 @@ var Fractuyo = function() {
 		storage.countRegisters(block, guide)
 	}
 
-	this.init = function() {
+	this.init = async function() {
 		passcode = new Passcode()
 		storage = new Storage(this)
 		taxpayer = new Taxpayer()
+
+		SQL = await initSqlJs({
+			locateFile: file => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.wasm"
+		})
 	}
 
 	var block = function(count) {
@@ -278,15 +319,21 @@ var Fractuyo = function() {
 			console.error(e)
 			return
 		}
+
 		// Find directory structure
 		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
 
 		let fileHandle = await handleDirectoryXml.getFileHandle(invoice.getId() + ".xml", { create: true })
-
-		const writable = await fileHandle.createWritable()
+		let writable = await fileHandle.createWritable()
 
 		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
+		await writable.close()
+
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [0, 17565433, 101, "F000", 101n, 1231221231112312314354331n, 1231221231112312314354332n, 1231221231112312314354331n, 1231221231112312314354331n, 1231221231112312314154336n, 1231221231112312314354337n, 1231221231112312314354338n, 1231221231112312314354339n ])
+		fileHandle = await globalDirHandle.getFileHandle("invoices.dat", { create: true })
+		writable = await fileHandle.createWritable()
+		await writable.write(dbInvoices.export())
 		await writable.close()
 
 		Notiflix.Report.success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
@@ -339,24 +386,14 @@ var Fractuyo = function() {
 		document.getElementById("ruc-tag").textContent = taxpayer.getIdentification().getNumber()
 	}
 
-	var populateDatabases = function(decryptedDatabases) {
-		if(decryptedDatabases[0] != null) {
-			dbProduct = TAFFY( JSON.parse(decryptedDatabases[0]) )
-		}
-		if(decryptedDatabases[1] != null) {
-			dbCustomer = TAFFY( JSON.parse(decryptedDatabases[1]) )
-		}
-	}
-
 	this.handleUnlocked = async function(event) {
 		if(event.target.result) {
 			try {
 				await fractuyo.setDirHandle(event.target.result.dir)
-				const encryptedDataArray = await fractuyo.checkDirHandle()
-				await passcode.decryptSession(encryptedDataArray)
+				const encryptedData = await fractuyo.checkDirHandle()
+				await passcode.decryptSession(encryptedData)
 
 				populateTaxpayerData(passcode.getDataSession())
-				populateDatabases(passcode.getDataBases())
 
 				Notiflix.Notify.success("Desencriptado para " + taxpayer.getName() + ".")
 
