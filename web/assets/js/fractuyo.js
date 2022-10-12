@@ -50,33 +50,56 @@ var Fractuyo = function() {
 		let fileHandle, file, content
 		let contentArray = new Array()
 
-		fileHandle = await globalDirHandle.getFileHandle("session.bin", {})
+		let handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("config")
+
+		fileHandle = await handleDirectoryConfig.getFileHandle("session.bin", {})
 		file = await fileHandle.getFile()
 		let encryptedDataSession = await file.arrayBuffer()
+		contentArray.push(encryptedDataSession)
+
+		fileHandle = await handleDirectoryConfig.getFileHandle("rsapub.bin", {})
+		file = await fileHandle.getFile()
+		encryptedDataSession = await file.arrayBuffer()
+		contentArray.push(encryptedDataSession)
+
+		fileHandle = await handleDirectoryConfig.getFileHandle("rsapriv.bin", {})
+		file = await fileHandle.getFile()
+		encryptedDataSession = await file.arrayBuffer()
+		contentArray.push(encryptedDataSession)
+
+		fileHandle = await handleDirectoryConfig.getFileHandle("paillierpub.bin", {})
+		file = await fileHandle.getFile()
+		encryptedDataSession = await file.arrayBuffer()
+		contentArray.push(encryptedDataSession)
+
+		fileHandle = await handleDirectoryConfig.getFileHandle("paillierpriv.bin", {})
+		file = await fileHandle.getFile()
+		encryptedDataSession = await file.arrayBuffer()
+		contentArray.push(encryptedDataSession)
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("invoices.dat", {})
+			fileHandle = await handleDirectoryConfig.getFileHandle("invoices.dat", {})
 			file = await fileHandle.getFile()
 			content = await file.arrayBuffer()
-			dbCustomer = new SQL.Database(new Uint8Array(content))
+			dbInvoices = new SQL.Database(new Uint8Array(content))
 		}
 		catch(e) {
-			Notiflix.Notify.warning("Faltan clientes.")
+			Notiflix.Notify.warning("Falta almacén de facturas.")
 			console.log(e)
 		}
 
 		try {
-			fileHandle = await globalDirHandle.getFileHandle("modules.dat", {})
+			fileHandle = await handleDirectoryConfig.getFileHandle("modules.dat", {})
 			file = await fileHandle.getFile()
 			content = await file.arrayBuffer()
-			dbProduct = new SQL.Database(new Uint8Array(content))
+			dbModules = new SQL.Database(new Uint8Array(content))
 		}
 		catch(e) {
-			Notiflix.Notify.warning("Faltan productos.")
+			Notiflix.Notify.warning("Falta almacén de módulos.")
 			console.log(e)
 		}
 
-		return encryptedDataSession
+		return contentArray
 	}
 
 	this.saveData = async function(form) {
@@ -110,8 +133,10 @@ var Fractuyo = function() {
 		const distrito = form.elements.distrito.value.trim()
 		const solUser = form.elements.usuario.value.trim()
 		const solPass = form.elements.clave.value.trim()
-		const cer = form.elements.cert.value.trim()
-		const key = form.elements.key.value.trim()
+		const rsaCert = form.elements.cert.value.trim()
+		const rsaPrivate = form.elements.key.value.trim()
+		const paillierPrivate = form.elements["paillier-privado"].value.trim()
+		const paillierPublic = form.elements["paillier-publico"].value.trim()
 
 		//Creating session file
 		const der = window.Encoding.hexToBuf(
@@ -133,14 +158,6 @@ var Fractuyo = function() {
 					, ASN1.Any('13', window.Encoding.strToHex(solUser))
 					, ASN1.Any('13', window.Encoding.strToHex(solPass))
 				)
-				, ASN1.Any('30' // signer Sequence
-					, ASN1.Any('13', window.Encoding.strToHex(cer))
-					, ASN1.Any('13', window.Encoding.strToHex(key))
-				)
-				//~ , ASN1.Any('30' // paillier Sequence
-					//~ , ASN1.Any('13', window.Encoding.strToHex(cer))
-					//~ , ASN1.Any('13', window.Encoding.strToHex(key))
-				//~ )
 			)
 		)
 
@@ -155,18 +172,48 @@ var Fractuyo = function() {
 			async (pin) => {
 				await passcode.setupPasscode(pin)
 
+				let handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("config", { create: true })
+
 				let encryptedData = await passcode.encryptSession(data)
-				let fileHandle = await globalDirHandle.getFileHandle("session.bin", { create: true })
+				let fileHandle = await handleDirectoryConfig.getFileHandle("session.bin", { create: true })
 
 				let writable = await fileHandle.createWritable()
 				await writable.write(encryptedData)
 				await writable.close()
 
+				//Saving keys
+				encryptedData = await passcode.encryptSession(rsaCert)
+				fileHandle = await handleDirectoryConfig.getFileHandle("rsapub.bin", { create: true })
+				writable = await fileHandle.createWritable()
+				await writable.write(encryptedData)
+				await writable.close()
+
+				encryptedData = await passcode.encryptSession(rsaPrivate)
+				fileHandle = await handleDirectoryConfig.getFileHandle("rsapriv.bin", { create: true })
+				writable = await fileHandle.createWritable()
+				await writable.write(encryptedData)
+				await writable.close()
+
+				//Paillier public
+				encryptedData = await passcode.encryptSession(paillierPublic)
+				fileHandle = await handleDirectoryConfig.getFileHandle("paillierpub.bin", { create: true })
+				writable = await fileHandle.createWritable()
+				await writable.write(encryptedData)
+				await writable.close()
+
+				if(paillierPrivate.length > 0) {
+					encryptedData = await passcode.encryptSession(paillierPrivate)
+					fileHandle = await handleDirectoryConfig.getFileHandle("paillierpriv.bin", { create: true })
+					writable = await fileHandle.createWritable()
+					await writable.write(encryptedData)
+					await writable.close()
+				}
+
 				dbModules = new SQL.Database()
 				let sqlstr = "\
 					CREATE TABLE customer(\
 						number varchar(13) PRIMARY KEY,\
-						config int,\
+						config integer,\
 						name varchar(255),\
 						address varchar(128),\
 						note varchar(160)\
@@ -174,7 +221,7 @@ var Fractuyo = function() {
 				"
 				dbModules.run(sqlstr)
 
-				fileHandle = await globalDirHandle.getFileHandle("modules.dat", { create: true })
+				fileHandle = await handleDirectoryConfig.getFileHandle("modules.dat", { create: true })
 				writable = await fileHandle.createWritable()
 				await writable.write(dbModules.export())
 				await writable.close()
@@ -199,7 +246,7 @@ var Fractuyo = function() {
 				"
 				dbInvoices.run(sqlstr)
 
-				fileHandle = await globalDirHandle.getFileHandle("invoices.dat", { create: true })
+				fileHandle = await handleDirectoryConfig.getFileHandle("invoices.dat", { create: true })
 				writable = await fileHandle.createWritable()
 				await writable.write(dbInvoices.export())
 				await writable.close()
@@ -210,7 +257,7 @@ var Fractuyo = function() {
 				}
 				storage.add(oSession)
 
-				populateTaxpayerData(data)
+				populateTaxpayerData(data, rsaCert, rsaPrivate, paillierPublic, paillierPrivate ? paillierPrivate : null)
 
 				Notiflix.Notify.success("Configurado para " + taxpayer.getName() + ".")
 				app.navigate("/")
@@ -319,6 +366,7 @@ var Fractuyo = function() {
 			console.error(e)
 			return
 		}
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [null, Date.now(), 101, invoice.getSerie(), invoice.getNumeration(), 2100n, 1231n, 4331n, 1224n, 3136n, 22227n, 338n, 239n ])
 
 		// Find directory structure
 		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
@@ -330,7 +378,7 @@ var Fractuyo = function() {
 		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
 		await writable.close()
 
-		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [0, 17565433, 101, "F000", 101n, 1231221231112312314354331n, 1231221231112312314354332n, 1231221231112312314354331n, 1231221231112312314354331n, 1231221231112312314154336n, 1231221231112312314354337n, 1231221231112312314354338n, 1231221231112312314354339n ])
+		//Saving file onto disk
 		fileHandle = await globalDirHandle.getFileHandle("invoices.dat", { create: true })
 		writable = await fileHandle.createWritable()
 		await writable.write(dbInvoices.export())
@@ -356,20 +404,18 @@ var Fractuyo = function() {
 		Notiflix.Notify.warning("RUC no es válido.")
 	}
 
-	var populateTaxpayerData = function(decryptedSession) {
-		const der =  window.Encoding.base64ToBuf( decryptedSession.split(/\n/).filter(function (line) {
+	var populateTaxpayerData = function(decryptedSession, decryptedRsaCert, decryptedRsaPrivate, decryptedPaillierPublic, decryptedPaillierPrivate) {
+		let der =  window.Encoding.base64ToBuf( decryptedSession.split(/\n/).filter(function (line) {
 			return !/-----/.test(line)
 		}).join('') )
 
-		const json = ASN1.parse({ der: der, json: false, verbose: true })
+		let json = ASN1.parse({ der: der, json: false, verbose: true })
 
 		taxpayer.setIdentification( new Identification().setIdentity( window.Encoding.bufToStr(json.children[0].value), 6 ) )
 		taxpayer.setName(window.Encoding.bufToStr(json.children[1].value))
 		taxpayer.setTradeName(window.Encoding.bufToStr(json.children[2].value))
 		taxpayer.setSolUser(window.Encoding.bufToStr(json.children[4].children[0].value))
 		taxpayer.setSolPass(window.Encoding.bufToStr(json.children[4].children[1].value))
-		taxpayer.setCert(window.Encoding.bufToStr(json.children[5].children[0].value))
-		taxpayer.setKey(window.Encoding.bufToStr(json.children[5].children[1].value))
 		taxpayer.setAddress(window.Encoding.bufToStr(json.children[3].children[7].value))
 		taxpayer.setMetaAddress(
 			window.Encoding.bufToStr(json.children[3].children[0].value),
@@ -381,6 +427,34 @@ var Fractuyo = function() {
 			window.Encoding.bufToStr(json.children[3].children[6].value)
 		)
 
+		taxpayer.setCert(decryptedRsaCert)
+		taxpayer.setKey(decryptedRsaPrivate)
+
+		if(decryptedPaillierPrivate) {
+			der =  window.Encoding.base64ToBuf( decryptedPaillierPrivate.split(/\n/).filter(function (line) {
+				return !/-----/.test(line)
+			}).join('') )
+			json = ASN1.parse({ der: der, json: false, verbose: true })
+			taxpayer.createPaillierPrivateKey(
+				BigInt("0x" + window.Encoding.bufToHex(json.children[0].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[1].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[2].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[3].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[4].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[5].value))
+			)
+		}
+		else {
+			der =  window.Encoding.base64ToBuf( decryptedPaillierPublic.split(/\n/).filter(function (line) {
+				return !/-----/.test(line)
+			}).join('') )
+			json = ASN1.parse({ der: der, json: false, verbose: true })
+			taxpayer.createPaillierPublicKey(
+				BigInt("0x" + window.Encoding.bufToHex(json.children[0].value)),
+				BigInt("0x" + window.Encoding.bufToHex(json.children[1].value))
+			)
+		}
+
 		//Modify in view
 		document.getElementById("company-tag").textContent = taxpayer.getName()
 		document.getElementById("ruc-tag").textContent = taxpayer.getIdentification().getNumber()
@@ -390,13 +464,12 @@ var Fractuyo = function() {
 		if(event.target.result) {
 			try {
 				await fractuyo.setDirHandle(event.target.result.dir)
-				const encryptedData = await fractuyo.checkDirHandle()
-				await passcode.decryptSession(encryptedData)
+				const encryptedDataVector = await fractuyo.checkDirHandle()
+				await passcode.decryptSession(encryptedDataVector)
 
-				populateTaxpayerData(passcode.getDataSession())
+				populateTaxpayerData(...passcode.getDataSession())
 
 				Notiflix.Notify.success("Desencriptado para " + taxpayer.getName() + ".")
-
 				app.navigate("/")
 			}
 			catch(e) {

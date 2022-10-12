@@ -85,7 +85,12 @@
 									<input name="clave" type="text" placeholder="Contraseña para Sunat" required>
 									<hr>
 									<textarea name="cert" placeholder="Certificado" rows="5"></textarea>
-									<textarea name="key" placeholder="Clave" rows="5"></textarea>
+									<textarea name="key" placeholder="Clave privada" rows="5"></textarea>
+									<hr>
+									<textarea name="homoPubl" placeholder="Paillier público" rows="5" id="paillier-publico"></textarea>
+									<textarea name="homoPriv" placeholder="Paillier privado" rows="5" id="paillier-privado"></textarea>
+									<button type="button" class="btn btn-secondary" onclick="generatePaillier()">Generar</button>
+									<hr>
 									<button type="button" class="btn btn-secondary" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
 									<button type="submit" class="btn btn-warning">Encriptar sesión</button>
 								</form>

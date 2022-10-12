@@ -59,6 +59,7 @@ var Person = function() {
 }
 
 var Taxpayer = function() {
+	var paillierPublicKey, paillierPrivateKey
 	var cert, key
 	var solUser, solPass
 	var tradeName
@@ -82,6 +83,23 @@ var Taxpayer = function() {
 
 	this.getMetaAddress = function() {
 		return metaAddress
+	}
+
+	this.createPaillierPublicKey = function(n, g) {
+		paillierPublicKey = new PublicKey(n, g)
+	}
+
+	this.getPaillierPublicKey = function() {
+		return paillierPublicKey
+	}
+
+	this.createPaillierPrivateKey = function(lambda, mu, n, g, p, q) {
+		paillierPublicKey = new PublicKey(n, g)
+		paillierPrivateKey = new PrivateKey(lambda, mu, paillierPublicKey, p, q)
+	}
+
+	this.getPaillierPrivateKey = function() {
+		return paillierPrivateKey
 	}
 
 	this.setCert = function(c) {

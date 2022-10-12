@@ -444,106 +444,33 @@ function autoRemoveItem() {
 	)
 }
 
+async function generatePaillier() {
+	const { publicKey, privateKey } = await generateRandomKeys(1024)
 
-async function testHomomorphic(p, q) {
-	const { publicKey, privateKey } = await generateKeys(p, q, 1024, true)
+	const publicKeyDer = window.Encoding.hexToBuf(
+		ASN1.Any('30' // session Sequence
+			, ASN1.Any('02', window.Encoding.numToHex(publicKey.n))
+			, ASN1.Any('02', window.Encoding.numToHex(publicKey.g))
+		)
+	)
+	const publicKeyDerData = '-----BEGIN PAILLIER PUBLIC KEY-----\n'
+		+ window.Encoding.bufToBase64(publicKeyDer).match(/.{1,64}/g).join('\n') + '\n'
+		+ '-----END PAILLIER PUBLIC KEY-----'
 
-	const m1 = 101n
-	const m2 = 9n
+	const privateKeyDer = window.Encoding.hexToBuf(
+		ASN1.Any('30' // session Sequence
+			, ASN1.Any('02', window.Encoding.numToHex(privateKey.lambda))
+			, ASN1.Any('02', window.Encoding.numToHex(privateKey.mu))
+			, ASN1.Any('02', window.Encoding.numToHex(publicKey.n))
+			, ASN1.Any('02', window.Encoding.numToHex(publicKey.g))
+			, ASN1.Any('02', window.Encoding.numToHex(privateKey._p))
+			, ASN1.Any('02', window.Encoding.numToHex(privateKey._q))
+		)
+	)
+	const privateKeyDerData = '-----BEGIN PAILLIER PRIVATE KEY-----\n'
+		+ window.Encoding.bufToBase64(privateKeyDer).match(/.{1,64}/g).join('\n') + '\n'
+		+ '-----END PAILLIER PRIVATE KEY-----'
 
-	// encryption/decryption
-	const c1 = publicKey.encrypt(m1)
-	console.log(privateKey.decrypt(c1)) // 12345678901234567890n
-
-	// homomorphic addition of two ciphertexts (encrypted numbers)
-	const c2 = publicKey.encrypt(m2)
-	const encryptedSum = publicKey.addition(c1, c2)
-	console.log(privateKey.decrypt(encryptedSum)) // m1 + m2 = 12345678901234567895n
-
-	// multiplication by k
-	const k = 10n
-	const encryptedMul = publicKey.multiply(c1, k)
-	console.log(privateKey.decrypt(encryptedMul)) // k · m1 = 123456789012345678900n
-
-	// addition with plain
-	const one = 1
-	const encryptedSumPlain = publicKey.plaintextAddition(c1, 1)
-	console.log(privateKey.decrypt(encryptedSumPlain))
-}
-
-async function testSql() {
-	const initSqlJs = window.initSqlJs
-
-	const SQL = await initSqlJs({
-		locateFile: file => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.wasm"
-	})
-
-	const db = new SQL.Database()
-
-	// Execute a single SQL string that contains multiple statements
-	let sqlstr = "CREATE TABLE hello (a int, b char); \
-	INSERT INTO hello VALUES (0, 'hello'); \
-	INSERT INTO hello VALUES (1, 'world');";
-	db.run(sqlstr); // Run the query without returning anything
-
-	// Prepare an sql statement
-	const stmt = db.prepare("SELECT * FROM hello WHERE a=:aval AND b=:bval");
-
-	// Bind values to the parameters and fetch the results of the query
-	const result = stmt.getAsObject({':aval' : 1, ':bval' : 'world'});
-	console.log(result); // Will print {a:1, b:'world'}
-
-	// Bind other values
-	stmt.bind([0, 'hello']);
-	while (stmt.step()) console.log(stmt.get()); // Will print [0, 'hello']
-	// free the memory used by the statement
-	stmt.free();
-	// You can not use your statement anymore once it has been freed.
-	// But not freeing your statements causes memory leaks. You don't want that.
-
-	const res = db.exec("SELECT * FROM hello");
-	/*
-	[
-	  {columns:['a','b'], values:[[0,'hello'],[1,'world']]}
-	]
-	*/
-
-	// You can also use JavaScript functions inside your SQL code
-	// Create the js function you need
-	function add(a, b) {return a+b;}
-	// Specifies the SQL function's name, the number of it's arguments, and the js function to use
-	db.create_function("add_js", add);
-	// Run a query in which the function is used
-	db.run("INSERT INTO hello VALUES (add_js(7, 3), add_js('Hello ', 'world'));"); // Inserts 10 and 'Hello world'
-
-	// You can create custom aggregation functions, by passing a name
-	// and a set of functions to `db.create_aggregate`:
-	//
-	// - an `init` function. This function receives no argument and returns
-	//   the initial value for the state of the aggregate function.
-	// - a `step` function. This function takes two arguments
-	//    - the current state of the aggregation
-	//    - a new value to aggregate to the state
-	//  It should return a new value for the state.
-	// - a `finalize` function. This function receives a state object, and
-	//   returns the final value of the aggregate. It can be omitted, in which case
-	//   the final value of the state will be returned directly by the aggregate function.
-	//
-	// Here is an example aggregation function, `json_agg`, which will collect all
-	// input values and return them as a JSON array:
-	db.create_aggregate(
-	  "json_agg",
-	  {
-		init: () => [],
-		step: (state, val) => [...state, val],
-		finalize: (state) => JSON.stringify(state),
-	  }
-	);
-
-	db.exec("SELECT json_agg(column1) FROM (VALUES ('hello'), ('world'))");
-	// -> The result of the query is the string '["hello","world"]'
-
-	// Export the database to an Uint8Array containing the SQLite database file
-	const binaryArray = db.export()
-	debugger
+	document.getElementById("paillier-publico").value = publicKeyDerData
+	document.getElementById("paillier-privado").value = privateKeyDerData
 }

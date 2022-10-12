@@ -8,7 +8,7 @@ var Passcode = function() {
 
 	var currentPasscodeHash
 
-	var dataSession
+	var dataSessionVector
 
 	this.setupPasscode = async function(passcode) {
 		currentPasscodeHash = await sha256(passcode)
@@ -18,12 +18,34 @@ var Passcode = function() {
 	 * Decrypt data that must be inside file.
 	 * @encryptedData is all serialized data needed.
 	 */
-	this.decryptSession = async function(encryptedData) {
-		dataSession = await aesDecrypt(encryptedData, currentPasscodeHash)
+	this.decryptSession = async function(encryptedDataVector) {
+		dataSessionVector = new Array()
+
+		//Taxpayer metadata
+		let decrypted = await aesDecrypt(encryptedDataVector[0], currentPasscodeHash)
+		dataSessionVector.push(decrypted)
+
+		//Cert
+		decrypted = await aesDecrypt(encryptedDataVector[1], currentPasscodeHash)
+		dataSessionVector.push(decrypted)
+
+		//Key
+		decrypted = await aesDecrypt(encryptedDataVector[2], currentPasscodeHash)
+		dataSessionVector.push(decrypted)
+
+		//Paillier public
+		decrypted = await aesDecrypt(encryptedDataVector[3], currentPasscodeHash)
+		dataSessionVector.push(decrypted)
+
+		//Paillier private
+		if(encryptedDataVector[4]) {
+			decrypted = await aesDecrypt(encryptedDataVector[4], currentPasscodeHash)
+			dataSessionVector.push(decrypted)
+		}
 	}
 
 	this.getDataSession = function() {
-		return dataSession
+		return dataSessionVector
 	}
 
 	/**

@@ -1,4 +1,4 @@
-var Invoice = function(taxpayer, customer) {
+var Invoice = function(taxpayer, customer, publicKey) {
 	var items = Array()
 	var numeration, serie
 	var typeCode, orderReference
@@ -35,11 +35,19 @@ var Invoice = function(taxpayer, customer) {
 		serie = _serie
 	}
 
+	this.getSerie = function() {
+		return serie
+	}
+
 	this.setNumeration = function(number) {
 		if(number > 0x5F5E0FF) {
 			throw new Error("Numeración supera el límite.")
 		}
 		numeration = number
+	}
+
+	this.getNumeration = function() {
+		return numeration
 	}
 
 	this.setId = function(serie, numeration) {
@@ -64,6 +72,14 @@ var Invoice = function(taxpayer, customer) {
 
 	this.setOrderReference = function(reference) {
 		orderReference = reference
+	}
+
+	this.getTotalAmount = function(withFormat = false) {
+		return withFormat ? totalAmount.toFixed(2) : totalAmount
+	}
+
+	this.getEncryptedTotalAmount = function() {
+		return publicKey.encrypt(totalAmount)
 	}
 
 	this.toXml = function() {
@@ -438,7 +454,7 @@ var Invoice = function(taxpayer, customer) {
 		}
 	}
 
-	this.sign = async function(algorithmName, isEnveloped = true, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+	this.sign = async function(algorithmName, isEnveloped = false, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
