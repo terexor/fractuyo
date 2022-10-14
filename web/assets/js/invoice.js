@@ -13,9 +13,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 	/**
 	 * Format serie and number: F000-00000001
 	 */
-	this.getId = function() {
+	this.getId = function(withType = false) {
 		if(serie == undefined || numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
+		}
+		if(withType) {
+			return String(typeCode).padStart(2, '0') + "-" + serie + "-" + String(numeration).padStart(8, '0')
 		}
 		return serie + '-' + String(numeration).padStart(8, '0')
 	}
@@ -57,6 +60,10 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 	this.setTypeCode = function(code) {
 		typeCode = code
+	}
+
+	this.getTypeCode = function() {
+		return typeCode
 	}
 
 	this.addItem = function(item) {

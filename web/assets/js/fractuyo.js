@@ -243,6 +243,12 @@ var Fractuyo = function() {
 						icbp integer,\
 						total integer\
 					);\
+					CREATE TABLE serie(\
+						id integer PRIMARY KEY autoincrement,\
+						config integer,\
+						serie char(4),\
+						numero integer\
+					)\
 				"
 				dbInvoices.run(sqlstr)
 
@@ -354,8 +360,16 @@ var Fractuyo = function() {
 		}
 
 		invoice.setSerie(formulario.elements["serie"].value)
+
+		const stmt = dbInvoices.prepare("SELECT config, numero FROM serie WHERE serie = $serie")
+		stmt.bind({$serie: invoice.getSerie()})
+		if(stmt.step()) {
+			const row = stmt.getAsObject()
+			//~ console.log('Here is a row: ' + JSON.stringify(row))
+			invoice.setNumeration(++row.numero)
+		}
+
 		invoice.setTypeCode(formulario.elements["type-code"].value)
-		invoice.setNumeration(7357)
 		invoice.setOrderReference("11")
 		invoice.toXml()
 		try {
@@ -366,20 +380,24 @@ var Fractuyo = function() {
 			console.error(e)
 			return
 		}
-		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [null, Date.now(), 101, invoice.getSerie(), invoice.getNumeration(), 2100n, 1231n, 4331n, 1224n, 3136n, 22227n, 338n, 239n ])
+
+		dbInvoices.run("UPDATE serie SET numero = ? WHERE serie = ?", [invoice.getNumeration(), invoice.getSerie()])
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(), 2n, 1n, 1n, 1n, 1n, 1n, 1n, 1n ])
 
 		// Find directory structure
-		let handleDirectoryDocs = await globalDirHandle.getDirectoryHandle("docs", { create: true })
-		let handleDirectoryXml = await handleDirectoryDocs.getDirectoryHandle("xml", { create: true })
+		let handleDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
+		handleDirectory = await handleDirectory.getDirectoryHandle("xml", { create: true })
+		handleDirectory = await handleDirectory.getDirectoryHandle(new Date().toISOString().substr(0, 7), { create: true })
 
-		let fileHandle = await handleDirectoryXml.getFileHandle(invoice.getId() + ".xml", { create: true })
+		let fileHandle = await handleDirectory.getFileHandle(invoice.getId(true) + ".xml", { create: true })
 		let writable = await fileHandle.createWritable()
 
 		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
 		await writable.close()
 
 		//Saving file onto disk
-		fileHandle = await globalDirHandle.getFileHandle("invoices.dat", { create: true })
+		fileHandle = await globalDirHandle.getDirectoryHandle("config")
+		fileHandle = await fileHandle.getFileHandle("invoices.dat", { create: true })
 		writable = await fileHandle.createWritable()
 		await writable.write(dbInvoices.export())
 		await writable.close()
@@ -488,5 +506,104 @@ var Fractuyo = function() {
 
 	this.isUsable = function() {
 		return taxpayer.getKey() != null
+	}
+
+	this.listInvoice = function(lastIndex) {
+		const list = document.getElementById("lista-cdp")
+		if(list == null) {
+			Notiflix.Notify.warning("No hay lugar para listar comprobantes.")
+			return
+		}
+
+		//https://stackoverflow.com/questions/14468586/efficient-paging-in-sqlite-with-millions-of-records
+		dbInvoices.each("SELECT fecha, config, serie, numero FROM invoice WHERE id > $lastindex ORDER BY id DESC LIMIT 8", {$lastindex: lastIndex},
+			function(row) {
+				const cdpName = String(row.config & 127).padStart(2, '0') + "-" + row.serie + '-' + String(row.numero).padStart(8, '0')
+				const tr = list.insertRow()
+				const _identification = tr.insertCell()
+				const linker = document.createElement("a")
+				linker.setAttribute("class", "btn btn-link")
+				linker.href = "/cdp/" + cdpName
+				const viewTag = document.createElement("span")
+				viewTag.setAttribute("class", "btn-label")
+				linker.appendChild(viewTag)
+				const viewIcon = document.createElement("i")
+				viewIcon.setAttribute("class", "fa fa-link")
+				linker.appendChild(viewIcon)
+				linker.appendChild( document.createTextNode( '\u00A0' ) )
+				linker.appendChild(document.createTextNode(cdpName))
+				_identification.appendChild(linker)
+				switch(row.config & 127) {
+					case 1:
+						tr.insertCell().appendChild(document.createTextNode("Factura"))
+						break
+					case 3:
+						tr.insertCell().appendChild(document.createTextNode("Boleta de venta"))
+						break
+					case 7:
+						tr.insertCell().appendChild(document.createTextNode("Nota de crédito"))
+						break
+					case 8:
+						tr.insertCell().appendChild(document.createTextNode("Nota de débito"))
+						break
+					case 9:
+						tr.insertCell().appendChild(document.createTextNode("Guía de remisión"))
+						break
+					default:
+						tr.insertCell().appendChild(document.createTextNode("Desconocido"))
+				}
+				tr.insertCell().appendChild(document.createTextNode(imprimirFecha(new Date(row.fecha) )))
+				const _action = tr.insertCell()
+				if(row.config >> 7 & 1) { //eliminated invoice
+					const etiquetaDeSunat = document.createElement("span")
+					etiquetaDeSunat.setAttribute("class", "badge bg-secondary text-white")
+					etiquetaDeSunat.appendChild(document.createTextNode("De baja"))
+					_action.appendChild(etiquetaDeSunat)
+				}
+				else if(row.config >> 8 & 1) { //when sunatized
+					const responseCode = row.config >> 9 & 0x3fff
+					const etiquetaDeSunat = document.createElement("span")
+					switch(true) {
+						case (responseCode < 100):
+							etiquetaDeSunat.setAttribute("class", "badge bg-success text-white")
+							etiquetaDeSunat.appendChild(document.createTextNode("Aceptado"))
+							break
+						case (responseCode < 2000):
+							etiquetaDeSunat.setAttribute("class", "badge bg-info text-black")
+							etiquetaDeSunat.appendChild(document.createTextNode("Reenviar"))
+							break
+						case (responseCode < 4000):
+							etiquetaDeSunat.setAttribute("class", "badge bg-danger text-black")
+							etiquetaDeSunat.appendChild(document.createTextNode("Rechazado"))
+							break
+						default:
+							etiquetaDeSunat.setAttribute("class", "badge bg-warning text-black")
+							etiquetaDeSunat.appendChild(document.createTextNode("Aceptado"))
+					}
+					_action.appendChild(etiquetaDeSunat)
+				}
+				else {
+					const sender = document.createElement("button")
+					sender.setAttribute("class", "btn btn-dark")
+					sender.setAttribute("id", "sunatizador-" + cdpName)
+					sender.onclick = function() {
+						//Send to Sunat server
+					}
+					sender.appendChild(document.createTextNode("Sunatizar"))
+					_action.appendChild(sender)
+				}
+
+				const _view = tr.insertCell()
+
+				const viewPdf = document.createElement("button")
+				viewPdf.setAttribute("class", "btn btn-secondary")
+				viewPdf.type = "button"
+				viewPdf.appendChild(document.createTextNode("PDF"))
+				viewPdf.onclick = function() {
+					//Go to view
+				}
+				_view.appendChild(viewPdf)
+			}
+		)
 	}
 }

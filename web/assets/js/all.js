@@ -22,10 +22,19 @@ window.onload = function() {
 		}
 	}
 
+	let pList = function(){}
+	pList.prototype = new senna.HtmlScreen()
+	pList.prototype.activate = function() {
+		if(fractuyo.isUsable()) {
+			fractuyo.listInvoice(0)
+		}
+	}
+
 	app = new senna.App()
 	app.addSurfaces(["navegador", "lienzo"])
 	app.addRoutes([
 		new senna.Route("/", pHome),
+		new senna.Route("/cdp", pList),
 		new senna.Route(/([\/]{1}.*\/?)/, senna.HtmlScreen)
 	])
 
@@ -473,4 +482,14 @@ async function generatePaillier() {
 
 	document.getElementById("paillier-publico").value = publicKeyDerData
 	document.getElementById("paillier-privado").value = privateKeyDerData
+}
+
+function imprimirFecha(fecha, conHora = true) {
+	let dateString = ("0" + fecha.getDate()).slice(-2) + "/" + ("0" + (fecha.getMonth()+1)).slice(-2) + "/" + fecha.getFullYear()
+	//Ahora la hora
+	if(conHora) {
+		dateString += " " + ("0" + fecha.getHours()).slice(-2) + ":" + ("0" + fecha.getMinutes()).slice(-2) + ":" + ("0" + fecha.getSeconds()).slice(-2)
+	}
+
+	return dateString
 }
