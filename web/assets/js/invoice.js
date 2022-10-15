@@ -119,7 +119,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 		xmlDocument.documentElement.appendChild(cbcId)
 
 		const cbcIssueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.appendChild( document.createTextNode("2022-09-30") )
+		cbcIssueDate.appendChild( document.createTextNode(new Date().toISOString().substr(0, 10)) )
 		xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
@@ -146,7 +146,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 		}
 
 		{ //Signer data
-			const cacSignature = xmlDocument.createElementNS(namespaces.cbc, "cac:Signature")
+			const cacSignature = xmlDocument.createElementNS(namespaces.cac, "cac:Signature")
 			xmlDocument.documentElement.appendChild(cacSignature)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
@@ -173,13 +173,13 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			}
 		}
 		{ //Supplier (current taxpayer)
-			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cbc, "cac:AccountingSupplierParty")
+			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cac, "cac:AccountingSupplierParty")
 			xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
 
 			const cacParty = xmlDocument.createElementNS(namespaces.cac, "cac:Party")
 			cacAccountingSupplierParty.appendChild(cacParty)
 
-			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cbc, "cac:PartyIdentification")
+			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
 			cacParty.appendChild(cacPartyIdentification)
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
@@ -279,7 +279,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 			const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
 			cbcLine.appendChild( document.createTextNode(customer.getAddress(true)) )
-			cacRegistrationAddress.appendChild(cbcLine)
+			cacAddressLine.appendChild(cbcLine)
 		}
 
 		{ //Taxes
@@ -320,12 +320,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				const cacAlternativeConditionPrice = xmlDocument.createElementNS(namespaces.cac, "cac:AlternativeConditionPrice")
 				cacPricingReference.appendChild(cacAlternativeConditionPrice)
 
-				const cbcPriceAmount = xmlDocument.createElementNS(namespaces.cac, "cbc:PriceAmount")
+				const cbcPriceAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", items[item].getCurrencyId())
 				cbcPriceAmount.appendChild( document.createTextNode( items[item].getPricingReferenceAmount(true) ) )
 				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
-				const cbcPriceTypeCode = xmlDocument.createElementNS(namespaces.cac, "cbc:PriceTypeCode")
+				const cbcPriceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
 				cbcPriceTypeCode.appendChild(document.createTextNode(items[item].getPriceTypeCode()))
 			}
 
@@ -342,12 +342,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 					const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
 					cacTaxTotal.appendChild(cacTaxSubtotal)
 
-					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxableAmount")
+					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", items[item].getCurrencyId())
 					cbcTaxableAmount.appendChild( document.createTextNode( items[item].getLineExtensionAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxAmount")
+					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", items[item].getCurrencyId())
 					cbcTaxAmount.appendChild( document.createTextNode( items[item].getIscAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
@@ -355,26 +355,26 @@ var Invoice = function(taxpayer, customer, publicKey) {
 					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
 					cacTaxSubtotal.appendChild(cacTaxCategory)
 					{
-						const cbcPercent = xmlDocument.createElementNS(namespaces.cac, "cbc:Percent")
+						const cbcPercent = xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
 						cbcPercent.appendChild( document.createTextNode( items[item].getIscPercentage() ) )
 						cacTaxCategory.appendChild(cbcPercent)
 
-						const cbcTierRange = xmlDocument.createElementNS(namespaces.cac, "cbc:TierRange")
+						const cbcTierRange = xmlDocument.createElementNS(namespaces.cbc, "cbc:TierRange")
 						cbcTierRange.appendChild( document.createTextNode( "01" ) )
 						cacTaxCategory.appendChild(cbcTierRange)
 
 						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
 						cacTaxCategory.appendChild(cacTaxScheme)
 						{
-							const cbcID = xmlDocument.createElementNS(namespaces.cac, "cbc:ID")
+							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 							cbcID.appendChild( document.createTextNode( "2000" ) )
 							cacTaxScheme.appendChild(cbcID)
 
-							const cbcName = xmlDocument.createElementNS(namespaces.cac, "cbc:Name")
+							const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
 							cbcName.appendChild( document.createTextNode( "ISC" ) )
 							cacTaxScheme.appendChild(cbcName)
 
-							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxTypeCode")
+							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
 							cbcTaxTypeCode.appendChild( document.createTextNode( "EXC" ) )
 							cacTaxScheme.appendChild(cbcTaxTypeCode)
 						}
@@ -384,12 +384,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 					const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
 					cacTaxTotal.appendChild(cacTaxSubtotal)
 
-					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxableAmount")
+					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", items[item].getCurrencyId())
 					cbcTaxableAmount.appendChild( document.createTextNode( items[item].getTaxableIgvAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxAmount")
+					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", items[item].getCurrencyId())
 					cbcTaxAmount.appendChild( document.createTextNode( items[item].getIgvAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
@@ -397,26 +397,26 @@ var Invoice = function(taxpayer, customer, publicKey) {
 					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
 					cacTaxSubtotal.appendChild(cacTaxCategory)
 					{
-						const cbcPercent = xmlDocument.createElementNS(namespaces.cac, "cbc:Percent")
+						const cbcPercent = xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
 						cbcPercent.appendChild( document.createTextNode( items[item].getIgvPercentage() ) )
 						cacTaxCategory.appendChild(cbcPercent)
 
-						const cbcTaxExemptionReasonCode = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxExemptionReasonCode")
+						const cbcTaxExemptionReasonCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxExemptionReasonCode")
 						cbcTaxExemptionReasonCode.appendChild( document.createTextNode( "10" ) )
 						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
 
 						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
 						cacTaxCategory.appendChild(cacTaxScheme)
 						{
-							const cbcID = xmlDocument.createElementNS(namespaces.cac, "cbc:ID")
+							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 							cbcID.appendChild( document.createTextNode( "1000" ) )
 							cacTaxScheme.appendChild(cbcID)
 
-							const cbcName = xmlDocument.createElementNS(namespaces.cac, "cbc:Name")
+							const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
 							cbcName.appendChild( document.createTextNode( "IGV" ) )
 							cacTaxScheme.appendChild(cbcName)
 
-							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cac, "cbc:TaxTypeCode")
+							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
 							cbcTaxTypeCode.appendChild( document.createTextNode( "VAT" ) )
 							cacTaxScheme.appendChild(cbcTaxTypeCode)
 						}
@@ -626,7 +626,7 @@ var Item = function(_description) {
 		}
 		else {
 			if(isNaN(igvPercentage)) {
-				throw new Error("Se requiere previamnte pPorcentaje del IGV.")
+				throw new Error("Se requiere previamente porcentaje del IGV.")
 			}
 			unitValue = uv / ( 1 + igvPercentage / 100 )
 		}

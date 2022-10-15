@@ -508,7 +508,7 @@ var Fractuyo = function() {
 		return taxpayer.getKey() != null
 	}
 
-	this.listInvoice = function(lastIndex) {
+	this.listInvoices = function(lastIndex) {
 		const list = document.getElementById("lista-cdp")
 		if(list == null) {
 			Notiflix.Notify.warning("No hay lugar para listar comprobantes.")
@@ -595,14 +595,86 @@ var Fractuyo = function() {
 
 				const _view = tr.insertCell()
 
-				const viewPdf = document.createElement("button")
+				const viewPdf = document.createElement("a")
 				viewPdf.setAttribute("class", "btn btn-secondary")
-				viewPdf.type = "button"
+				viewPdf.href = "/cdp/" + cdpName + "/visor"
 				viewPdf.appendChild(document.createTextNode("PDF"))
-				viewPdf.onclick = function() {
-					//Go to view
-				}
 				_view.appendChild(viewPdf)
+			}
+		)
+	}
+
+	this.viewInvoice = async function(cdpName) {
+		const nameParts = cdpName.split('-')
+		const typeCode = parseInt(nameParts[0]), serie = nameParts[1], number = parseInt(nameParts[2])
+		dbInvoices.each("SELECT fecha, config FROM invoice WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$typecode: typeCode, $serie: serie, $number: number},
+			async function(row) {
+				let handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("docs")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle("xml")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle(new Date(row.fecha).toISOString().substr(0, 7))
+
+				let fileHandle = await handleDirectoryConfig.getFileHandle(cdpName + ".xml", {})
+				let file = await fileHandle.getFile()
+				let xmlContent = await file.text()
+
+				const tabla = document.getElementById("productos")
+				while(tabla.hasChildNodes()) {
+					tabla.removeChild(tabla.lastChild)
+				}
+
+				let xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+				document.getElementById("idComprobante").textContent = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("moneda").textContent = xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				let tipoDocumento = xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("tipoDocumento").textContent = tipoDocumento == "01" ? "Factura Electrónica" : tipoDocumento == "03" ? "Boleta de Venta Electrónica" : "Desconocido";
+				document.getElementById("fecha").textContent = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("nombreEmisor").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				let ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				if(ruc == "")
+					ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("ruc").textContent = ruc
+
+				document.getElementById("nombreCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				document.getElementById("direccionCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+
+
+				document.getElementById("codHash").textContent = xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+
+				const count = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+
+				for(let i = 1; i <= count; ++i) {
+					let quantity = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+					let unitCode = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					let description = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					let subtotal = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+					let igv = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cbc:TaxAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+
+					let tr = tabla.insertRow()
+					tr.insertCell().appendChild(document.createTextNode(quantity))
+					tr.insertCell().appendChild(document.createTextNode(unitCode))
+					tr.insertCell().appendChild(document.createTextNode(removeCdataTag(description)))
+					tr.insertCell().appendChild(document.createTextNode(subtotal))
+
+					let totalTag = tr.insertCell()
+					totalTag.setAttribute("class", "item_r")
+					totalTag.appendChild(document.createTextNode(igv))
+				}
+
+				new QRCode(document.getElementById("qrcode"), {
+					text: //RUC | TIPO DE DOCUMENTO | SERIE | NUMERO | MTO TOTAL IGV | MTO TOTAL DEL COMPROBANTE | FECHA DE EMISION | TIPO DE DOCUMENTO ADQUIRENTE | NUMERO DE DOCUMENTO ADQUIRENTE
+						taxpayer.getIdentification().getNumber() + '|'
+						+ cdpName.replaceAll('-', '|') + '|'
+						+ '18.00' + '|'
+						+ '118.00' + '|'
+						+ new Date(row.fecha).toISOString().substr(0, 10) + '|'
+					,
+					width: 100,
+					height: 100,
+					colorDark: "#111111",
+					colorLight: "#ffffff",
+					correctLevel : QRCode.CorrectLevel.H
+				})
 			}
 		)
 	}

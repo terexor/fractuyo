@@ -7,16 +7,16 @@
 		<meta name="description" content="">
 		<meta name="author" content="Terexor">
 		<link rel="icon" href="/assets/images/logo-bootstrap.svg">
-		<title>Bloqueo</title>
+		<title>Visor</title>
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
 		<link href="https://cdn.jsdelivr.net/npm/notiflix@3.2.5/dist/notiflix-3.2.5.min.css" rel="stylesheet" integrity="sha256-4spYVEf9eBpgOmHFVl/GwBZTYdG8zbUZ0u4qDJ9FnSw=" crossorigin="anonymous">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/senna@2.7.9/build/senna.css" rel="stylesheet">
-		<link href="/assets/css/fractuyo.css" rel="stylesheet">
+		<link data-senna-track="permanent" href="/assets/css/fractuyo.css" rel="stylesheet">
 	</head>
 	<body>
 		<main>
 			<div class="container-fluid">
-				<div class="row">
+				<div class="row d-print-none">
 					<nav class="navbar bg-light fixed-top">
 						<div class="container-fluid">
 							<a class="navbar-brand text-muted" href="/">
@@ -65,14 +65,83 @@
 				<div class="row mt-5">
 					<div class="container-fluid my-3" id="lienzo">
 						<div class="card">
-							<div class="card-header">Desbloquear datos</div>
-							<div class="card-body">
-								<form onsubmit="fractuyo.unlock(this);return false">
-									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required />
-									<input name="clave" type="password" placeholder="Clave" required />
-									<hr>
-									<button type="submit" class="btn btn-warning">Desencriptar sesión</button>
-								</form>
+							<div class="card-header d-print-none"><button onclick="window.print()" class="btn btn-outline-secondary text-capitalize border-0" title="Imprimir comprobante de pago"><span data-feather="printer"></span></button> Representación impresa</div>
+							<div class="card-body" id="invoice">
+								<div id="invoice-header">
+									<img alt="Logotipo" id="logo" class="logo screen">
+									<!-- hCard microformat -->
+									<div class="vcard" id="company-address">
+										<div class="fn org"><strong id="nombreEmisor">-</strong>
+										</div>
+										<div class="adr">
+											<div class="street-address"><span id="dir1">-</span><br><span id="dir2">-</span>
+												<br>
+											</div>
+											<!-- street-address -->
+											<div class="locality" id="distrito">-</div>
+											<div id="company-postcode"><span class="region" id="provincia">-</span>, <span class="postal-code" id="codigoPostal">-</span>
+											</div>
+										</div>
+										<!-- adr -->
+										<div class="email" id="correo">-</div>
+									</div>
+									<!-- company-address vcard -->
+								</div>
+								<!-- #invoice-header -->
+								<div id="invoice-info">
+									<h2 id="tipoDocumento">Comprobante de Pago</h2>
+									<h3 id="ruc">-</h3>
+									<p id="idComprobante">-</p>
+								</div>
+								<!-- #invoice-info -->
+								<div class="vcard" id="client-details">
+									<div class="org">Fecha: <span id="fecha"></span></div>
+									<div class="org">Cliente: <span id="nombreCliente"></span></div>
+									<div class="org">Dirección: <span id="direccionCliente"></span></div>
+									<!-- adr -->
+								</div>
+								<!-- #client-details vcard -->
+								<table id="invoice-amount" class="print-table-wrap">
+									<thead>
+										<tr id="header_row">
+											<th class="quantity_th">Cantidad</th>
+											<th class="salestax_th">Medida</th>
+											<th class="left details_th">Detalles</th>
+											<th class="salestax_th">Subtotal</th>
+											<th class="subtotal_th">Total</th>
+										</tr>
+									</thead>
+									<tfoot>
+										<!-- <tr id="discount_tr">
+											<td colspan="2">&nbsp;</td>
+											<td colspan="2" class="item_r">10% Discount</td>
+											<td class="item_r">&#163;123.00</td>
+										</tr> -->
+										<tr id="net_total_tr">
+											<td colspan="2">&nbsp;</td>
+											<td colspan="2" class="item_r">Subtotal neto</td>
+											<td class="item_r" id="subtotalFinal">0.00</td>
+										</tr>
+										<tr id="vat_tr">
+											<td colspan="2">&nbsp;</td>
+											<td colspan="2" class="item_r">IGV <span id="porcentajeIgv"></span></td>
+											<td class="item_r" id="igv">0.00</td>
+										</tr>
+										<tr id="total_tr">
+											<td colspan="2">&nbsp;</td>
+											<td colspan="2" class="total" id="total_currency"><span id="moneda" class="currency">Moneda </span> Total</td>
+											<td class="total" id="totalFinal">0.00</td>
+										</tr>
+									</tfoot>
+									<tbody id="productos">
+									</tbody>
+								</table>
+								<!-- invoice-amount -->
+								<div id="invoice-other">
+									<h2>Más información</h2>
+									<div id="qrcode"></div>
+									<div id="company-reg-number">Código Hash: <span id="codHash">=Hash=</span></div>
+								</div>
 							</div>
 						</div><!-- .card -->
 					</div>
@@ -100,13 +169,13 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
 
 		<!-- Main -->
-		<script data-senna-track="permanent" src="assets/js/paillier.js"></script>
-		<script data-senna-track="permanent" src="assets/js/person.js"></script>
-		<script data-senna-track="permanent" src="assets/js/passcode.js"></script>
-		<script data-senna-track="permanent" src="assets/js/storage.js"></script>
-		<script data-senna-track="permanent" src="assets/js/invoice.js"></script>
-		<script data-senna-track="permanent" src="assets/js/fractuyo.js"></script>
-		<script data-senna-track="permanent" src="assets/js/all.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/paillier.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/person.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/passcode.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/storage.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/invoice.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/fractuyo.js"></script>
+		<script data-senna-track="permanent" src="/assets/js/all.js"></script>
 
 		<!-- Iconos -->
 		<script data-senna-track="permanent" src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>

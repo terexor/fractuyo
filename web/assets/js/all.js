@@ -26,7 +26,16 @@ window.onload = function() {
 	pList.prototype = new senna.HtmlScreen()
 	pList.prototype.activate = function() {
 		if(fractuyo.isUsable()) {
-			fractuyo.listInvoice(0)
+			fractuyo.listInvoices(0)
+		}
+	}
+
+	let pView = function(){}
+	pView.prototype = new senna.HtmlScreen()
+	pView.prototype.activate = function() {
+		if(fractuyo.isUsable()) {
+			let partesNominis = window.location.pathname.match(/\/cdp\/([0-9]{2}-[F|B|T][0-9A-Z]{3}-[0-9]{1,8})\/visor/)
+			fractuyo.viewInvoice(partesNominis[1])
 		}
 	}
 
@@ -35,6 +44,7 @@ window.onload = function() {
 	app.addRoutes([
 		new senna.Route("/", pHome),
 		new senna.Route("/cdp", pList),
+		new senna.Route(/\/cdp\/[0-9]{2}-[F|B|T][0-9A-Z]{3}-[0-9]{1,8}\/visor$/, pView),
 		new senna.Route(/([\/]{1}.*\/?)/, senna.HtmlScreen)
 	])
 
@@ -59,14 +69,25 @@ window.onload = function() {
 	feather.replace()
 }
 
-
-
 /* Datos y funciones útiles */
 const namespaces = {
 	cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
 	cbc: "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
 	ds: "http://www.w3.org/2000/09/xmldsig#",
-	ext: "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+	ext: "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2",
+	qdt: "urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2",
+	udt: "urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2",
+	xsi: "http://www.w3.org/2001/XMLSchema-instance",
+	xmlns: "http://www.w3.org/1999/xhtml",
+	ccts: "urn:un:unece:uncefact:documentation:2"
+}
+
+function nsResolver(prefix) {
+	return namespaces[prefix] || "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+}
+
+function removeCdataTag(cdata) {
+	return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
 }
 
 function validateDocumentNumber(documentType, number) {
