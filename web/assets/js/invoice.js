@@ -129,7 +129,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 		const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( xmlDocument.createCDATASection("DIECISÉIS CON 99/100 SOLES") )
+		cbcNote.appendChild( xmlDocument.createCDATASection(numberToWords(666.99)) )
 		xmlDocument.documentElement.appendChild(cbcNote)
 
 		const cbcDocumentCurrencyCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
