@@ -360,6 +360,7 @@ var Fractuyo = function() {
 		}
 
 		invoice.setSerie(formulario.elements["serie"].value)
+		invoice.setCurrencyId(formulario.elements.moneda.value)
 
 		const stmt = dbInvoices.prepare("SELECT config, numero FROM serie WHERE serie = $serie")
 		stmt.bind({$serie: invoice.getSerie()})
