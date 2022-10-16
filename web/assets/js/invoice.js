@@ -129,7 +129,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 		const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( document.createTextNode("<![CDATA[DIECISÉIS CON 99 / 100 SOLES]]>") )
+		cbcNote.appendChild( xmlDocument.createCDATASection("DIECISÉIS CON 99/100 SOLES") )
 		xmlDocument.documentElement.appendChild(cbcNote)
 
 		const cbcDocumentCurrencyCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
@@ -472,7 +472,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 		}
 	}
 
-	this.sign = async function(algorithmName, isEnveloped = false, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+	this.sign = async function(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
@@ -487,14 +487,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 		const x509 = preparePem(taxpayer.getCert())
 
-		const transforms = []
-		if(isEnveloped) {
-			transforms.push("enveloped")
-		}
-		transforms.push(canonMethod)
+		const transforms = ["enveloped", canonMethod]
+
+		xmlDocument = XAdES.Parse(new XMLSerializer().serializeToString(xmlDocument))
 
 		return Promise.resolve()
-			.then(function () {
+			.then(function() {
 				const signature = new XAdES.SignedXml()
 
 				return signature.Sign(
