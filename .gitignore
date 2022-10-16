@@ -3,3 +3,4 @@ resources/
 
 #Notas propias
 notasPropias.txt
+web/*.php

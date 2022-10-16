@@ -588,6 +588,7 @@ var Fractuyo = function() {
 					sender.setAttribute("id", "sunatizador-" + cdpName)
 					sender.onclick = function() {
 						//Send to Sunat server
+						fractuyo.declareInvoice(cdpName, new Date(row.fecha).toISOString().substr(0, 7))
 					}
 					sender.appendChild(document.createTextNode("Sunatizar"))
 					_action.appendChild(sender)
@@ -677,5 +678,49 @@ var Fractuyo = function() {
 				})
 			}
 		)
+	}
+
+	this.declareInvoice = async function(cdpName, folderName) {
+		let handleDirectory = await globalDirHandle.getDirectoryHandle("docs")
+		handleDirectory = await handleDirectory.getDirectoryHandle("xml")
+		handleDirectory = await handleDirectory.getDirectoryHandle(folderName)
+
+		let fileHandle = await handleDirectory.getFileHandle(cdpName + ".xml", {})
+		let file = await fileHandle.getFile()
+		let xmlContent = await file.text()
+
+		let fileName = taxpayer.getIdentification().getNumber() + "-" + cdpName
+
+		let zip = new JSZip()
+		zip.file(`${fileName}.xml`, xmlContent)
+		zip.generateAsync({type:"base64"}).then(function(zipb64) {
+			if(!zipb64) {
+				Notify.Notiflix.failure("No se pudo empaquetar archivo.")
+				return
+			}
+			const xhttp = new XMLHttpRequest()
+			xhttp.onload = function() {
+				const xml = XAdES.Parse( this.responseText )
+				const zipb64retornado = xml.getElementsByTagName("applicationResponse")[0].textContent
+
+				JSZip.loadAsync(b64ToBuffer( zipb64retornado )).then( //read the Blob
+					function(zip) {
+						//We go to file directly
+						zip.file(`R-${fileName}.xml`).async("string").then(function(data) {
+							debugger
+							let xmlDoc = new DOMParser().parseFromString(data, "text/xml")
+
+							const responseCode = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:ResponseCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+							Notiflix.Notify.info(responseCode)
+						})
+					}, function(e) {
+						Notiflix.Notify.info("Error leyendo.")
+						console.error("Error reading", e.message)
+					}
+				)
+			}
+			xhttp.open("POST", "/proxy-terexor.php", true)
+			xhttp.send( JSON.stringify( {zipb64: zipb64, filename: fileName} ) )
+		})
 	}
 }
