@@ -27,8 +27,8 @@ var Person = function() {
 	var name, identification
 	var address
 
-	this.getName = function(withCdata = false) {
-		return withCdata ? `<![CDATA[${name}]]>` : name
+	this.getName = function() {
+		return name
 	}
 
 	this.setName = function(n) {
@@ -49,8 +49,8 @@ var Person = function() {
 		address = a
 	}
 
-	this.getAddress = function(withCdata = false) {
-		return withCdata ? `<![CDATA[${address}]]>` : address
+	this.getAddress = function() {
+		return address
 	}
 
 	this.isNatural = function() {
@@ -134,8 +134,8 @@ var Taxpayer = function() {
 		tradeName = tn
 	}
 
-	this.getTradeName = function(withCdata = false) {
-		return withCdata ? `<![CDATA[${tradeName}]]>` : tradeName
+	this.getTradeName = function() {
+		return tradeName
 	}
 
 	this.clearData = function() {

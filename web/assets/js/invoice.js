@@ -154,7 +154,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cacSignature.appendChild(cbcId)
 
 			{
-				const cacSignatoreParty = xmlDocument.createElementNS(namespaces.cac, "cac:SignatoreParty")
+				const cacSignatoreParty = xmlDocument.createElementNS(namespaces.cac, "cac:SignatoryParty")
 				cacSignature.appendChild(cacSignatoreParty)
 
 				const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
@@ -168,8 +168,19 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cacSignatoreParty.appendChild(cacPartyName)
 
 				const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-				cbcName.appendChild( document.createTextNode(taxpayer.getName(true)) )
+				cbcName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
 				cacPartyName.appendChild(cbcName)
+			}
+			{
+				const cacDigitalSignatureAttachment = xmlDocument.createElementNS(namespaces.cac, "cac:DigitalSignatureAttachment")
+				cacSignature.appendChild(cacDigitalSignatureAttachment)
+
+				const cacExternalReference = xmlDocument.createElementNS(namespaces.cac, "cac:ExternalReference")
+				cacDigitalSignatureAttachment.appendChild(cacExternalReference)
+
+				const cbcUri = xmlDocument.createElementNS(namespaces.cbc, "cbc:URI")
+				cbcUri.appendChild( document.createTextNode("#teroxoris") )
+				cacExternalReference.appendChild(cbcUri)
 			}
 		}
 		{ //Supplier (current taxpayer)
@@ -193,14 +204,14 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cacParty.appendChild(cacPartyName)
 
 			const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-			cbcName.appendChild( document.createTextNode(taxpayer.getTradeName(true)) )
+			cbcName.appendChild( xmlDocument.createCDATASection(taxpayer.getTradeName()) )
 			cacPartyName.appendChild(cbcName)
 
 			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
 			cacParty.appendChild(cacPartyLegalEntity)
 
 			const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
-			cbcRegistrationName.appendChild( document.createTextNode(taxpayer.getName(true)) )
+			cbcRegistrationName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
 			cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
 			const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
@@ -232,19 +243,19 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cbcDistrict.appendChild( document.createTextNode(metaAddress[6]) )
 				cacRegistrationAddress.appendChild(cbcDistrict)
 
+				const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+				cacRegistrationAddress.appendChild(cacAddressLine)
+
+				const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
+				cbcLine.appendChild( xmlDocument.createCDATASection(taxpayer.getAddress()) )
+				cacAddressLine.appendChild(cbcLine)
+
 				const cacCountry = xmlDocument.createElementNS(namespaces.cac, "cac:Country")
 				cacRegistrationAddress.appendChild(cacCountry)
 
 				const cbcIdentificationCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:IdentificationCode")
 				cbcIdentificationCode.appendChild( document.createTextNode(metaAddress[0]) )
 				cacCountry.appendChild(cbcIdentificationCode)
-
-				const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
-				cacRegistrationAddress.appendChild(cacAddressLine)
-
-				const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-				cbcLine.appendChild( document.createTextNode(taxpayer.getAddress(true)) )
-				cacAddressLine.appendChild(cbcLine)
 			}
 		}
 		{ //Customer
@@ -268,7 +279,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cacParty.appendChild(cacPartyLegalEntity)
 
 			const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
-			cbcRegistrationName.appendChild( document.createTextNode(customer.getName(true)) )
+			cbcRegistrationName.appendChild( xmlDocument.createCDATASection(customer.getName()) )
 			cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
 			const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
@@ -278,7 +289,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cacRegistrationAddress.appendChild(cacAddressLine)
 
 			const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-			cbcLine.appendChild( document.createTextNode(customer.getAddress(true)) )
+			cbcLine.appendChild( xmlDocument.createCDATASection(customer.getAddress()) )
 			cacAddressLine.appendChild(cbcLine)
 		}
 
@@ -429,7 +440,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cacInvoiceLine.appendChild(cacItem)
 
 				const cbcDescription = xmlDocument.createElementNS(namespaces.cbc, "cbc:Description")
-				cbcDescription.appendChild( document.createTextNode(items[item].getDescription()) )
+				cbcDescription.appendChild( xmlDocument.createCDATASection(items[item].getDescription()) )
 				cacItem.appendChild(cbcDescription)
 
 				const cacSellersItemIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:SellersItemIdentification")
@@ -535,7 +546,7 @@ var Item = function(_description) {
 	}
 
 	this.getDescription = function() {
-		return `<![CDATA[${description}]]>`
+		return description
 	}
 
 	this.setDescription = function(d) {
