@@ -8,7 +8,8 @@ var Storage = function(fractuyo) {
 	var request = window.indexedDB.open("business", 1)
 
 	request.onerror = function(event) {
-		console.log("error: ");
+		Notiflix.Report.warning(event.target.error.message, "No se pudo leer lista de organizaciones.", "Aceptar")
+		console.log("error:", event)
 	}
 
 	request.onsuccess = fractuyo.initData
