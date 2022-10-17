@@ -4,6 +4,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 	var numeration, serie
 	var typeCode, orderReference
 
+	/*
+	 * Global totals
+	 */
+	var lineExtensionAmount = 0, taxTotalAmount = 0, taxInclusiveAmount = 0, igvAmount = 0
+	var operationAmounts = [0, 0, 0, 0]
+
 	var paymentTerms = Array()
 
 	this.ublVersion = "2.1"
@@ -77,6 +83,24 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 	this.addItem = function(item) {
 		items.push(item)
+
+		lineExtensionAmount += item.getLineExtensionAmount()
+		taxTotalAmount = +item.getTaxTotalAmount()
+		taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
+
+		igvAmount += item.getIgvAmount()
+
+		//Assign data according taxability
+		switch(true) {
+			case (item.getExemptionReasonCode() < 20):
+				operationAmounts[0] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 30):
+				operationAmounts[1] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 40):
+				operationAmounts[2] += item.getLineExtensionAmount();break
+			default:
+				operationAmounts[3] += item.getLineExtensionAmount()
+		}
 	}
 
 	this.getXml = function() {
@@ -138,7 +162,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 		const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( xmlDocument.createCDATASection(numberToWords(666.99)) )
+		cbcNote.appendChild( xmlDocument.createCDATASection(numberToWords(taxInclusiveAmount.toFixed(2))) )
 		xmlDocument.documentElement.appendChild(cbcNote)
 
 		const cbcDocumentCurrencyCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
@@ -302,13 +326,27 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cacAddressLine.appendChild(cbcLine)
 		}
 
+		{ //Payment type
+			const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("FormaPago") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("Contado") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+			}
+		}
+
 		{ //Taxes
 			const cacTaxTotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
 			xmlDocument.documentElement.appendChild(cacTaxTotal)
 			{
 				const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
 				cbcTaxAmount.setAttribute("currencyID", currencyId)
-				cbcTaxAmount.appendChild( document.createTextNode("10.01") )
+				cbcTaxAmount.appendChild( document.createTextNode(taxTotalAmount.toFixed(2)) )
 				cacTaxTotal.appendChild(cbcTaxAmount)
 
 				const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
@@ -316,12 +354,12 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				{
 					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", currencyId)
-					cbcTaxableAmount.appendChild( document.createTextNode("13.15") )
+					cbcTaxableAmount.appendChild( document.createTextNode(operationAmounts[0].toFixed(2)) )
 					cacTaxSubtotal.appendChild( cbcTaxableAmount )
 
 					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", currencyId)
-					cbcTaxAmount.appendChild( document.createTextNode("10.55") )
+					cbcTaxAmount.appendChild( document.createTextNode(igvAmount.toFixed(2)) )
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
@@ -355,17 +393,17 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			{
 				const cbcLineExtensionAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
 				cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
-				cbcLineExtensionAmount.appendChild( document.createTextNode("99.99") )
+				cbcLineExtensionAmount.appendChild( document.createTextNode(lineExtensionAmount.toFixed(2)) )
 				cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
 
 				const cbcTaxInclusiveAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxInclusiveAmount")
 				cbcTaxInclusiveAmount.setAttribute("currencyID", currencyId)
-				cbcTaxInclusiveAmount.appendChild( document.createTextNode("99.98") )
+				cbcTaxInclusiveAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
 				cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
 
 				const cbcPayableAmount  = xmlDocument.createElementNS(namespaces.cbc, "cbc:PayableAmount")
 				cbcPayableAmount.setAttribute("currencyID", currencyId)
-				cbcPayableAmount.appendChild( document.createTextNode("99.97") )
+				cbcPayableAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
 				cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
 			}
 		}
@@ -403,7 +441,8 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
 				const cbcPriceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
-				cbcPriceTypeCode.appendChild(document.createTextNode(items[item].getPriceTypeCode()))
+				cbcPriceTypeCode.appendChild(document.createTextNode("01"))
+				cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
 			}
 
 			{ //TaxTotal
@@ -479,7 +518,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 						cacTaxCategory.appendChild(cbcPercent)
 
 						const cbcTaxExemptionReasonCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxExemptionReasonCode")
-						cbcTaxExemptionReasonCode.appendChild( document.createTextNode( "10" ) )
+						cbcTaxExemptionReasonCode.appendChild( document.createTextNode( items[item].getExemptionReasonCode() ) )
 						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
 
 						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
@@ -523,7 +562,7 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
 				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
 				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-				cbcItemClassificationCode.appendChild( document.createTextNode(items[item].getUnitCode()) )
+				cbcItemClassificationCode.appendChild( document.createTextNode(items[item].getClassificationCode()) )
 				cacCommodityClassification.appendChild(cbcItemClassificationCode)
 			}
 
@@ -597,17 +636,13 @@ var Item = function(_description) {
 	var code
 	var quantity
 	var unitValue
-	var unitCode
+	var unitCode, classificationCode
 	var igvPercentage, iscPercentage
 	var taxableIgvAmount
 	var igvAmount, iscAmount
 	var taxTotalAmount
 	var lineExtensionAmount, pricingReferenceAmount
-	var typePriceCode
-
-	this.getPriceTypeCode = function() {
-		return typePriceCode
-	}
+	var exemptionReasonCode
 
 	this.getDescription = function() {
 		return description
@@ -648,10 +683,22 @@ var Item = function(_description) {
 	 * According roll 03.
 	 */
 	this.setUnitCode = function(uc) {
+		unitCode = uc
 	}
 
 	this.getUnitCode = function() {
 		return unitCode
+	}
+
+	/**
+	 * According roll 25.
+	 */
+	this.setClassificationCode = function(cc) {
+		classificationCode = cc
+	}
+
+	this.getClassificationCode = function() {
+		return classificationCode
 	}
 
 	this.getIscPercentage = function() {
@@ -735,8 +782,12 @@ var Item = function(_description) {
 		return withFormat ? taxTotalAmount.toFixed(2) : taxTotalAmount
 	}
 
-	this.getTotalAmountPlusTaxTotal = function(withFormat = false) {
-		return withFormat ? (igvAmount + iscAmount).toFixed(2) : igvAmount + iscAmount
+	this.setExemptionReasonCode = function(xrc) {
+		exemptionReasonCode = xrc
+	}
+
+	this.getExemptionReasonCode = function() {
+		return exemptionReasonCode
 	}
 
 	this.setDescription(_description)

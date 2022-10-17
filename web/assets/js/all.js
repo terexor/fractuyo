@@ -378,6 +378,7 @@ function addRowForItem(object) {
 	selectorGravoso.setAttribute("data-bs-toggle", "tooltip")
 	selectorGravoso.setAttribute("data-bs-placement", "top")
 	selectorGravoso.setAttribute("data-bs-custom-class", "custom-tooltip")
+	selectorGravoso.setAttribute("data-type", "exemption-code")
 	groupPrecio.appendChild(selectorGravoso)
 
 	const opcionGravada = document.createElement("option")

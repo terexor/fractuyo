@@ -342,8 +342,11 @@ var Fractuyo = function() {
 			for(const item of items) {
 				++productIndex
 				const product = new Item(item.getElementsByTagName("textarea")[0].value.trim())
+				product.setUnitCode("ZZ")
+				product.setClassificationCode("82101500")
 				product.setIscPercentage(0)
 				product.setIgvPercentage(18)
+				product.setExemptionReasonCode(item.querySelector("[data-type='exemption-code']").value)
 				product.setQuantity(item.querySelector("[data-type='quantity']").value.trim())
 				product.setUnitValue(item.querySelector("[data-type='unit-value']").value.trim(), item.querySelector("[data-type='inc-igv']").checked)
 				product.calcMounts()
@@ -704,15 +707,13 @@ var Fractuyo = function() {
 				const xml = XAdES.Parse( this.responseText )
 				const zipb64retornado = xml.getElementsByTagName("applicationResponse")[0].textContent
 
-				JSZip.loadAsync(b64ToBuffer( zipb64retornado )).then( //read the Blob
+				JSZip.loadAsync(window.Encoding.base64ToBuf( zipb64retornado )).then( //read the Blob
 					function(zip) {
 						//We go to file directly
 						zip.file(`R-${fileName}.xml`).async("string").then(function(data) {
-							debugger
-							let xmlDoc = new DOMParser().parseFromString(data, "text/xml")
-
-							const responseCode = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:ResponseCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-							Notiflix.Notify.info(responseCode)
+							let xmlDoc = XAdES.Parse(data)
+							const responseDescription = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+							Notiflix.Notify.info(responseDescription)
 						})
 					}, function(e) {
 						Notiflix.Notify.info("Error leyendo.")
