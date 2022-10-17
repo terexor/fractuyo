@@ -111,7 +111,9 @@ var Invoice = function(taxpayer, customer, publicKey) {
 	}
 
 	this.setOrderReference = function(reference) {
-		orderReference = reference
+		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
+			orderReference = reference
+		}
 	}
 
 	this.getTotalAmount = function(withFormat = false) {
@@ -120,6 +122,18 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 	this.getEncryptedTotalAmount = function() {
 		return publicKey.encrypt(totalAmount)
+	}
+
+	/**
+	 * Check if everything can be processed.
+	 */
+	this.validate = function() {
+		switch(typeCode) {
+			case "01":
+				if(customer.getIdentification().getType() != 6) {
+					throw new Error("El cliente debe tener RUC.")
+				}
+		}
 	}
 
 	this.toXml = function() {
@@ -228,7 +242,8 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 			cbcId.setAttribute("schemeID", taxpayer.getIdentification().getType())
-			cbcId.setAttribute("schemeName", "PE:SUNAT")
+			cbcId.setAttribute("schemeName", "Documento de Identidad")
+			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
 			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
 			cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
 			cacPartyIdentification.appendChild(cbcId)
@@ -303,7 +318,8 @@ var Invoice = function(taxpayer, customer, publicKey) {
 
 			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
 			cbcId.setAttribute("schemeID", customer.getIdentification().getType())
-			cbcId.setAttribute("schemeName", "PE:SUNAT")
+			cbcId.setAttribute("schemeName", "Documento de Identidad")
+			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
 			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
 			cbcId.appendChild( document.createTextNode(customer.getIdentification().getNumber()) )
 			cacPartyIdentification.appendChild(cbcId)
@@ -315,15 +331,17 @@ var Invoice = function(taxpayer, customer, publicKey) {
 			cbcRegistrationName.appendChild( xmlDocument.createCDATASection(customer.getName()) )
 			cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
-			const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
-			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+			if(customer.getAddress()) {
+				const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
+				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 
-			const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
-			cacRegistrationAddress.appendChild(cacAddressLine)
+				const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+				cacRegistrationAddress.appendChild(cacAddressLine)
 
-			const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-			cbcLine.appendChild( xmlDocument.createCDATASection(customer.getAddress()) )
-			cacAddressLine.appendChild(cbcLine)
+				const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
+				cbcLine.appendChild( xmlDocument.createCDATASection(customer.getAddress()) )
+				cacAddressLine.appendChild(cbcLine)
+			}
 		}
 
 		{ //Payment type
@@ -369,7 +387,8 @@ var Invoice = function(taxpayer, customer, publicKey) {
 						cacTaxCategory.appendChild(cacTaxScheme)
 						{
 							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-							cbcID.setAttribute("schemeName", "PE:SUNAT")
+							cbcID.setAttribute("schemeName", "Codigo de tributos")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
 							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
 							cbcID.appendChild(document.createTextNode("1000"))
 							cacTaxScheme.appendChild(cbcID)
@@ -548,12 +567,14 @@ var Invoice = function(taxpayer, customer, publicKey) {
 				cbcDescription.appendChild( xmlDocument.createCDATASection(items[item].getDescription()) )
 				cacItem.appendChild(cbcDescription)
 
-				const cacSellersItemIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:SellersItemIdentification")
-				cacItem.appendChild(cacSellersItemIdentification)
+				if(items[item].getCode()) {
+					const cacSellersItemIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:SellersItemIdentification")
+					cacItem.appendChild(cacSellersItemIdentification)
 
-				const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcID.appendChild( document.createTextNode(items[item].getCode()) )
-				cacSellersItemIdentification.appendChild(cbcID)
+					const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode(items[item].getCode()) )
+					cacSellersItemIdentification.appendChild(cbcID)
+				}
 
 				const cacCommodityClassification = xmlDocument.createElementNS(namespaces.cac, "cac:CommodityClassification")
 				cacItem.appendChild(cacCommodityClassification)
@@ -657,7 +678,9 @@ var Item = function(_description) {
 	}
 
 	this.setCode = function(c) {
-		code = c
+		if( ( typeof c === "string" || c instanceof String ) && c.length > 0 ) {
+			code = c
+		}
 	}
 
 	this.getCode = function() {

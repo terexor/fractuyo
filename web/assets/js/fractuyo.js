@@ -327,6 +327,7 @@ var Fractuyo = function() {
 
 		const customer = new Person()
 		customer.setName(formulario.elements["customer-name"].value.trim())
+		customer.setAddress(formulario.elements["customer-address"].value.trim())
 		try {
 			customer.setIdentification(new Identification().setIdentity(formulario.elements["customer-identification"].value.trim(), formulario.elements["customer-identification-type"].value))
 		}
@@ -369,18 +370,17 @@ var Fractuyo = function() {
 		stmt.bind({$serie: invoice.getSerie()})
 		if(stmt.step()) {
 			const row = stmt.getAsObject()
-			//~ console.log('Here is a row: ' + JSON.stringify(row))
 			invoice.setNumeration(++row.numero)
 		}
 
 		invoice.setTypeCode(formulario.elements["type-code"].value)
-		invoice.setOrderReference("11")
-		invoice.toXml()
 		try {
+			invoice.validate()
+			invoice.toXml()
 			await invoice.sign()
 		}
 		catch(e) {
-			Notiflix.Notify.failure("No se puede firmar.")
+			Notiflix.Notify.failure(e.message)
 			console.error(e)
 			return
 		}
@@ -592,7 +592,7 @@ var Fractuyo = function() {
 					sender.setAttribute("id", "sunatizador-" + cdpName)
 					sender.onclick = function() {
 						//Send to Sunat server
-						fractuyo.declareInvoice(cdpName, new Date(row.fecha).toISOString().substr(0, 7))
+						fractuyo.declareInvoice(cdpName, new Date(row.fecha).toISOString().substr(0, 7), this)
 					}
 					sender.appendChild(document.createTextNode("Sunatizar"))
 					_action.appendChild(sender)
@@ -684,9 +684,10 @@ var Fractuyo = function() {
 		)
 	}
 
-	this.declareInvoice = async function(cdpName, folderName) {
-		let handleDirectory = await globalDirHandle.getDirectoryHandle("docs")
-		handleDirectory = await handleDirectory.getDirectoryHandle("xml")
+	this.declareInvoice = async function(cdpName, folderName, triggerButton) {
+		triggerButton.disabled = true
+		let handleDocsDirectory = await globalDirHandle.getDirectoryHandle("docs")
+		let handleDirectory = await handleDocsDirectory.getDirectoryHandle("xml")
 		handleDirectory = await handleDirectory.getDirectoryHandle(folderName)
 
 		let fileHandle = await handleDirectory.getFileHandle(cdpName + ".xml", {})
@@ -700,23 +701,91 @@ var Fractuyo = function() {
 		zip.generateAsync({type:"base64"}).then(function(zipb64) {
 			if(!zipb64) {
 				Notify.Notiflix.failure("No se pudo empaquetar archivo.")
+				triggerButton.disabled = false
 				return
 			}
 			const xhttp = new XMLHttpRequest()
-			xhttp.onload = function() {
+			xhttp.onload = async function() {
 				const xml = XAdES.Parse( this.responseText )
-				const zipb64retornado = xml.getElementsByTagName("applicationResponse")[0].textContent
+				let zipb64retornado
+				try {
+					//CDR
+					zipb64retornado = xml.getElementsByTagName("applicationResponse")[0].textContent
+
+					handleDirectory = await handleDocsDirectory.getDirectoryHandle("cdr", { create: true })
+					fileHandle = await handleDirectory.getFileHandle(`R-${cdpName}.zip`, { create: true })
+					writable = await fileHandle.createWritable()
+					await writable.write(window.Encoding.base64ToBuf(zipb64retornado))
+					await writable.close()
+				}
+				catch(e) {
+					triggerButton.disabled = false
+					console.error(e)
+					Notiflix.Notify.failure("No fue recibido.")
+					return
+				}
 
 				JSZip.loadAsync(window.Encoding.base64ToBuf( zipb64retornado )).then( //read the Blob
-					function(zip) {
+					async function(zip) {
 						//We go to file directly
-						zip.file(`R-${fileName}.xml`).async("string").then(function(data) {
+						zip.file(`R-${fileName}.xml`).async("string").then(async function(data) {
 							let xmlDoc = XAdES.Parse(data)
-							const responseDescription = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-							Notiflix.Notify.info(responseDescription)
+							let responseCode = 2000, responseDescription = ''
+							try {
+								responseCode = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:ResponseCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+								responseDescription = xmlDoc.evaluate("/*/cac:DocumentResponse/cac:Response/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+							}
+							catch(e) {
+								triggerButton.disabled = false
+								console.error(e)
+								return
+							}
+
+							//~ const confResponseCode = responseCode << 9 | 1 << 8
+
+							let isUpdateable = true
+							const etiquetaDeSunat = document.createElement("span")
+							switch(true) {
+								case (responseCode < 100):
+									etiquetaDeSunat.setAttribute("class", "badge bg-success text-white")
+									etiquetaDeSunat.appendChild(document.createTextNode("Aceptado"))
+									Notiflix.Notify.success(responseDescription)
+									break
+								case (responseCode < 2000):
+									//We must resend
+									isUpdateable = false
+									triggerButton.disabled = false
+									Notiflix.Notify.info(responseDescription)
+									break
+								case (responseCode < 4000):
+									etiquetaDeSunat.setAttribute("class", "badge bg-danger text-black")
+									etiquetaDeSunat.appendChild(document.createTextNode("Rechazado"))
+									Notiflix.Notify.failure(responseDescription)
+									break
+								default:
+									etiquetaDeSunat.setAttribute("class", "badge bg-warning text-black")
+									etiquetaDeSunat.appendChild(document.createTextNode("Aceptado"))
+									Notiflix.Notify.warning(responseDescription)
+							}
+
+							if(isUpdateable) {
+								const nameParts = cdpName.split('-')
+								const typeCode = parseInt(nameParts[0]), serie = nameParts[1], number = parseInt(nameParts[2])
+								dbInvoices.run("UPDATE invoice SET config = config | $confsunatresponse WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$confsunatresponse: (responseCode << 9 | 1 << 8), $typecode: typeCode, $serie: serie, $number: number})
+								triggerButton.parentNode.appendChild(etiquetaDeSunat)
+								triggerButton.remove()
+
+								//Saving db file onto disk
+								handleDirectory = await globalDirHandle.getDirectoryHandle("config")
+								fileHandle = await handleDirectory.getFileHandle("invoices.dat", { create: true })
+								writable = await fileHandle.createWritable()
+								await writable.write(dbInvoices.export())
+								await writable.close()
+							}
 						})
 					}, function(e) {
 						Notiflix.Notify.info("Error leyendo.")
+						triggerButton.disabled = false
 						console.error("Error reading", e.message)
 					}
 				)

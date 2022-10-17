@@ -46,15 +46,13 @@ var Person = function() {
 	}
 
 	this.setAddress = function(a) {
-		address = a
+		if( ( typeof a === "string" || a instanceof String ) && a.length > 0 ) {
+			address = a
+		}
 	}
 
 	this.getAddress = function() {
 		return address
-	}
-
-	this.isNatural = function() {
-		return isNatural
 	}
 }
 
