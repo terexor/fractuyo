@@ -71,10 +71,8 @@
 									<div class="row d-flex align-items-baseline">
 										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
-												<select class="form-select" id="tipo" aria-label="Tipo de comprobante de pago" name="type-code" required>
-													<option value="">Elegir&hellip;</option>
-													<option value="03">Boleta de Venta</option>
-													<option value="01">Factura</option>
+												<select class="form-select" id="tipo" onclick="listarSerie(this)" aria-label="Tipo de comprobante de pago" name="type-code" required>
+													<option value="" selected>Indisponible</option>
 												</select>
 												<label for="tipo">Tipo de comprobante</label>
 											</div>
@@ -82,10 +80,7 @@
 										<div class="col-lg-3 col-sm-12 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago" name="serie" required>
-													<option value="">Elegir&hellip;</option>
-													<option value="F000">F000</option>
-													<option value="F001">F001</option>
-													<option value="F002">F002</option>
+													<option value="" selected>Indisponible</option>
 												</select>
 												<label for="serie">Serie</label>
 											</div>
@@ -179,7 +174,7 @@
 														<div class="input-group">
 															<input type="search" list="listaCodigosItems" class="form-control text-truncate pe-2" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable">
 															<span class="input-group-append"><button class="btn btn-outline-secondary bg-transparent border-start-0 border-bottom-0 border" type="button" style="margin-left:-48px" disabled><span data-feather="search"></span></button></span>
-															<button class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
+															<button type="button" class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
 														</div>
 														<datalist id="listaCodigosItems" class="border">
 															<option value="COD001">Codejemplo 1</option>

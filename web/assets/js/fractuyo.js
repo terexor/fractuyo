@@ -8,6 +8,15 @@ var Fractuyo = function() {
 	var dbModules //Storing module tables
 	var dbInvoices //Storing a single table with header and footer of the invoice
 
+	/**
+	 * Invoice Series.
+	 */
+	var series
+
+	this.getSeries = function() {
+		return series
+	}
+
 	this.getDbModules = function() {
 		return dbModules
 	}
@@ -362,8 +371,15 @@ var Fractuyo = function() {
 			return
 		}
 
-		invoice.setSerie(formulario.elements["serie"].value)
-		invoice.setCurrencyId(formulario.elements.moneda.value)
+		try {
+			invoice.setSerie(formulario.elements["serie"].value)
+			invoice.setCurrencyId(formulario.elements.moneda.value)
+		}
+		catch(e) {
+			Notiflix.Notify.failure(e.message)
+			console.error(e)
+			return
+		}
 
 		const stmt = dbInvoices.prepare("SELECT config, numero FROM serie WHERE serie = $serie")
 		stmt.bind({$serie: invoice.getSerie()})
@@ -518,6 +534,57 @@ var Fractuyo = function() {
 
 	this.isUsable = function() {
 		return taxpayer.getKey() != null
+	}
+
+	/**
+	 * Getting series and placing on select-option.
+	 */
+	this.orderSeries = function() {
+		series = Array()
+		dbInvoices.each("SELECT * FROM serie WHERE config & 1 = 1", {},
+			function(row) {
+				const type = row.config >> 2 & 127
+				if(!series.includes(type)) {
+					series.push(type)
+					series[type] = []
+				}
+				series[type].push(row.serie)
+			}
+		)
+
+		//Remove options
+		const typeSelector = document.getElementById("tipo")
+		while(typeSelector.firstChild) {
+			typeSelector.removeChild(typeSelector.firstChild);
+		}
+
+		let nullOption = document.createElement("option")
+		nullOption.selected = true
+		nullOption.hidden = true
+		nullOption.value = ""
+		nullOption.appendChild(document.createTextNode("Elegir\u2026"))
+		typeSelector.appendChild(nullOption)
+
+		for(let serie in series) {
+			if(Array.isArray(series[serie])) {
+				let typeOption = document.createElement("option")
+				typeOption.value = String(serie).padStart(2, '0')
+				switch(serie) {
+					case "1"://FAC
+						typeOption.appendChild(document.createTextNode("Factura"))
+						typeSelector.appendChild(typeOption)
+						break
+					case "3"://BOL
+						typeOption.appendChild(document.createTextNode("Boleta"))
+						typeSelector.appendChild(typeOption)
+						break
+					//~ case "9"://GRE
+						//~ typeOption.appendChild(document.createTextNode("G"))
+					//~ default:
+						//~ console.log("Tipo de CDP incorrecto porque serie es", typeof serie)
+				}
+			}
+		}
 	}
 
 	this.listInvoices = function(lastIndex) {

@@ -11,7 +11,7 @@ var Identification = function() {
 			type = t
 			return this
 		}
-		throw new Error("Número de identificación inconsistente.")
+		throw new Error("Número de identificación de persona inconsistente.")
 	}
 
 	this.getNumber = function() {

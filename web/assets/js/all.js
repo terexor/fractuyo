@@ -19,6 +19,7 @@ window.onload = function() {
 			[...document.getElementsByClassName("crypto-alternate")].forEach((boton) => {
 				boton.disabled = false
 			})
+			fractuyo.orderSeries()
 		}
 	}
 
@@ -110,7 +111,7 @@ function validateDocumentNumber(documentType, number) {
 }
 
 function validateRuc(ruc) {
-	if( parseInt(ruc) < 11 ) {
+	if( ruc.length != 11 ||  parseInt(ruc) < 11 ) {
 		return false
 	}
 	if( ! ["10", "15", "17", "20"].includes( ruc.substring(0, 2) ) ) {
@@ -199,6 +200,37 @@ function getAlgorithm(name) {
 			}
 	}
 	return alg
+}
+
+function listarSerie(tipo) {
+	const series = fractuyo.getSeries()
+	if(!series || tipo.value == "") {
+		return
+	}
+
+	const seleccionadorDeSerie = document.getElementById("serie")
+	while(seleccionadorDeSerie.firstChild) {
+		seleccionadorDeSerie.removeChild(seleccionadorDeSerie.firstChild)
+	}
+
+	let nullOption = document.createElement("option")
+	nullOption.selected = true
+	nullOption.hidden = true
+	nullOption.value = ""
+	nullOption.appendChild(document.createTextNode("Elegir\u2026"))
+	seleccionadorDeSerie.appendChild(nullOption)
+
+	const paqueteDeSeries = series[Number(tipo.value)]
+	if(!paqueteDeSeries) {
+		return
+	}
+
+	for(let serie of series[Number(tipo.value)]) {
+		let valorDeSerie = document.createElement("option")
+		valorDeSerie.value = serie
+		valorDeSerie.appendChild(document.createTextNode(serie))
+		seleccionadorDeSerie.appendChild(valorDeSerie)
+	}
 }
 
 function addRowForItem(object) {
