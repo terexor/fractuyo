@@ -316,6 +316,7 @@ function addRowForItem(object) {
 
 	const entradaCantidad = document.createElement("input")
 	entradaCantidad.type = "number"
+	entradaCantidad.step = "0.01"
 	entradaCantidad.placeholder = "Cantidad"
 	entradaCantidad.setAttribute("class", "form-control w-25")
 	entradaCantidad.setAttribute("data-type", "quantity")
@@ -366,6 +367,7 @@ function addRowForItem(object) {
 
 	const entradaValorUnitario = document.createElement("input")
 	entradaValorUnitario.type = "number"
+	entradaValorUnitario.step = "0.01"
 	entradaValorUnitario.placeholder = "Valor unitario"
 	entradaValorUnitario.setAttribute("class", "form-control")
 	entradaValorUnitario.setAttribute("aria-label", "Valor unitario")

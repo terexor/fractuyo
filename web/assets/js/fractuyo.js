@@ -234,14 +234,13 @@ var Fractuyo = function() {
 						config integer,\
 						serie char(4),\
 						numero integer,\
-						subtotal integer,\
-						gravado integer,\
-						exonerado integer,\
-						inafecto integer,\
-						isc integer,\
-						igv integer,\
-						icbp integer,\
-						total integer\
+						subtotal blob,\
+						gravado blob,\
+						exonerado blob,\
+						inafecto blob,\
+						isc blob,\
+						igv blob,\
+						icbp blob\
 					);\
 					CREATE TABLE serie(\
 						id integer PRIMARY KEY autoincrement,\
@@ -386,7 +385,16 @@ var Fractuyo = function() {
 		}
 
 		dbInvoices.run("UPDATE serie SET numero = ? WHERE serie = ?", [invoice.getNumeration(), invoice.getSerie()])
-		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(), 2n, 1n, 1n, 1n, 1n, 1n, 1n, 1n ])
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [
+			null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(),
+			window.Encoding.hexToBuf( invoice.getEncryptedLineExtensionAmount().toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(0).toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(1).toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(2).toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16) ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16) )
+		])
 
 		// Find directory structure
 		let handleDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
@@ -793,5 +801,14 @@ var Fractuyo = function() {
 			xhttp.open("POST", "/proxy-terexor.php", true)
 			xhttp.send( JSON.stringify( {zipb64: zipb64, filename: fileName} ) )
 		})
+	}
+
+	this.reportAmounts = function(identity) {
+		dbInvoices.each("SELECT subtotal FROM invoice WHERE id = $identity", {$identity: identity},
+			function(row) {
+				let encrSubtotal = BigInt("0x" + window.Encoding.bufToHex( row.subtotal ) )
+				console.log( Number( taxpayer.getPaillierPrivateKey().decrypt(encrSubtotal) * 100n / 100n ) / 100 )
+			}
+		)
 	}
 }

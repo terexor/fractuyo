@@ -1,4 +1,4 @@
-var Invoice = function(taxpayer, customer, publicKey) {
+var Invoice = function(taxpayer, customer) {
 	var items = Array()
 	var currencyId //Too used same in products
 	var numeration, serie
@@ -7,8 +7,8 @@ var Invoice = function(taxpayer, customer, publicKey) {
 	/*
 	 * Global totals
 	 */
-	var lineExtensionAmount = 0, taxTotalAmount = 0, taxInclusiveAmount = 0, igvAmount = 0
-	var operationAmounts = [0, 0, 0, 0]
+	var lineExtensionAmount = 0, taxTotalAmount = 0, taxInclusiveAmount = 0, igvAmount = 0, iscAmount = 0, icbpAmount = 0
+	var operationAmounts = [0, 0, 0]
 
 	var paymentTerms = Array()
 
@@ -116,12 +116,28 @@ var Invoice = function(taxpayer, customer, publicKey) {
 		}
 	}
 
-	this.getTotalAmount = function(withFormat = false) {
+	this.getLineExtensionAmount = function(withFormat = false) {
 		return withFormat ? totalAmount.toFixed(2) : totalAmount
 	}
 
-	this.getEncryptedTotalAmount = function() {
-		return publicKey.encrypt(totalAmount)
+	this.getEncryptedLineExtensionAmount = function() {
+		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( lineExtensionAmount * 100 ) / 100 * 100 ) )
+	}
+
+	this.getEncryptedOperationAmounts = function(index) {
+		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( operationAmounts[index] * 100 ) / 100 * 100 ) )
+	}
+
+	this.getEncryptedIgvAmount = function() {
+		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( igvAmount * 100 ) / 100 * 100 ) )
+	}
+
+	this.getEncryptedIscAmount = function() {
+		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( iscAmount * 100 ) / 100 * 100 ) )
+	}
+
+	this.getEncryptedIcbpAmount = function() {
+		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( icbpAmount * 100 ) / 100 * 100 ) )
 	}
 
 	/**
