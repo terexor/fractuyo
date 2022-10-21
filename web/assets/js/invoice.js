@@ -3,6 +3,7 @@ var Invoice = function(taxpayer, customer) {
 	var currencyId //Too used same in products
 	var numeration, serie
 	var typeCode, orderReference
+	var dueDate
 
 	/*
 	 * Global totals
@@ -10,7 +11,7 @@ var Invoice = function(taxpayer, customer) {
 	var lineExtensionAmount = 0, taxTotalAmount = 0, taxInclusiveAmount = 0, igvAmount = 0, iscAmount = 0, icbpAmount = 0
 	var operationAmounts = [0, 0, 0]
 
-	var paymentTerms = Array()
+	var shares = Array()
 
 	this.ublVersion = "2.1"
 	this.customizationId = "2.0"
@@ -30,8 +31,8 @@ var Invoice = function(taxpayer, customer) {
 		return serie + '-' + String(numeration).padStart(8, '0')
 	}
 
-	this.addPaymentTerm = function(paymentTerm) {
-		paymentTerms.push(paymentTerm)
+	this.addShare = function(share) {
+		shares.push(share)
 	}
 
 	this.setUblVersion = function(ublVersion) {
@@ -81,11 +82,17 @@ var Invoice = function(taxpayer, customer) {
 		return currencyId
 	}
 
+	this.setDueDate = function(dd) {
+		if(dd.length) {
+			dueDate = dd
+		}
+	}
+
 	this.addItem = function(item) {
 		items.push(item)
 
 		lineExtensionAmount += item.getLineExtensionAmount()
-		taxTotalAmount = +item.getTaxTotalAmount()
+		taxTotalAmount += item.getTaxTotalAmount()
 		taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
 
 		igvAmount += item.getIgvAmount()
@@ -184,6 +191,12 @@ var Invoice = function(taxpayer, customer) {
 		const cbcIssueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
 		cbcIssueDate.appendChild( document.createTextNode(new Date().toISOString().substr(0, 10)) )
 		xmlDocument.documentElement.appendChild(cbcIssueDate)
+
+		if(dueDate && shares.length == 0) {
+			const cbcDueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:DueDate")
+			cbcDueDate.appendChild( document.createTextNode(dueDate) )
+			xmlDocument.documentElement.appendChild(cbcDueDate)
+		}
 
 		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
 		cbcInvoiceTypeCode.setAttribute("listID", "0101")
@@ -360,7 +373,7 @@ var Invoice = function(taxpayer, customer) {
 			}
 		}
 
-		{ //Payment type
+		if(shares.length == 0) { //Cash Payment
 			const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
 			xmlDocument.documentElement.appendChild(cacPaymentTerms)
 			{
@@ -371,6 +384,48 @@ var Invoice = function(taxpayer, customer) {
 				const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
 				cbcPaymentMeansID.appendChild( document.createTextNode("Contado") )
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+			}
+		}
+		else { //Credit payment
+			const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("FormaPago") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("Credito") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", currencyId)
+				cbcAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
+				cacPaymentTerms.appendChild(cbcAmount)
+			}
+
+			let c = 0
+			for(const share of shares) {
+				const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+				xmlDocument.documentElement.appendChild(cacPaymentTerms)
+				{
+					const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode("FormaPago") )
+					cacPaymentTerms.appendChild(cbcID)
+
+					const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+					cbcPaymentMeansID.appendChild( document.createTextNode("Cuota" + String(++c).padStart(3, '0')) )
+					cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+					const cbcAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+					cbcAmount.setAttribute("currencyID", currencyId)
+					cbcAmount.appendChild(document.createTextNode( share.getAmount(true) ))
+					cacPaymentTerms.appendChild(cbcAmount)
+
+					const cbcPaymentDueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentDueDate")
+					cbcPaymentDueDate.appendChild( document.createTextNode( share.getDueDate() ) )
+					cacPaymentTerms.appendChild(cbcPaymentDueDate)
+				}
 			}
 		}
 
@@ -665,7 +720,30 @@ var Invoice = function(taxpayer, customer) {
 	}
 }
 
-var PaymentTerm = function() {
+var Share = function(today) {
+	var dueDate, amount
+
+	this.setDueDate = function(dd) {
+		dueDate = dd
+	}
+
+	this.getDueDate = function() {
+		return dueDate
+	}
+
+	this.setAmount = function(a) {
+		amount = parseFloat(a)
+		if(isNaN(amount)) {
+			throw new Error("Cantidad de cuota no es un número.")
+		}
+		if(amount <= 0) {
+			throw new Error("Monto de cuota no puede ser 0.")
+		}
+	}
+
+	this.getAmount = function(withFormat = false) {
+		return withFormat ? amount.toFixed(2) : amount
+	}
 }
 
 var Item = function(_description) {
@@ -711,6 +789,9 @@ var Item = function(_description) {
 		quantity = parseFloat(q)
 		if(isNaN(quantity)) {
 			throw new Error("Cantidad no es un número.")
+		}
+		if(quantity <= 0) {
+			throw new Error("No puede haber 0 como cantidad.")
 		}
 	}
 

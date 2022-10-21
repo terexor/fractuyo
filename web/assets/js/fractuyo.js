@@ -346,6 +346,38 @@ var Fractuyo = function() {
 
 		const invoice = new Invoice(taxpayer, customer)
 
+		if(formulario.elements.credito.checked) {
+			const shares = document.getElementsByClassName("share")
+			if(shares.length == 0) {
+				Notiflix.Report.warning(
+					"Al crédito", "No se ha hallado ninguna cuota.", "Aceptar"
+				)
+				return
+			}
+
+			let shareIndex = 0
+			try {
+				for(const fee of shares) {
+					++shareIndex
+					const share = new Share()
+					share.setDueDate(fee.querySelector("[type='date']").value)
+					share.setAmount(fee.querySelector("[type='number']").value)
+					invoice.addShare(share)
+				}
+			}
+			catch(e) {
+				Notiflix.Report.warning(
+					`Error en cuota ${shareIndex}`,
+					e.message,
+					"Aceptar"
+				)
+				return
+			}
+		}
+		else if(formulario.elements.vencimiento.value.length != 0) {
+			invoice.setDueDate(formulario.elements.vencimiento.value)
+		}
+
 		let productIndex = 0
 		try {
 			for(const item of items) {

@@ -233,6 +233,64 @@ function listarSerie(tipo) {
 	}
 }
 
+function addRowForShare() {
+	const shares = document.getElementById("cuotas")
+	if(!shares) {
+		Notiflix.Notify.failure("No se puede agregar.")
+		return
+	}
+	const share = document.createElement("div")
+	share.setAttribute("class", "row share")
+	shares.appendChild(share)
+
+	const groupShare = document.createElement("div")
+	groupShare.setAttribute("class", "input-group")
+	share.appendChild(groupShare)
+
+	const removedor = document.createElement("button")
+	removedor.type = "button"
+	removedor.onclick = autoRemoveShare
+	removedor.setAttribute("class", "btn btn-danger")
+	removedor.appendChild(document.createTextNode("X"))
+	groupShare.appendChild(removedor)
+
+	const entradaMonto = document.createElement("input")
+	entradaMonto.type = "number"
+	entradaMonto.step = "0.01"
+	entradaMonto.placeholder = "Valor de cuota"
+	entradaMonto.setAttribute("class", "form-control")
+	entradaMonto.setAttribute("aria-label", "Valor unitario")
+	groupShare.appendChild(entradaMonto)
+
+	const entradaFecha = document.createElement("input")
+	entradaFecha.type = "date"
+	entradaFecha.setAttribute("class", "form-control")
+	groupShare.appendChild(entradaFecha)
+
+	const reemplazable = shares.getElementsByClassName("replaceable")[0]
+	if(reemplazable) {
+		reemplazable.remove()
+	}
+}
+
+function autoRemoveShare() {
+	const item = this.parentNode.parentNode
+	Notiflix.Confirm.show("Eliminando cuota", "¿Desea eliminar la cuota?", "Sí", "No",
+		function() {
+			const items = item.parentNode
+			item.remove()
+			if(items.childElementCount == 0) {
+				const ayuda = document.createElement("i")
+				ayuda.appendChild(document.createTextNode("Acá debes agregar cuotas."))
+				const replaceable = document.createElement("div")
+				replaceable.setAttribute("class", "text-center replaceable")
+				replaceable.appendChild(ayuda)
+				items.appendChild(replaceable)
+			}
+		}
+	)
+}
+
 function addRowForItem(object) {
 	const items = document.getElementById("items")
 	if(!items) {
