@@ -742,30 +742,43 @@ var Fractuyo = function() {
 				document.getElementById("tipoDocumento").textContent = tipoDocumento == "01" ? "Factura Electrónica" : tipoDocumento == "03" ? "Boleta de Venta Electrónica" : "Desconocido";
 				document.getElementById("fecha").textContent = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("nombreEmisor").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				document.getElementById("direccion").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				document.getElementById("urbanizacion").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cbc:CitySubdivisionName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				document.getElementById("distrito").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cbc:District", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				let ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				if(ruc == "")
 					ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("ruc").textContent = ruc
 
 				document.getElementById("nombreCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+				document.getElementById("rucCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("direccionCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 
 
 				document.getElementById("codHash").textContent = xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("letras").textContent = xmlDoc.evaluate("/*/cbc:Note[@languageLocaleID='1000']", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				const globalTotal = xmlDoc.evaluate("/*/cac:LegalMonetaryTotal/cbc:PayableAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("total").textContent = globalTotal
 
 				const count = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
 
 				for(let i = 1; i <= count; ++i) {
-					let quantity = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+					let quantity = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					let unitCode = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					let description = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-					let subtotal = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-					let igv = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cbc:TaxAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+					let subtotal = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					let igv = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:LineExtensionAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 
-					let tr = tabla.insertRow()
+					const tr = tabla.insertRow()
 					tr.insertCell().appendChild(document.createTextNode(quantity))
 					tr.insertCell().appendChild(document.createTextNode(unitCode))
-					tr.insertCell().appendChild(document.createTextNode(removeCdataTag(description)))
+					const descriptionCell = tr.insertCell()
+					for( const breaklineDescription of removeCdataTag(description).split(/\n\r?/g) ) {
+						if(breaklineDescription.length) {
+							descriptionCell.appendChild(document.createTextNode(breaklineDescription))
+						}
+						descriptionCell.appendChild(document.createElement("br"))
+					}
 					tr.insertCell().appendChild(document.createTextNode(subtotal))
 
 					let totalTag = tr.insertCell()
@@ -778,7 +791,7 @@ var Fractuyo = function() {
 						taxpayer.getIdentification().getNumber() + '|'
 						+ cdpName.replaceAll('-', '|') + '|'
 						+ '18.00' + '|'
-						+ '118.00' + '|'
+						+ globalTotal + '|'
 						+ new Date(row.fecha).toISOString().substr(0, 10) + '|'
 					,
 					width: 100,
@@ -787,6 +800,61 @@ var Fractuyo = function() {
 					colorLight: "#ffffff",
 					correctLevel : QRCode.CorrectLevel.H
 				})
+
+				const lista = document.getElementById("adicional")
+
+				const hasDetraction = xmlDoc.evaluate("count(/*/cbc:Note[@languageLocaleID='2006'])", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				if(hasDetraction) {
+					let rotulo = document.createElement("span")
+					rotulo.setAttribute("class", "fw-bold")
+					rotulo.appendChild(document.createTextNode("Sujeto a detracciones:"))
+					lista.appendChild(rotulo)
+					lista.appendChild(document.createElement("br"))
+
+					rotulo = document.createElement("span")
+					rotulo.appendChild(document.createTextNode( "Cuenta BN: " + xmlDoc.evaluate("/*/cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ))
+					lista.appendChild(rotulo)
+					lista.appendChild(document.createElement("br"))
+				}
+
+				const countPaymentTerms = xmlDoc.evaluate("count(/*/cac:PaymentTerms)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				let withShare = false
+				for(let i = 1; i <= countPaymentTerms; ++i) {
+					const type = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					switch(type) {
+						case "Detraccion":
+							let rotulo = document.createElement("span")
+							rotulo.appendChild(document.createTextNode( "Monto: " + xmlDoc.evaluate("/*/cac:PaymentTerms/cbc:Amount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ))
+							lista.appendChild(rotulo)
+							lista.appendChild(document.createElement("br"))
+							break
+						case "FormaPago":
+							let paymentType = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:PaymentMeansID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+							if(paymentType == "Credito") {
+								withShare = true
+								let rotulo = document.createElement("span")
+								rotulo.setAttribute("class", "fw-bold")
+								rotulo.appendChild(document.createTextNode("Cuotas:"))
+								lista.appendChild(rotulo)
+								lista.appendChild(document.createElement("br"))
+								document.getElementById("payment-term").textContent = "Al crédito"
+								continue
+							}
+							else if(!withShare) {
+								document.getElementById("payment-term").textContent = "Al contado"
+								continue
+							}
+							if(withShare) {
+								const amount = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:Amount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+								const dueDate = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:PaymentDueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+								const shareTag = document.createElement("span")
+								shareTag.appendChild(document.createTextNode(`${dueDate}: ${amount}`))
+								lista.appendChild(shareTag)
+								lista.appendChild(document.createElement("br"))
+							}
+							break
+					}
+				}
 			}
 		)
 	}

@@ -19,7 +19,7 @@
 	<body>
 		<main>
 			<div class="container-fluid">
-				<div class="row d-print-none">
+				<div class="row mb-5 d-print-none">
 					<nav class="navbar bg-dark fixed-top">
 						<div class="container-fluid">
 							<a class="navbar-brand text-muted" href="/">
@@ -62,88 +62,131 @@
 						</div>
 					</nav>
 				</div>
-				<div class="row mt-5">
+				<div class="row">
 					<div class="container-fluid my-3" id="lienzo">
 						<div class="card">
 							<div class="card-header d-print-none"><button onclick="window.print()" class="btn btn-outline-secondary text-capitalize border-0" title="Imprimir comprobante de pago"><span data-feather="printer"></span></button> Representación impresa</div>
 							<div class="card-body" id="invoice">
-								<div id="invoice-header">
-									<img alt="Logotipo" id="logo" class="logo screen">
-									<!-- hCard microformat -->
-									<div class="vcard" id="company-address">
-										<div class="fn org"><strong id="nombreEmisor">-</strong>
+
+								<div class="container-fluid">
+									<div class="row d-flex align-items-baseline text-center">
+										<div class="col-7">
+											<strong id="nombreEmisor">-</strong><br>
+											<span id="direccion"></span>, <span id="urbanizacion"></span>, <span id="distrito"></span><br>
+											www.lugarexpresivo.com
 										</div>
-										<div class="adr">
-											<div class="street-address"><span id="dir1">-</span><br><span id="dir2">-</span>
-												<br>
-											</div>
-											<!-- street-address -->
-											<div class="locality" id="distrito">-</div>
-											<div id="company-postcode"><span class="region" id="provincia">-</span>, <span class="postal-code" id="codigoPostal">-</span>
+										<div class="col-5">
+											<div class="invoice-id-area border border-dark border-1 rounded-3">
+												<h3>RUC: <span id="ruc"></span></h3>
+												<h2 id="tipoDocumento"></h2>
+												<p id="idComprobante"></p>
 											</div>
 										</div>
-										<!-- adr -->
-										<div class="email" id="correo">-</div>
 									</div>
-									<!-- company-address vcard -->
+
+									<div class="row text-small align-items-start mt-2 py-2 border border-dark border-1 rounded-3 fs-6">
+										<div class="col">
+											<div>
+												<strong>Razón social:</strong>
+												<span id="nombreCliente"></span>
+											</div>
+											<div>
+												<strong>Fecha de emisión:</strong>
+												<span id="fecha"></span>
+											</div>
+											<div>
+												<strong>Fecha de vencimiento:</strong>
+												<span>31-12-2021</span>
+											</div>
+											<div>
+												<strong>Forma de pago:</strong>
+												<span id="payment-term"></span>
+											</div>
+										</div>
+										<div class="col">
+											<div>
+												<strong>RUC:</strong>
+												<span id="rucCliente"></span>
+											</div>
+											<div>
+												<strong>Dirección:</strong>
+												<span id="direccionCliente"></span>
+											</div>
+											<div>
+												<strong>Moneda:</strong>
+												<span id="moneda"></span>
+											</div>
+										</div>
+									</div>
+
+									<div class="row rounded text-small mt-2 border border-dark border-1">
+										<table class="table table-hover mb-1 print-table-wrap">
+											<thead>
+												<tr>
+													<th scope="col">Cantidad</th>
+													<th scope="col">Medida</th>
+													<th scope="col">Descripción</th>
+													<th scope="col">Valor</th>
+													<th scope="col">Subtotal</th>
+												</tr>
+											</thead>
+											<tbody id="productos">
+											</tbody>
+										</table>
+									</div>
+
+									<div class="row text-small mt-2">
+										<div class="col-6" id="adicional"></div>
+
+										<div class="col-6">
+											<div class="clearfix">
+												<table class="float-end">
+													<tbody>
+														<tr>
+															<td>Op. gravadas:&ensp;</td>
+															<td class="text-end">12.32</td>
+														</tr>
+														<tr>
+															<td>Op. exoneradas:&ensp;</td>
+															<td class="text-end">0.02</td>
+														</tr>
+														<tr>
+															<td>Op. inafectas:&ensp;</td>
+															<td class="text-end">12.32</td>
+														</tr>
+														<tr>
+															<td>IGV:&ensp;</td>
+															<td class="text-end">12.32</td>
+														</tr>
+														<tr>
+															<td>ISC:&ensp;</td>
+															<td class="text-end">12.32</td>
+														</tr>
+														<tr>
+															<td class="fw-bold">Total:&ensp;</td>
+															<td class="text-end" id="total">12.32</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+											<div id="letras" class="mt-1 text-end fw-bold"></div>
+										</div>
+									</div>
+
+									<div class="row text-small mt-3">
+										<div class="col-3">
+											<div id="qrcode" class="p-2 d-inline"></div>
+										</div>
+										<div class="col-9">
+											<p>Puede consultar la validez de este comprobante de pago desde la web de la Sunat.</p>
+											<span>Hash: <span id="codHash"></span></span>
+										</div>
+									</div>
+
 								</div>
-								<!-- #invoice-header -->
-								<div id="invoice-info">
-									<h2 id="tipoDocumento">Comprobante de Pago</h2>
-									<h3 id="ruc">-</h3>
-									<p id="idComprobante">-</p>
-								</div>
-								<!-- #invoice-info -->
-								<div class="vcard" id="client-details">
-									<div class="org">Fecha: <span id="fecha"></span></div>
-									<div class="org">Cliente: <span id="nombreCliente"></span></div>
-									<div class="org">Dirección: <span id="direccionCliente"></span></div>
-									<!-- adr -->
-								</div>
-								<!-- #client-details vcard -->
-								<table id="invoice-amount" class="print-table-wrap">
-									<thead>
-										<tr id="header_row">
-											<th class="quantity_th">Cantidad</th>
-											<th class="salestax_th">Medida</th>
-											<th class="left details_th">Detalles</th>
-											<th class="salestax_th">Subtotal</th>
-											<th class="subtotal_th">Total</th>
-										</tr>
-									</thead>
-									<tfoot>
-										<!-- <tr id="discount_tr">
-											<td colspan="2">&nbsp;</td>
-											<td colspan="2" class="item_r">10% Discount</td>
-											<td class="item_r">&#163;123.00</td>
-										</tr> -->
-										<tr id="net_total_tr">
-											<td colspan="2">&nbsp;</td>
-											<td colspan="2" class="item_r">Subtotal neto</td>
-											<td class="item_r" id="subtotalFinal">0.00</td>
-										</tr>
-										<tr id="vat_tr">
-											<td colspan="2">&nbsp;</td>
-											<td colspan="2" class="item_r">IGV <span id="porcentajeIgv"></span></td>
-											<td class="item_r" id="igv">0.00</td>
-										</tr>
-										<tr id="total_tr">
-											<td colspan="2">&nbsp;</td>
-											<td colspan="2" class="total" id="total_currency"><span id="moneda" class="currency">Moneda </span> Total</td>
-											<td class="total" id="totalFinal">0.00</td>
-										</tr>
-									</tfoot>
-									<tbody id="productos">
-									</tbody>
-								</table>
-								<!-- invoice-amount -->
-								<div id="invoice-other">
-									<h2>Más información</h2>
-									<div id="qrcode"></div>
-									<div id="company-reg-number">Código Hash: <span id="codHash">=Hash=</span></div>
-								</div>
+
 							</div>
-						</div><!-- .card -->
+						</div>
 					</div>
 				</div>
 			</div>
