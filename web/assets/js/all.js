@@ -9,6 +9,8 @@ var app, fractuyo
 window.onload = function() {
 	console.log("\ud83d\ude92 FracTuyo -", version)
 
+	Notiflix.Notify.init({position:"center-top"})
+
 	fractuyo = new Fractuyo()
 	fractuyo.init()
 

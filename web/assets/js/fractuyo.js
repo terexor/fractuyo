@@ -737,10 +737,12 @@ var Fractuyo = function() {
 				let xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
 
 				document.getElementById("idComprobante").textContent = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-				document.getElementById("moneda").textContent = xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				const moneda = xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("moneda").textContent = moneda
 				let tipoDocumento = xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("tipoDocumento").textContent = tipoDocumento == "01" ? "Factura Electrónica" : tipoDocumento == "03" ? "Boleta de Venta Electrónica" : "Desconocido";
-				document.getElementById("fecha").textContent = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("fecha-emision").textContent = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("fecha-vencimiento").textContent = xmlDoc.evaluate("/*/cbc:DueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("nombreEmisor").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("direccion").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("urbanizacion").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cbc:CitySubdivisionName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
@@ -756,7 +758,7 @@ var Fractuyo = function() {
 
 
 				document.getElementById("codHash").textContent = xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-				document.getElementById("letras").textContent = xmlDoc.evaluate("/*/cbc:Note[@languageLocaleID='1000']", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("letras").textContent = xmlDoc.evaluate("/*/cbc:Note[@languageLocaleID='1000']", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue + " " + moneda
 				const globalTotal = xmlDoc.evaluate("/*/cac:LegalMonetaryTotal/cbc:PayableAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("total").textContent = globalTotal
 
@@ -767,7 +769,7 @@ var Fractuyo = function() {
 					let unitCode = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					let description = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					let subtotal = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-					let igv = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:LineExtensionAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					let lineExtensionAmount = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:LineExtensionAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
 
 					const tr = tabla.insertRow()
 					tr.insertCell().appendChild(document.createTextNode(quantity))
@@ -783,16 +785,22 @@ var Fractuyo = function() {
 
 					let totalTag = tr.insertCell()
 					totalTag.setAttribute("class", "item_r")
-					totalTag.appendChild(document.createTextNode(igv))
+					totalTag.appendChild(document.createTextNode(lineExtensionAmount))
 				}
+
+				const igv = xmlDoc.evaluate("/*/cac:TaxTotal/cbc:TaxAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("total-igv").textContent = igv
+				document.getElementById("total-gravado").textContent = xmlDoc.evaluate("/*/cac:LegalMonetaryTotal/cbc:LineExtensionAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 
 				new QRCode(document.getElementById("qrcode"), {
 					text: //RUC | TIPO DE DOCUMENTO | SERIE | NUMERO | MTO TOTAL IGV | MTO TOTAL DEL COMPROBANTE | FECHA DE EMISION | TIPO DE DOCUMENTO ADQUIRENTE | NUMERO DE DOCUMENTO ADQUIRENTE
-						taxpayer.getIdentification().getNumber() + '|'
-						+ cdpName.replaceAll('-', '|') + '|'
-						+ '18.00' + '|'
-						+ globalTotal + '|'
-						+ new Date(row.fecha).toISOString().substr(0, 10) + '|'
+						taxpayer.getIdentification().getNumber()
+						+ '|' + cdpName.replaceAll('-', '|')
+						+ '|' + igv
+						+ '|' + globalTotal
+						+ '|' + new Date(row.fecha).toISOString().substr(0, 10)
+						+ '|' + xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+						+ '|' + xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					,
 					width: 100,
 					height: 100,
@@ -848,7 +856,7 @@ var Fractuyo = function() {
 								const amount = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:Amount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 								const dueDate = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:PaymentDueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 								const shareTag = document.createElement("span")
-								shareTag.appendChild(document.createTextNode(`${dueDate}: ${amount}`))
+								shareTag.appendChild(document.createTextNode(`${dueDate}: ${amount} ${moneda}`))
 								lista.appendChild(shareTag)
 								lista.appendChild(document.createElement("br"))
 							}
@@ -888,6 +896,7 @@ var Fractuyo = function() {
 					zipb64retornado = xml.getElementsByTagName("applicationResponse")[0].textContent
 
 					handleDirectory = await handleDocsDirectory.getDirectoryHandle("cdr", { create: true })
+					handleDirectory = await handleDirectory.getDirectoryHandle(folderName, { create: true })
 					fileHandle = await handleDirectory.getFileHandle(`R-${cdpName}.zip`, { create: true })
 					writable = await fileHandle.createWritable()
 					await writable.write(window.Encoding.base64ToBuf(zipb64retornado))
@@ -915,8 +924,6 @@ var Fractuyo = function() {
 								console.error(e)
 								return
 							}
-
-							//~ const confResponseCode = responseCode << 9 | 1 << 8
 
 							let isUpdateable = true
 							const etiquetaDeSunat = document.createElement("span")

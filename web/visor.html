@@ -87,16 +87,16 @@
 									<div class="row text-small align-items-start mt-2 py-2 border border-dark border-1 rounded-3 fs-6">
 										<div class="col">
 											<div>
-												<strong>Razón social:</strong>
+												<strong>Cliente:</strong>
 												<span id="nombreCliente"></span>
 											</div>
 											<div>
 												<strong>Fecha de emisión:</strong>
-												<span id="fecha"></span>
+												<span id="fecha-emision"></span>
 											</div>
 											<div>
 												<strong>Fecha de vencimiento:</strong>
-												<span>31-12-2021</span>
+												<span id="fecha-vencimiento"></span>
 											</div>
 											<div>
 												<strong>Forma de pago:</strong>
@@ -105,7 +105,7 @@
 										</div>
 										<div class="col">
 											<div>
-												<strong>RUC:</strong>
+												<strong>Identificación:</strong>
 												<span id="rucCliente"></span>
 											</div>
 											<div>
@@ -136,31 +136,27 @@
 									</div>
 
 									<div class="row text-small mt-2">
-										<div class="col-6" id="adicional"></div>
+										<div class="col-5" id="adicional"></div>
 
-										<div class="col-6">
+										<div class="col-7">
 											<div class="clearfix">
 												<table class="float-end">
 													<tbody>
 														<tr>
 															<td>Op. gravadas:&ensp;</td>
-															<td class="text-end">12.32</td>
+															<td class="text-end" id="total-gravado"></td>
 														</tr>
 														<tr>
 															<td>Op. exoneradas:&ensp;</td>
-															<td class="text-end">0.02</td>
+															<td class="text-end">0.00</td>
 														</tr>
 														<tr>
 															<td>Op. inafectas:&ensp;</td>
-															<td class="text-end">12.32</td>
+															<td class="text-end">0.00</td>
 														</tr>
 														<tr>
 															<td>IGV:&ensp;</td>
-															<td class="text-end">12.32</td>
-														</tr>
-														<tr>
-															<td>ISC:&ensp;</td>
-															<td class="text-end">12.32</td>
+															<td class="text-end" id="total-igv"></td>
 														</tr>
 														<tr>
 															<td class="fw-bold">Total:&ensp;</td>
@@ -174,12 +170,12 @@
 									</div>
 
 									<div class="row text-small mt-3">
-										<div class="col-3">
-											<div id="qrcode" class="p-2 d-inline"></div>
+										<div class="col-3 align-middle">
+											<div id="qrcode" class="p-2  align-middle"></div>
 										</div>
 										<div class="col-9">
-											<p>Puede consultar la validez de este comprobante de pago desde la web de la Sunat.</p>
-											<span>Hash: <span id="codHash"></span></span>
+											<p class="align-middle">Puede consultar la validez de este comprobante de pago desde la web de la Sunat.<br>
+											Hash: <span id="codHash"></span></p>
 										</div>
 									</div>
 
