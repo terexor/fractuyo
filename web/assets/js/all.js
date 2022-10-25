@@ -3,6 +3,7 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 
 const version = "0.0.1"
 var app, fractuyo
+var sidebarMenu
 
 "use strict"
 
@@ -64,9 +65,12 @@ window.onload = function() {
 			if(event.error.timeout) {
 				Notiflix.Report.warning("Demora en la red","No se pudo traer la página solicitada.<br>La conexión a Internet está tardando mucho.", "Aceptar", function(){document.documentElement.classList.remove( app.getLoadingCssClass() )})
 			}
+			return
 		}
+		sidebarMenu.hide()
 		feather.replace()
 	})
+	sidebarMenu = bootstrap.Offcanvas.getOrCreateInstance("#offcanvasNavbar")
 	app.dispatch()
 
 	feather.replace()

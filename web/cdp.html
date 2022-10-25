@@ -31,7 +31,7 @@
 							</button>
 							<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
 								<div class="offcanvas-header">
-									<h5 class="offcanvas-title" id="offcanvasNavbarLabel">Navegación</h5>
+									<h5 class="offcanvas-title" id="offcanvasNavbarLabel"><a href="/configuracion" class="nav-link align-middle px-0 text-danger"><span data-feather="settings"></span> <span class="ms-1 d-none d-sm-inline">Config.</span></a></h5>
 									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 								</div>
 								<div class="offcanvas-body">
@@ -41,18 +41,35 @@
 										<em class="text-info" id="ruc-tag">RUC no asignado</em>
 									</div>
 									<div id="navegador">
-										<ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+										<ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
 											<li class="nav-item">
-												<a class="nav-link" aria-current="page" href="/"><span data-feather="home"></span> Inicio</a>
+												<a href="/" class="nav-link align-middle px-0 t">
+													<span data-feather="home"></span> <span class="ms-1 d-none d-sm-inline">Facturación</span>
+												</a>
 											</li>
-											<li class="nav-item dropdown">
-												<a class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false"><span data-feather="table"></span> <strong>Facturar</strong></a>
-												<ul class="dropdown-menu dropdown-menu-ligth">
-													<li><a class="dropdown-item" href="javascript:void(0)">Listar</a></li>
+											<li class="nav-item">
+												<a href="javascript:void(0)" class="nav-link align-middle px-0">
+													<span data-feather="list"></span> <span class="ms-1 d-none d-sm-inline">Todos</span>
+												</a>
+											</li>
+											<li>
+												<a href="#submenu2" data-bs-toggle="collapse" class="nav-link px-0 align-middle ">
+													<span data-feather="folder"></span> <span class="ms-1 d-none d-sm-inline">Listas</span></a>
+												<ul class="collapse nav flex-column ms-1" id="submenu2" data-bs-parent="#menu">
+													<li class="w-100">
+														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Ítems</span></a>
+													</li>
+													<li>
+														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Clientes</a>
+													</li>
+													<li>
+														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Series</a>
+													</li>
 												</ul>
 											</li>
-											<li class="nav-item">
-												<a class="nav-link" aria-current="page" href="/configuracion"><span data-feather="home"></span> Configuración</a>
+											<li>
+												<a href="javascript:void(0)" class="nav-link px-0 align-middle">
+													<span data-feather="activity"></span> <span class="ms-1 d-none d-sm-inline">Reporte</span> </a>
 											</li>
 										</ul>
 									</div>

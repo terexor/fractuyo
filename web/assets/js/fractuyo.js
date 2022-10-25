@@ -442,7 +442,7 @@ var Fractuyo = function() {
 		}
 
 		dbInvoices.run("UPDATE serie SET numero = ? WHERE serie = ?", [invoice.getNumeration(), invoice.getSerie()])
-		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [
 			null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(),
 			window.Encoding.hexToBuf( invoice.getEncryptedLineExtensionAmount().toString(16) ),
 			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(0).toString(16) ),
@@ -450,7 +450,8 @@ var Fractuyo = function() {
 			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(2).toString(16) ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16) ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16) )
+			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16) ),
+			window.Encoding.hexToBuf( "00" ) //Temporally
 		])
 
 		// Find directory structure
