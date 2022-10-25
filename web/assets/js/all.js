@@ -532,6 +532,7 @@ function addRowForItem(object) {
 	entradaSubtotal.setAttribute("readonly", "true")
 	entradaSubtotal.setAttribute("class", "form-control")
 	entradaSubtotal.setAttribute("aria-label", "Subtotal")
+	entradaSubtotal.setAttribute("data-type", "line-extension-amount")
 	groupSubtotal.appendChild(entradaSubtotal)
 
 	const reemplazable = items.getElementsByClassName("replaceable")[0]
@@ -547,7 +548,58 @@ function addRowForItem(object) {
 }
 
 function calcular(entradaSubtotal, entradaCantidad, entradaValorUnitario, marcadorIncIgv) {
-	entradaSubtotal.value = entradaCantidad.value * entradaValorUnitario.value
+	if(entradaCantidad.value.trim().length == 0 || entradaValorUnitario.value.trim().length == 0) {
+		entradaSubtotal.value = ""
+		return
+	}
+
+	const igvPercentage = 18
+	let unitValue
+
+	let uv = parseFloat(entradaValorUnitario.value)
+	if(!marcadorIncIgv.checked) {
+		unitValue = uv
+	}
+	else {
+		if(isNaN(igvPercentage)) {
+			throw new Error("Se requiere previamente porcentaje del IGV.")
+		}
+		unitValue = uv / ( 1 + igvPercentage / 100 )
+	}
+
+	entradaSubtotal.value = ( parseFloat(entradaCantidad.value) * unitValue ).toFixed(2)
+	calcOperations()
+}
+
+function calcOperations() {
+	const form = document.getElementById("formulario")
+	const items = document.getElementsByClassName("item")
+
+	const igvPercentage = 18
+
+	const amounts = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+	for(const item of items) {
+		let unitValue
+
+		let uv = parseFloat(item.querySelector("[data-type='unit-value']").value)
+		if(item.querySelector("[data-type='inc-igv']").checked) {
+			unitValue = uv / ( 1 + igvPercentage / 100 )
+		}
+		else {
+			unitValue = uv
+		}
+		let lineExtensionAmount = parseFloat(item.querySelector("[data-type='quantity']").value) * unitValue
+
+		amounts[0] += lineExtensionAmount
+		amounts[4] += lineExtensionAmount * 0.18
+	}
+
+	form.elements["gravado-global"].value = amounts[0].toFixed(2)
+
+	form.elements["igv-global"].value = amounts[4].toFixed(2)
+
+	form.elements["total-global"].value = ( amounts[0] + amounts[1] + amounts[2] + amounts[3] + amounts[4] + amounts[5] + amounts[6] ).toFixed(2)
 }
 
 function showItemEditor() {
@@ -561,6 +613,7 @@ function autoRemoveItem() {
 		function() {
 			const items = item.parentNode
 			item.remove()
+			calcOperations()
 			if(items.childElementCount == 0) {
 				const ayuda = document.createElement("i")
 				ayuda.appendChild(document.createTextNode("Acá aparecerán ítems agregados."))
