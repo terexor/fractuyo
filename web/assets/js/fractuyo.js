@@ -140,6 +140,9 @@ var Fractuyo = function() {
 		const departamento = form.elements.departamento.value.trim()
 		const provincia = form.elements.provincia.value.trim()
 		const distrito = form.elements.distrito.value.trim()
+		const web = form.elements.web.value.trim()
+		const email = form.elements.email.value.trim()
+		const telephone = form.elements.telefono.value.trim()
 		const solUser = form.elements.usuario.value.trim()
 		const solPass = form.elements.clave.value.trim()
 		const rsaCert = form.elements.cert.value.trim()
@@ -166,6 +169,11 @@ var Fractuyo = function() {
 				, ASN1.Any('30' // sunat Sequence
 					, ASN1.Any('13', window.Encoding.strToHex(solUser))
 					, ASN1.Any('13', window.Encoding.strToHex(solPass))
+				)
+				, ASN1.Any('30' // marketing for printing in invoice
+					, ASN1.Any('13', window.Encoding.strToHex(web))
+					, ASN1.Any('13', window.Encoding.strToHex(email))
+					, ASN1.Any('13', window.Encoding.strToHex(telephone))
 				)
 			)
 		)
@@ -249,7 +257,8 @@ var Fractuyo = function() {
 						inafecto blob,\
 						isc blob,\
 						igv blob,\
-						icbp blob\
+						icbp blob,\
+						descuento blob\
 					);\
 					CREATE TABLE serie(\
 						id integer PRIMARY KEY autoincrement,\
@@ -504,6 +513,9 @@ var Fractuyo = function() {
 			window.Encoding.bufToStr(json.children[3].children[5].value),
 			window.Encoding.bufToStr(json.children[3].children[6].value)
 		)
+		taxpayer.setWeb(window.Encoding.bufToStr(json.children[5].children[0].value))
+		taxpayer.setEmail(window.Encoding.bufToStr(json.children[5].children[1].value))
+		taxpayer.setTelephone(window.Encoding.bufToStr(json.children[5].children[2].value))
 
 		taxpayer.setCert(decryptedRsaCert)
 		taxpayer.setKey(decryptedRsaPrivate)

@@ -60,7 +60,9 @@ var Taxpayer = function() {
 	var paillierPublicKey, paillierPrivateKey
 	var cert, key
 	var solUser, solPass
+	var web, email, telephone
 	var tradeName
+
 	/**
 	 * Vector holding address metadata.
 	 */
@@ -128,6 +130,30 @@ var Taxpayer = function() {
 		solPass = sp
 	}
 
+	this.setWeb = function(w) {
+		web = w
+	}
+
+	this.setEmail = function(em) {
+		email = em
+	}
+
+	this.setTelephone = function(t) {
+		telephone = t
+	}
+
+	this.getWeb = function() {
+		return web
+	}
+
+	this.getEmail = function() {
+		return email
+	}
+
+	this.getTelephone = function() {
+		return telephone
+	}
+
 	this.setTradeName = function(tn) {
 		tradeName = tn
 	}
@@ -137,7 +163,7 @@ var Taxpayer = function() {
 	}
 
 	this.clearData = function() {
-		name = identity = cert = key = null
+		name = identity = cert = key = solUser = solPass = web = email = telephone = null
 	}
 }
 
