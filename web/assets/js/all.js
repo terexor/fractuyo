@@ -11,6 +11,7 @@ window.onload = function() {
 	console.log("\ud83d\ude92 FracTuyo -", version)
 
 	Notiflix.Notify.init({position:"center-top"})
+	Notiflix.Report.init({svgSize:"64px",plainText:false})
 
 	fractuyo = new Fractuyo()
 	fractuyo.init()

@@ -127,10 +127,6 @@ var Invoice = function(taxpayer, customer) {
 		return withFormat ? totalAmount.toFixed(2) : totalAmount
 	}
 
-	this.getEncryptedLineExtensionAmount = function() {
-		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( lineExtensionAmount * 100 ) / 100 * 100 ) )
-	}
-
 	this.getEncryptedOperationAmounts = function(index) {
 		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( operationAmounts[index] * 100 ) / 100 * 100 ) )
 	}

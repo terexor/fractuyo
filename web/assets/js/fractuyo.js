@@ -251,7 +251,6 @@ var Fractuyo = function() {
 						config integer,\
 						serie char(4),\
 						numero integer,\
-						subtotal blob,\
 						gravado blob,\
 						exonerado blob,\
 						inafecto blob,\
@@ -442,16 +441,16 @@ var Fractuyo = function() {
 		}
 
 		dbInvoices.run("UPDATE serie SET numero = ? WHERE serie = ?", [invoice.getNumeration(), invoice.getSerie()])
-		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", [
+		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [
 			null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(),
-			window.Encoding.hexToBuf( invoice.getEncryptedLineExtensionAmount().toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(0).toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(1).toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(2).toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16) ),
-			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16) ),
-			window.Encoding.hexToBuf( "00" ) //Temporally
+			//Line extension amount is obtained from the sum of operations.
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(0).toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(1).toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( invoice.getEncryptedOperationAmounts(2).toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16).padStart(512, '0') ),
+			window.Encoding.hexToBuf( taxpayer.getPaillierPublicKey().encrypt(0).toString(16).padStart(512, '0') ) //Temporally for discount
 		])
 
 		// Find directory structure
@@ -994,12 +993,56 @@ var Fractuyo = function() {
 		})
 	}
 
-	this.reportAmounts = function(identity) {
-		dbInvoices.each("SELECT subtotal FROM invoice WHERE id = $identity", {$identity: identity},
+	this.reportAmounts = function(form) {
+		const paillierPrivateKey = taxpayer.getPaillierPrivateKey()
+		if(!paillierPrivateKey) {
+			Notiflix.Notify.warning("No hay clave para descifrar.")
+			return
+		}
+
+		const paillierPublicKey = taxpayer.getPaillierPublicKey()
+
+		if(form.elements.beginning.value == "") {
+			Notiflix.Notify.warning("Indicar fecha de inicio.")
+			return
+		}
+		const beginning = new Date(`${form.elements.beginning.value}T00:00:00`).getTime()
+
+		let ending
+		if(form.elements.ending.value == "") {
+			ending = Date.now()
+		}
+		else {
+			ending = new Date(`${form.elements.ending.value}T23:59:59`).getTime()
+		}
+
+		const encryptedZero = paillierPublicKey.encrypt(0n)
+		let encryptedGravadoSum = encryptedZero,
+			encryptedExoneradoSum = encryptedZero,
+			encryptedInafectoSum = encryptedZero,
+			encryptedIscSum = encryptedZero,
+			encryptedIgvSum = encryptedZero,
+			encryptedIcbpSum = encryptedZero,
+			encryptedDescuentoSum = encryptedZero
+
+		dbInvoices.each("SELECT fecha, config, serie, numero, gravado, exonerado, inafecto, isc, igv, icbp, descuento FROM invoice WHERE fecha BETWEEN $beginning AND $ending", {$beginning: beginning, $ending: ending},
 			function(row) {
-				let encrSubtotal = BigInt("0x" + window.Encoding.bufToHex( row.subtotal ) )
-				console.log( Number( taxpayer.getPaillierPrivateKey().decrypt(encrSubtotal) * 100n / 100n ) / 100 )
+				const encryptedGravado = BigInt("0x" + window.Encoding.bufToHex( row.gravado ) )
+				encryptedGravadoSum = paillierPublicKey.addition(encryptedGravadoSum, encryptedGravado)
+
+				const encryptedIgv = BigInt("0x" + window.Encoding.bufToHex( row.igv ) )
+				encryptedIgvSum = paillierPublicKey.addition(encryptedIgvSum, encryptedIgv)
 			}
+		)
+
+		const encryptedTotal = paillierPublicKey.addition(encryptedGravadoSum, encryptedIgvSum)
+		const message = `Op. Gravadas: ${Number( paillierPrivateKey.decrypt(encryptedGravadoSum) * 100n / 100n ) / 100}<br>
+			IGV: ${Number( paillierPrivateKey.decrypt(encryptedIgvSum) * 100n / 100n ) / 100}<br>
+			Totales: ${Number( paillierPrivateKey.decrypt(encryptedTotal) * 100n / 100n ) / 100}`
+
+		Notiflix.Report.success(
+			"Sumas del período",
+			message, "Gracias"
 		)
 	}
 }
