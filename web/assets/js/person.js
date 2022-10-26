@@ -131,15 +131,21 @@ var Taxpayer = function() {
 	}
 
 	this.setWeb = function(w) {
-		web = w
+		if(w.length != 0) {
+			web = w
+		}
 	}
 
 	this.setEmail = function(em) {
-		email = em
+		if(em.length != 0) {
+			email = em
+		}
 	}
 
 	this.setTelephone = function(t) {
-		telephone = t
+		if(t.length != 0) {
+			telephone = t
+		}
 	}
 
 	this.getWeb = function() {

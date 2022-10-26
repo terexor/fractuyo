@@ -286,53 +286,79 @@ var Invoice = function(taxpayer, customer) {
 
 			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
 			cacParty.appendChild(cacPartyLegalEntity)
-
-			const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
-			cbcRegistrationName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
-			cacPartyLegalEntity.appendChild(cbcRegistrationName)
-
-			const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
-			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 			{
-				const metaAddress = taxpayer.getMetaAddress()
+				const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
+				cbcRegistrationName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
+				cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
-				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcId.appendChild( document.createTextNode(metaAddress[1]) )
-				cacRegistrationAddress.appendChild(cbcId)
+				const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
+				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+				{
+					const metaAddress = taxpayer.getMetaAddress()
 
-				const cbcAddressTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:AddressTypeCode")
-				cbcAddressTypeCode.appendChild( document.createTextNode(metaAddress[2]) )
-				cacRegistrationAddress.appendChild(cbcAddressTypeCode)
+					const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcId.appendChild( document.createTextNode(metaAddress[1]) )
+					cacRegistrationAddress.appendChild(cbcId)
 
-				const cbcCitySubdivisionName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CitySubdivisionName")
-				cbcCitySubdivisionName.appendChild( document.createTextNode(metaAddress[3]) )
-				cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
+					const cbcAddressTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:AddressTypeCode")
+					cbcAddressTypeCode.appendChild( document.createTextNode(metaAddress[2]) )
+					cacRegistrationAddress.appendChild(cbcAddressTypeCode)
 
-				const cbcCityName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CityName")
-				cbcCityName.appendChild( document.createTextNode(metaAddress[4]) )
-				cacRegistrationAddress.appendChild(cbcCityName)
+					const cbcCitySubdivisionName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CitySubdivisionName")
+					cbcCitySubdivisionName.appendChild( document.createTextNode(metaAddress[3]) )
+					cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
 
-				const cbcCountrySubentity = xmlDocument.createElementNS(namespaces.cbc, "cbc:CountrySubentity")
-				cbcCountrySubentity.appendChild( document.createTextNode(metaAddress[5]) )
-				cacRegistrationAddress.appendChild(cbcCountrySubentity)
+					const cbcCityName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CityName")
+					cbcCityName.appendChild( document.createTextNode(metaAddress[4]) )
+					cacRegistrationAddress.appendChild(cbcCityName)
 
-				const cbcDistrict = xmlDocument.createElementNS(namespaces.cbc, "cbc:District")
-				cbcDistrict.appendChild( document.createTextNode(metaAddress[6]) )
-				cacRegistrationAddress.appendChild(cbcDistrict)
+					const cbcCountrySubentity = xmlDocument.createElementNS(namespaces.cbc, "cbc:CountrySubentity")
+					cbcCountrySubentity.appendChild( document.createTextNode(metaAddress[5]) )
+					cacRegistrationAddress.appendChild(cbcCountrySubentity)
 
-				const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
-				cacRegistrationAddress.appendChild(cacAddressLine)
+					const cbcDistrict = xmlDocument.createElementNS(namespaces.cbc, "cbc:District")
+					cbcDistrict.appendChild( document.createTextNode(metaAddress[6]) )
+					cacRegistrationAddress.appendChild(cbcDistrict)
 
-				const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-				cbcLine.appendChild( xmlDocument.createCDATASection(taxpayer.getAddress()) )
-				cacAddressLine.appendChild(cbcLine)
+					const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+					cacRegistrationAddress.appendChild(cacAddressLine)
 
-				const cacCountry = xmlDocument.createElementNS(namespaces.cac, "cac:Country")
-				cacRegistrationAddress.appendChild(cacCountry)
+					const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
+					cbcLine.appendChild( xmlDocument.createCDATASection(taxpayer.getAddress()) )
+					cacAddressLine.appendChild(cbcLine)
 
-				const cbcIdentificationCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:IdentificationCode")
-				cbcIdentificationCode.appendChild( document.createTextNode(metaAddress[0]) )
-				cacCountry.appendChild(cbcIdentificationCode)
+					const cacCountry = xmlDocument.createElementNS(namespaces.cac, "cac:Country")
+					cacRegistrationAddress.appendChild(cacCountry)
+
+					const cbcIdentificationCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:IdentificationCode")
+					cbcIdentificationCode.appendChild( document.createTextNode(metaAddress[0]) )
+					cacCountry.appendChild(cbcIdentificationCode)
+				}
+			}
+
+			if( taxpayer.getWeb() || taxpayer.getEmail() || taxpayer.getTelephone() ) {
+				//Contact or marketing
+				const cacContact = xmlDocument.createElementNS(namespaces.cac, "cac:Contact")
+				cacParty.appendChild(cacContact)
+				{
+					if(taxpayer.getTelephone()) {
+						const cbcTelephone = xmlDocument.createElementNS(namespaces.cbc, "cbc:Telephone")
+						cbcTelephone.appendChild(document.createTextNode(taxpayer.getTelephone()))
+						cacContact.appendChild(cbcTelephone)
+					}
+
+					if(taxpayer.getEmail()) {
+						const cbcElectronicMail = xmlDocument.createElementNS(namespaces.cbc, "cbc:ElectronicMail")
+						cbcElectronicMail.appendChild(document.createTextNode(taxpayer.getEmail()))
+						cacContact.appendChild(cbcElectronicMail)
+					}
+
+					if(taxpayer.getWeb()) {
+						const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
+						cbcNote.appendChild(document.createTextNode(taxpayer.getWeb()))
+						cacContact.appendChild(cbcNote)
+					}
+				}
 			}
 		}
 		{ //Customer

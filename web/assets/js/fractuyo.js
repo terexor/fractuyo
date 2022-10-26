@@ -765,6 +765,10 @@ var Fractuyo = function() {
 					ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("ruc").textContent = ruc
 
+				document.getElementById("website").textContent = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Note", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("email").textContent = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:ElectronicMail", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				document.getElementById("telephone").textContent = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Telephone ", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+
 				document.getElementById("nombreCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("rucCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("direccionCliente").textContent = removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
