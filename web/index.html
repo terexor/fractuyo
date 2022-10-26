@@ -118,7 +118,7 @@
 									</div>
 									<div class="row d-flex align-items-baseline">
 										<div class="col-lg-12 col-sm-12">
-											<p class="text-lg-start text-sm-center text-center text-muted"><em>Con el respaldo de <a href="https://www.terexor.com">Terexor</a></em></p>
+											<p class="text-lg-start text-sm-center text-center text-muted"><em>Con el respaldo de <a href="https://www.terexor.com" target="_blank">Terexor</a></em></p>
 										</div>
 										<hr>
 									</div>
@@ -135,16 +135,22 @@
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification">
+															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)">
+															<datalist id="clientes">
+																<option value="20100821371" data-name="Autoespar SA">Autoespar SA</option>
+																<option value="20100111838" data-name="Grifos Espinoza SA">Grifos Espinoza SA</option>
+																<option value="20491338807" data-name="Hotel Lunahuana River Resort SAC">Hotel Lunahuana River Resort SAC</option>
+																<option value="20602629750" data-name="Rainforest DC SAC">Rainforest DC SAC</option>
+															</datalist>
 															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos"><span data-feather="search"></span></button>
 														</div>
 													</div>
 												</div>
 												<div class="mb-2 row">
-													<label for="razonSocial" class="col-sm-3 col-form-label">Nombre del cliente</label>
+													<label for="customer-name" class="col-sm-3 col-form-label">Nombre del cliente</label>
 													<div class="col-sm-8">
 														<div class="input-group">
-															<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="razonSocial" name="customer-name" placeholder="Nombre o razón social">
+															<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="customer-name" name="customer-name" placeholder="Nombre o razón social">
 															<button type="button" class="btn btn-outline-secondary" disabled id="editarRazonSocial"><span data-feather="edit"></span></button>
 														</div>
 													</div>

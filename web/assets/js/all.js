@@ -667,3 +667,17 @@ function imprimirFecha(fecha, conHora = true) {
 
 	return dateString
 }
+
+function completeDataCustomer(input) {
+	let val = input.value,
+		list = input.getAttribute("list"),
+		opts = document.getElementById(list).childNodes
+
+		for(let i = 0; i < opts.length; ++i) {
+			if(opts[i].value === val) {
+				// An item was selected from the list!
+				document.getElementById("customer-name").value = opts[i].getAttribute("data-name")
+				break
+			}
+		}
+}
