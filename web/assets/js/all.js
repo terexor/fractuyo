@@ -627,8 +627,8 @@ function autoRemoveItem() {
 	)
 }
 
-async function generatePaillier() {
-	const { publicKey, privateKey } = await generateRandomKeys(1024)
+function generatePaillier() {
+	const { publicKey, privateKey } = generateRandomKeysSync(1024)
 
 	const publicKeyDer = window.Encoding.hexToBuf(
 		ASN1.Any('30' // session Sequence

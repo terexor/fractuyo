@@ -802,7 +802,7 @@ var Fractuyo = function() {
 
 					let totalTag = tr.insertCell()
 					totalTag.setAttribute("class", "item_r")
-					totalTag.appendChild(document.createTextNode(lineExtensionAmount))
+					totalTag.appendChild(document.createTextNode(lineExtensionAmount.toFixed(2)))
 				}
 
 				const igv = xmlDoc.evaluate("/*/cac:TaxTotal/cbc:TaxAmount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
