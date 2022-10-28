@@ -412,6 +412,7 @@ var Fractuyo = function() {
 		}
 
 		try {
+			invoice.setOrderReference(formulario.elements.reference.value.trim())
 			invoice.setSerie(formulario.elements["serie"].value)
 			invoice.setCurrencyId(formulario.elements.moneda.value)
 		}
@@ -878,6 +879,20 @@ var Fractuyo = function() {
 							}
 							break
 					}
+				}
+
+				const hasOrderReference = xmlDoc.evaluate("count(/*/cac:OrderReference/cbc:ID)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				if(hasOrderReference) {
+					let rotulo = document.createElement("span")
+					rotulo.setAttribute("class", "fw-bold")
+					rotulo.appendChild(document.createTextNode("Referencia:"))
+					lista.appendChild(rotulo)
+					lista.appendChild(document.createElement("br"))
+
+					rotulo = document.createElement("i")
+					rotulo.appendChild(document.createTextNode( xmlDoc.evaluate("/*/cac:OrderReference/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ))
+					lista.appendChild(rotulo)
+					lista.appendChild(document.createElement("br"))
 				}
 			}
 		)
