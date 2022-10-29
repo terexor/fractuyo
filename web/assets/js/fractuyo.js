@@ -7,6 +7,7 @@ var Fractuyo = function() {
 	var SQL
 	var dbModules //Storing module tables
 	var dbInvoices //Storing a single table with header and footer of the invoice
+	var template
 
 	/**
 	 * Invoice Series.
@@ -106,6 +107,17 @@ var Fractuyo = function() {
 		catch(e) {
 			Notiflix.Notify.warning("Falta almacén de módulos.")
 			console.log(e)
+		}
+
+		//Load template if available
+		try {
+			fileHandle = await globalDirHandle.getFileHandle("visor.html", {})
+			file = await fileHandle.getFile()
+			content = await file.text()
+			template = new DOMParser().parseFromString(content, "text/html")
+		}
+		catch(e) {
+			console.info("Usando visor CDP predeterminado.")
 		}
 
 		return contentArray
@@ -742,12 +754,25 @@ var Fractuyo = function() {
 				let file = await fileHandle.getFile()
 				let xmlContent = await file.text()
 
-				const tabla = document.getElementById("productos")
-				while(tabla.hasChildNodes()) {
-					tabla.removeChild(tabla.lastChild)
+				//Replace template
+				if(template) {
+					const htmlTemplateHolder = document.getElementById("invoice")
+					while(htmlTemplateHolder.hasChildNodes()) {
+						htmlTemplateHolder.removeChild(htmlTemplateHolder.lastChild)
+					}
+
+					if(template.getElementById("ftp-style") && !document.getElementById("ftp-style")) {
+						document.head.appendChild(template.getElementById("ftp-style"))
+					}
+
+					const bodyTemplateCopy = template.body.cloneNode(true)
+
+					Array.from(bodyTemplateCopy.children).forEach((node, index, array) => {
+						htmlTemplateHolder.appendChild(node)
+					})
 				}
 
-				let xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+				const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
 
 				document.getElementById("idComprobante").textContent = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				const moneda = xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
@@ -780,6 +805,7 @@ var Fractuyo = function() {
 				document.getElementById("total").textContent = globalTotal
 
 				const count = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				const tabla = document.getElementById("productos")
 
 				for(let i = 1; i <= count; ++i) {
 					let quantity = xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
