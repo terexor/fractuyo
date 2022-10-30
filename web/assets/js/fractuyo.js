@@ -534,9 +534,7 @@ var Fractuyo = function() {
 		taxpayer.setKey(decryptedRsaPrivate)
 
 		if(decryptedPaillierPrivate) {
-			der =  window.Encoding.base64ToBuf( decryptedPaillierPrivate.split(/\n/).filter(function (line) {
-				return !/-----/.test(line)
-			}).join('') )
+			der =  window.Encoding.base64ToBuf( removeBeginEndPem(decryptedPaillierPrivate) )
 			json = ASN1.parse({ der: der, json: false, verbose: true })
 			taxpayer.createPaillierPrivateKey(
 				BigInt("0x" + window.Encoding.bufToHex(json.children[0].value)),
@@ -548,9 +546,7 @@ var Fractuyo = function() {
 			)
 		}
 		else {
-			der =  window.Encoding.base64ToBuf( decryptedPaillierPublic.split(/\n/).filter(function (line) {
-				return !/-----/.test(line)
-			}).join('') )
+			der =  window.Encoding.base64ToBuf( removeBeginEndPem(decryptedPaillierPublic) )
 			json = ASN1.parse({ der: der, json: false, verbose: true })
 			taxpayer.createPaillierPublicKey(
 				BigInt("0x" + window.Encoding.bufToHex(json.children[0].value)),

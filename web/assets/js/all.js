@@ -164,18 +164,12 @@ function _base64ToArrayBuffer(base64) {
 	return bytes.buffer;
 }
 
-function preparePem(pem) {
+function removeBeginEndPem(pem) {
 	return pem
 		// remove BEGIN/END
 		.replace(/-----(BEGIN|END)[\w\d\s]+-----/g, "")
 		// remove \r, \n
 		.replace(/[\r\n]/g, "")
-}
-
-function pem2der(pem) {
-	pem = preparePem(pem)
-	// convert base64 to ArrayBuffer
-	return _base64ToArrayBuffer(pem)
 }
 
 function getAlgorithm(name) {
