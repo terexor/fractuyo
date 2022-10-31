@@ -2,6 +2,11 @@
 	--bs-tooltip-bg: var(--bs-dark);
 }
 
+#locker-button {
+	width:48px;
+	height:48px;
+}
+
 /* Default css */
 .invoice-id-area {
 	width:100%;

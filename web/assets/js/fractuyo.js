@@ -8,6 +8,7 @@ var Fractuyo = function() {
 	var dbModules //Storing module tables
 	var dbInvoices //Storing a single table with header and footer of the invoice
 	var template
+	var lockerButton
 
 	/**
 	 * Invoice Series.
@@ -302,6 +303,15 @@ var Fractuyo = function() {
 	this.initData = function(event) {
 		storage.setDb(event.target.result)
 		storage.countRegisters(block, guide)
+
+		lockerButton = jlottie.loadAnimation({
+			container: document.getElementById("locker-button"),
+			loop: false,
+			debug: true,
+			autoplay: true,
+			useWebWorker: false,
+			path: "https://assets1.lottiefiles.com/packages/lf20_gcudkx1v.json",
+		})
 	}
 
 	this.init = async function() {
@@ -492,6 +502,7 @@ var Fractuyo = function() {
 		document.getElementById("company-tag").textContent = "Nombre encriptado"
 		document.getElementById("ruc-tag").textContent = "RUC encriptado"
 		app.navigate("/bloqueo")
+		lockerButton.play()
 	}
 
 	this.unlock = async function(form) {
@@ -570,6 +581,7 @@ var Fractuyo = function() {
 
 				Notiflix.Notify.success("Desencriptado para " + taxpayer.getName() + ".")
 				app.navigate("/")
+				lockerButton.stop()
 			}
 			catch(e) {
 				Notiflix.Notify.failure("Intento incorrecto")

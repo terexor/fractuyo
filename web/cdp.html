@@ -25,7 +25,7 @@
 								<img src="/assets/images/logo-bootstrap.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
 								<strong> FracTuyo</strong>
 							</a>
-							<button class="btn btn-outline-secondary text-capitalize border-0" onclick="fractuyo.lock()" type="button"><span data-feather="unlock"></span></button>
+							<div class="btn btn-outline-secondary border-0 p-0" id="locker-button" onclick="fractuyo.lock()"></div>
 							<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
 								<span class="navbar-toggler-icon"></span>
 							</button>
@@ -132,6 +132,7 @@
 		<script data-senna-track="permanent" src="assets/js/all.js"></script>
 
 		<!-- Iconos -->
+		<script src="https://unpkg.com/@lottiefiles/jlottie@latest/dist/jlottie.min.js" type="module"></script>
 		<script data-senna-track="permanent" src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 	</body>
 </html>
