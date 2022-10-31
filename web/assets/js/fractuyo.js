@@ -647,8 +647,18 @@ var Fractuyo = function() {
 			return
 		}
 
+		if(lastIndex == 0) {
+			const stmt = dbInvoices.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'invoice'");
+			if(stmt.step()) {
+				const row = stmt.get()
+				lastIndex = row[0]
+				++lastIndex
+			}
+			stmt.free()
+		}
+
 		//https://stackoverflow.com/questions/14468586/efficient-paging-in-sqlite-with-millions-of-records
-		dbInvoices.each("SELECT fecha, config, serie, numero FROM invoice WHERE id > $lastindex ORDER BY id DESC LIMIT 8", {$lastindex: lastIndex},
+		dbInvoices.each("SELECT id, fecha, config, serie, numero FROM invoice WHERE id < $lastindex ORDER BY id DESC LIMIT 8", {$lastindex: lastIndex},
 			function(row) {
 				const cdpName = String(row.config & 127).padStart(2, '0') + "-" + row.serie + '-' + String(row.numero).padStart(8, '0')
 				const tr = list.insertRow()
@@ -733,8 +743,33 @@ var Fractuyo = function() {
 				viewPdf.href = "/cdp/" + cdpName + "/visor"
 				viewPdf.appendChild(document.createTextNode("PDF"))
 				_view.appendChild(viewPdf)
+
+				lastIndex = row.id
 			}
 		)
+
+		//Una simple paginación
+		let pagerButton = document.getElementById("paginador")
+		if( lastIndex > 1 ) {
+			if(pagerButton == null) {
+				pagerButton = document.createElement("button")
+				pagerButton.type = "button"
+				pagerButton.setAttribute("id", "paginador")
+				pagerButton.setAttribute("class", "btn btn-secondary btn-sm btn-block text-blood mt-4")
+				pagerButton.appendChild( document.createTextNode("Cargar más CDP") )
+				document.getElementById("lista").appendChild(pagerButton)
+			}
+			pagerButton.disabled = false
+			pagerButton.onclick = function() {
+				this.disabled = "true"
+				this.onclick = null
+				//More cdp, more power
+				fractuyo.listInvoices(lastIndex)
+			}
+		}
+		else if( pagerButton != null ) {
+			pagerButton.textContent = "No hay más"
+		}
 	}
 
 	this.viewInvoice = async function(cdpName) {
