@@ -1,6 +1,3 @@
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
 const version = "0.0.1"
 var app, fractuyo
 var sidebarMenu
@@ -68,13 +65,11 @@ window.onload = function() {
 			}
 			return
 		}
+		[...document.querySelectorAll('[data-bs-toggle="tooltip"]')].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 		sidebarMenu.hide()
-		feather.replace()
 	})
 	sidebarMenu = bootstrap.Offcanvas.getOrCreateInstance("#offcanvasNavbar")
 	app.dispatch()
-
-	feather.replace()
 }
 
 /* Datos y funciones útiles */
@@ -326,8 +321,8 @@ function addRowForItem(object) {
 	colBotonEditar.setAttribute("class", "col-lg-12 col-3 text-lg-center text-end mb-1")
 	rowBotones.appendChild(colBotonEditar)
 
-	const iconoBotonEditar = document.createElement("span")
-	iconoBotonEditar.setAttribute("data-feather", "edit")
+	const iconoBotonEditar = document.createElement("i")
+	iconoBotonEditar.setAttribute("class", "gg-pen")
 
 	const botonEditar = document.createElement("button")
 	botonEditar.type = "button"
@@ -340,8 +335,8 @@ function addRowForItem(object) {
 	colBotonBorrar.setAttribute("class", "col-lg-12 col-3 text-lg-center text-start mb-1")
 	rowBotones.appendChild(colBotonBorrar)
 
-	const iconoBotonBorrar = document.createElement("span")
-	iconoBotonBorrar.setAttribute("data-feather", "trash-2")
+	const iconoBotonBorrar = document.createElement("i")
+	iconoBotonBorrar.setAttribute("class", "gg-trash-empty")
 
 	//Must call: remove iteam
 	const botonBorrar = document.createElement("button")
@@ -538,8 +533,6 @@ function addRowForItem(object) {
 	entradaSubtotal.onkeyup = entradaCantidad.onkeyup = entradaValorUnitario.onkeyup = marcadorIncIgv.onchange = function() {
 		calcular(entradaSubtotal, entradaCantidad, entradaValorUnitario, marcadorIncIgv)
 	}
-
-	feather.replace()
 }
 
 function calcular(entradaSubtotal, entradaCantidad, entradaValorUnitario, marcadorIncIgv) {

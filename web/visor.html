@@ -14,6 +14,7 @@
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-nightfall.min.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.5/dist/notiflix-3.2.5.min.css" rel="stylesheet" integrity="sha256-4spYVEf9eBpgOmHFVl/GwBZTYdG8zbUZ0u4qDJ9FnSw=" crossorigin="anonymous">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/senna@2.7.9/build/senna.css" rel="stylesheet">
+		<link data-senna-track="permanent" href="https://css.gg/css?=|add|feed|folder|home|list|math-plus|options|pen|poll|printer|search|trash-empty" rel="stylesheet">
 		<link data-senna-track="permanent" href="/assets/css/fractuyo.css" rel="stylesheet">
 	</head>
 	<body>
@@ -32,45 +33,44 @@
 							</button>
 							<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
 								<div class="offcanvas-header">
-									<h5 class="offcanvas-title" id="offcanvasNavbarLabel"><a href="/configuracion" class="nav-link align-middle px-0 text-danger"><span data-feather="settings"></span> <span class="ms-1 d-none d-sm-inline">Config.</span></a></h5>
+									<h5 class="offcanvas-title" id="offcanvasNavbarLabel"><a href="/configuracion" class="nav-link align-middle px-0 text-danger d-flex align-items-center"><i class="gg-options"></i>&ensp;<span class="ms-1 d-none d-sm-inline">Configuración</span></a></h5>
 									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 								</div>
 								<div class="offcanvas-body">
 									<div class="text-center pb-auto">
-										<span data-feather="user"></span>
 										<strong class="nav-link fw-bold pb-0" id="company-tag">Nombre no asignado</strong>
 										<em class="text-info" id="ruc-tag">RUC no asignado</em>
 									</div>
 									<div id="navegador">
 										<ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
 											<li class="nav-item">
-												<a href="/" class="nav-link align-middle px-0 t">
-													<span data-feather="home"></span> <span class="ms-1 d-none d-sm-inline">Facturación</span>
+												<a href="/" class="nav-link align-middle px-0 d-flex align-items-center">
+													<i class="gg-home"></i>&ensp;<span class="ms-1 d-none d-sm-inline">Facturación</span>
 												</a>
 											</li>
 											<li class="nav-item">
-												<a href="/cdp" class="nav-link align-middle px-0">
-													<span data-feather="list"></span> <span class="ms-1 d-none d-sm-inline">Todos</span>
+												<a href="/cdp" class="nav-link align-middle px-0 d-flex align-items-center">
+													<i class="gg-list"></i>&ensp;<span class="ms-1 d-none d-sm-inline">Todos</span>
 												</a>
 											</li>
 											<li>
-												<a href="#submenu2" data-bs-toggle="collapse" class="nav-link px-0 align-middle ">
-													<span data-feather="folder"></span> <span class="ms-1 d-none d-sm-inline">Listas</span></a>
+												<a href="#submenu2" data-bs-toggle="collapse" class="nav-link px-0 d-flex align-items-center">
+													<i class="gg-folder"></i>&ensp;<span class="ms-1 d-none d-sm-inline">Listas</span></a>
 												<ul class="collapse nav flex-column ms-1" id="submenu2" data-bs-parent="#menu">
 													<li class="w-100">
-														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Ítems</span></a>
+														<a href="javascript:void(0)" class="nav-link px-4 d-flex align-items-center"> <span class="d-none d-sm-inline">Ítems</span></a>
 													</li>
 													<li>
-														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Clientes</a>
+														<a href="javascript:void(0)" class="nav-link px-4 d-flex align-items-center"> <span class="d-none d-sm-inline">Clientes</a>
 													</li>
 													<li>
-														<a href="javascript:void(0)" class="nav-link px-4"> <span class="d-none d-sm-inline">Series</a>
+														<a href="javascript:void(0)" class="nav-link px-4 d-flex align-items-center"> <span class="d-none d-sm-inline">Series</a>
 													</li>
 												</ul>
 											</li>
 											<li>
-												<a href="/reporte" class="nav-link px-0 align-middle">
-													<span data-feather="activity"></span> <span class="ms-1 d-none d-sm-inline">Reporte</span> </a>
+												<a href="/reporte" class="nav-link px-0 align-middle d-flex align-items-center">
+													<i class="gg-poll"></i>&ensp;<span class="ms-1 d-none d-sm-inline">Reporte</span> </a>
 											</li>
 										</ul>
 									</div>
@@ -82,7 +82,7 @@
 				<div class="row">
 					<div class="container-fluid my-3" id="lienzo">
 						<div class="card">
-							<div class="card-header d-print-none"><button onclick="window.print()" class="btn btn-outline-secondary text-capitalize border-0" title="Imprimir comprobante de pago"><span data-feather="printer"></span></button> Representación impresa</div>
+							<div class="card-header d-print-none"><button onclick="window.print()" class="btn btn-outline-secondary text-capitalize border-0" title="Imprimir comprobante de pago"><i class="gg-printer"></i></button> Representación impresa</div>
 							<div class="card-body" id="invoice">
 
 								<div class="container-fluid">
@@ -235,7 +235,6 @@
 		<script data-senna-track="permanent" src="/assets/js/all.js"></script>
 
 		<!-- Iconos -->
-		<script src="https://unpkg.com/@lottiefiles/jlottie@latest/dist/jlottie.min.js" type="module"></script>
-		<script data-senna-track="permanent" src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+		<script data-senna-track="permanent" src="https://unpkg.com/@lottiefiles/jlottie@latest/dist/jlottie.min.js" type="module"></script>
 	</body>
 </html>
