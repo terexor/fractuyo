@@ -5,17 +5,25 @@ $data = json_decode($json);
 
 //We must verify data, connection, auth...
 
-$soapUrl = 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService'; // asmx URL of WSDL
+if(isset($data->token)) {
+	$soapUrl = 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService?wsdl';
+}
+else {
+	$data->token = new stdClass();
+	$data->token->username = '20000000001MODDATOS';
+	$data->token->password = 'MODDATOS';
 
- // xml post structure
+	$soapUrl = 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService'; // asmx URL of WSDL
+}
 
+// xml post structure
 $xml_post_string = '<?xml version="1.0" encoding="utf-8"?>
 				<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://service.sunat.gob.pe" xmlns:ns2="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
 					<SOAP-ENV:Header>
 						<ns2:Security>
 							<ns2:UsernameToken>
-								<ns2:Username>20606829265MODDATOS</ns2:Username>
-								<ns2:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">moddatos</ns2:Password>
+								<ns2:Username>' . $data->token->username . '</ns2:Username>
+								<ns2:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">' . $data->token->password . '</ns2:Password>
 							</ns2:UsernameToken>
 						</ns2:Security>
 					</SOAP-ENV:Header>
@@ -25,7 +33,7 @@ $xml_post_string = '<?xml version="1.0" encoding="utf-8"?>
 							<contentFile>' . $data->zipb64 . '</contentFile>
 						</ns1:sendBill>
 					</SOAP-ENV:Body>
-				</SOAP-ENV:Envelope>';   // data from the form, e.g. some ID number
+				</SOAP-ENV:Envelope>';
 
 	$headers = array(
 				"Content-type: text/xml;charset=\"utf-8\"",
@@ -43,7 +51,6 @@ $xml_post_string = '<?xml version="1.0" encoding="utf-8"?>
 	//~ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	//~ curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
 	//~ curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 	//~ curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 	curl_setopt($ch, CURLOPT_POST, true);

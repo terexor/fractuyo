@@ -126,8 +126,16 @@ var Taxpayer = function() {
 		solUser = su
 	}
 
+	this.getSolUser = function() {
+		return solUser
+	}
+
 	this.setSolPass = function(sp) {
 		solPass = sp
+	}
+
+	this.getSolPass = function() {
+		return solPass
 	}
 
 	this.setWeb = function(w) {

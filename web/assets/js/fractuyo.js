@@ -987,6 +987,9 @@ var Fractuyo = function() {
 				triggerButton.disabled = false
 				return
 			}
+
+			let isTesting = true
+
 			const xhttp = new XMLHttpRequest()
 			xhttp.onload = async function() {
 				const xml = XAdES.Parse( this.responseText )
@@ -1050,7 +1053,7 @@ var Fractuyo = function() {
 									Notiflix.Notify.warning(responseDescription)
 							}
 
-							if(isUpdateable) {
+							if(isUpdateable && !isTesting) {
 								const nameParts = cdpName.split('-')
 								const typeCode = parseInt(nameParts[0]), serie = nameParts[1], number = parseInt(nameParts[2])
 								dbInvoices.run("UPDATE invoice SET config = config | $confsunatresponse WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$confsunatresponse: (responseCode << 9 | 1 << 8), $typecode: typeCode, $serie: serie, $number: number})
@@ -1073,7 +1076,20 @@ var Fractuyo = function() {
 				)
 			}
 			xhttp.open("POST", "/proxy-terexor.php", true)
-			xhttp.send( JSON.stringify( {zipb64: zipb64, filename: fileName} ) )
+
+			//We will always send but we need to choose beta or real
+			Notiflix.Confirm.show(
+				"Declaración",
+				"Enviar hacia Sunat",
+				"Real", "Prueba",
+				() => {
+					isTesting = false
+					xhttp.send( JSON.stringify( {zipb64: zipb64, filename: fileName, token: {password: taxpayer.getSolPass(), username: `${taxpayer.getIdentification().getNumber()}${taxpayer.getSolUser()}` }} ) )
+				},
+				() => {
+					xhttp.send( JSON.stringify( {zipb64: zipb64, filename: fileName} ) )
+				}
+			)
 		})
 	}
 
