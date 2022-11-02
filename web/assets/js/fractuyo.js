@@ -1129,4 +1129,34 @@ var Fractuyo = function() {
 			message, "Gracias"
 		)
 	}
+
+	this.findCustomer = function(input) {
+		const customerList = document.getElementById("clientes")
+		while(customerList.firstChild) {
+			customerList.firstChild.remove()
+		}
+
+		if(input.getAttribute("data-chosen")) {
+			input.removeAttribute("data-chosen")
+			return
+		}
+
+		if(input.value.trim().length == 0) {
+			return
+		}
+
+		const likeNumber = `${input.value.trim()}%`
+		const likeName = `%${input.value.trim()}%`
+
+		dbModules.each("SELECT number, name, address FROM customer WHERE number LIKE $likenumber OR name LIKE $likename LIMIT 8", {$likenumber: likeNumber, $likename: likeName},
+			function(row) {
+				const option = document.createElement("option")
+				option.value = row.number
+				option.appendChild(document.createTextNode(row.name))
+				option.setAttribute("data-name", row.name)
+				option.setAttribute("data-address", row.address ? row.address : "")
+				customerList.appendChild(option)
+			}
+		)
+	}
 }

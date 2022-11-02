@@ -135,13 +135,8 @@
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" disabled>
-															<datalist id="clientes">
-																<option value="20100821371" data-name="Autoespar SA">Autoespar SA</option>
-																<option value="20100111838" data-name="Grifos Espinoza SA">Grifos Espinoza SA</option>
-																<option value="20491338807" data-name="Hotel Lunahuana River Resort SAC">Hotel Lunahuana River Resort SAC</option>
-																<option value="20602629750" data-name="Rainforest DC SAC">Rainforest DC SAC</option>
-															</datalist>
+															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" onkeyup="fractuyo.findCustomer(this)" disabled>
+															<datalist id="clientes"></datalist>
 															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Guardar datos de cliente" disabled><i class="gg-add"></i></button>
 														</div>
 													</div>
@@ -155,7 +150,7 @@
 												<div class="mb-2 row">
 													<label for="direccionCliente" class="col-sm-3 col-form-label">Dirección del cliente</label>
 													<div class="col-sm-8">
-														<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente" name="customer-address" placeholder="Dirección opcional" disabled>
+														<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="customer-address" name="customer-address" placeholder="Dirección opcional" disabled>
 													</div>
 												</div>
 											</div>
