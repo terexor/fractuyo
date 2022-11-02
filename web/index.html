@@ -135,7 +135,7 @@
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" onkeyup="fractuyo.findCustomer(this)" disabled>
+															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" onkeyup="fractuyo.findCustomer(this)" autocomplete="off" disabled>
 															<datalist id="clientes"></datalist>
 															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Guardar datos de cliente" disabled><i class="gg-add"></i></button>
 														</div>
@@ -278,7 +278,7 @@
 										<div class="row">
 											<div class="col-lg-10 col-xl-10 col-12">
 												<div class="form-floating">
-													<input type="text" name="reference" id="reference" class="form-control" disabled>
+													<input type="text" name="reference" id="reference" class="form-control" autocomplete="off" disabled>
 													<label for="reference">Referencia interna</label>
 												</div>
 											</div>
