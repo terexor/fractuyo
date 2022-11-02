@@ -17,9 +17,27 @@ window.onload = function() {
 	pHome.prototype = new senna.HtmlScreen()
 	pHome.prototype.activate = function() {
 		if(fractuyo.isUsable()) {
-			[...document.getElementsByClassName("crypto-alternate")].forEach((boton) => {
-				boton.disabled = false
-			})
+			let i
+			//Enable elements
+			const inputs = document.getElementsByTagName("input")
+			for(i = 0; i < inputs.length; ++i) {
+				if(inputs[i].disabled) {
+					inputs[i].disabled = false
+				}
+			}
+			const buttons = document.getElementsByTagName("button")
+			for(i = 0; i < buttons.length; ++i) {
+				buttons[i].disabled = false
+			}
+			const selects = document.getElementsByTagName("select")
+			for(i = 0; i < selects.length; ++i) {
+				selects[i].disabled = false
+			}
+			const textareas = document.getElementsByTagName("textarea")
+			for(i = 0; i < textareas.length; ++i) {
+				textareas[i].disabled = false
+			}
+
 			fractuyo.orderSeries()
 		}
 	}

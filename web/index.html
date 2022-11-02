@@ -86,7 +86,7 @@
 									<div class="row d-flex align-items-baseline">
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
-												<select class="form-select" id="tipo" onclick="listarSerie(this)" aria-label="Tipo de comprobante de pago" name="type-code" required>
+												<select class="form-select" id="tipo" onclick="listarSerie(this)" aria-label="Tipo de comprobante de pago" name="type-code" required disabled>
 													<option value="" selected>Indisponible</option>
 												</select>
 												<label for="tipo">Tipo de comprobante</label>
@@ -94,7 +94,7 @@
 										</div>
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
-												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago" name="serie" required>
+												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago" name="serie" required disabled>
 													<option value="" selected>Indisponible</option>
 												</select>
 												<label for="serie">Serie</label>
@@ -102,13 +102,13 @@
 										</div>
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
-												<input id="fechaVencimiento" name="vencimiento" type="date" class="form-control">
+												<input id="fechaVencimiento" name="vencimiento" type="date" class="form-control" disabled>
 												<label for="fechaVencimiento">Vencimiento</label>
 											</div>
 										</div>
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
-												<select class="form-select" id="moneda" aria-label="Moneda de la factura">
+												<select class="form-select" id="moneda" aria-label="Moneda de la factura" disabled>
 													<option value="PEN" selected>Soles</option>
 													<option value="USD">Dólares</option>
 												</select>
@@ -129,39 +129,33 @@
 													<label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
 													<div class="col-sm-8">
 														<div class="input-group">
-															<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="Tipo de documento" name="customer-identification-type">
+															<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="Tipo de documento" name="customer-identification-type" disabled>
 																<option value="0">Sin documento</option>
 																<option value="6">RUC</option>
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)">
+															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" disabled>
 															<datalist id="clientes">
 																<option value="20100821371" data-name="Autoespar SA">Autoespar SA</option>
 																<option value="20100111838" data-name="Grifos Espinoza SA">Grifos Espinoza SA</option>
 																<option value="20491338807" data-name="Hotel Lunahuana River Resort SAC">Hotel Lunahuana River Resort SAC</option>
 																<option value="20602629750" data-name="Rainforest DC SAC">Rainforest DC SAC</option>
 															</datalist>
-															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos"><i class="gg-add"></i></button>
+															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Guardar datos de cliente" disabled><i class="gg-add"></i></button>
 														</div>
 													</div>
 												</div>
 												<div class="mb-2 row">
 													<label for="customer-name" class="col-sm-3 col-form-label">Nombre del cliente</label>
 													<div class="col-sm-8">
-														<div class="input-group">
-															<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="customer-name" name="customer-name" placeholder="Nombre o razón social">
-															<button type="button" class="btn btn-outline-secondary" disabled id="editarRazonSocial"><span data-feather="edit"></span></button>
-														</div>
+														<input type="text" class="form-control" aria-label="Razón Social del cliente" aria-describedby="razonadorSocial" id="customer-name" name="customer-name" placeholder="Nombre o razón social" disabled>
 													</div>
 												</div>
 												<div class="mb-2 row">
 													<label for="direccionCliente" class="col-sm-3 col-form-label">Dirección del cliente</label>
 													<div class="col-sm-8">
-														<div class="input-group">
-															<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente" name="customer-address" placeholder="Dirección opcional">
-															<button type="button" class="btn btn-outline-secondary" disabled id="editarDireccionCliente"><span data-feather="edit"></span></button>
-														</div>
+														<input type="text" class="form-control" aria-label="Dirección del cliente" aria-describedby="direccionadorCliente" id="direccionCliente" name="customer-address" placeholder="Dirección opcional" disabled>
 													</div>
 												</div>
 											</div>
@@ -169,7 +163,7 @@
 												<div class="row">
 													<div class="col-lg-12 col-sm-12 col-12 mb-2">
 														<div class="form-check">
-															<input class="form-check-input" type="checkbox" id="creditaje" name="credito" data-bs-toggle="collapse" data-bs-target="#acreditando">
+															<input class="form-check-input" type="checkbox" id="creditaje" name="credito" data-bs-toggle="collapse" data-bs-target="#acreditando" disabled>
 															<label class="form-check-label" for="creditaje">Con pago al crédito</label>
 														</div>
 													</div>
@@ -179,7 +173,7 @@
 																<div class="text-center replaceable"><i>Acá debes agregar cuotas.</i></div>
 															</div>
 															<div class="position-relative top-100 start-50 translate-middle mt-0 text-center">
-																<button onclick="addRowForShare()" type="button" class="btn btn-outline-primary text-capitalize border-0 round-100 crypto-alternate" disabled data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar cuota"><i class="gg-add"></i></button>
+																<button onclick="addRowForShare()" type="button" class="btn btn-outline-primary text-capitalize border-0 round-100" disabled data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar cuota"><i class="gg-add"></i></button>
 															</div>
 														</div>
 													</div>
@@ -211,7 +205,7 @@
 											</div>
 										</div>
 										<div class="position-relative top-100 start-50 translate-middle mt-0 text-center">
-											<button onclick="addRowForItem()" type="button" class="btn btn-outline-primary text-capitalize border-0 round-100 crypto-alternate" disabled data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo ítem"><i class="gg-add"></i></button>
+											<button onclick="addRowForItem()" type="button" class="btn btn-outline-primary text-capitalize border-0 round-100" disabled data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Agregar un nuevo ítem"><i class="gg-add"></i></button>
 										</div>
 										<div class="hstack gap-2">
 											<div class="ms-auto"><span class="text-blood">Op. gravadas&ensp;</span></div>
@@ -289,12 +283,12 @@
 										<div class="row">
 											<div class="col-lg-10 col-xl-10 col-12">
 												<div class="form-floating">
-													<input type="text" name="reference" id="reference" class="form-control">
+													<input type="text" name="reference" id="reference" class="form-control" disabled>
 													<label for="reference">Referencia interna</label>
 												</div>
 											</div>
 											<div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center row m-0 p-0 px-3">
-												<button type="submit" class="btn btn-success text-capitalize fw-bold crypto-alternate" disabled>Facturar</button>
+												<button type="submit" class="btn btn-success text-capitalize fw-bold" disabled>Facturar</button>
 											</div>
 											<div class="col-12 mt-2 text-center">
 												<p>Con métodos seguros y eficientes tus datos se procesan y almacenan en tu propio equipo.</p>
