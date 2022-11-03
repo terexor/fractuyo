@@ -667,3 +667,8 @@ function completeDataCustomer(input) {
 			}
 		}
 }
+
+var monedas = new Map()
+monedas.set("PEN", "Soles")
+monedas.set("USD", "Dólares")
+monedas.set("EUR", "Euros")

@@ -818,7 +818,7 @@ var Fractuyo = function() {
 				const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
 
 				document.getElementById("idComprobante").textContent = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-				const moneda = xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+				const moneda = monedas.get( xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
 				document.getElementById("moneda").textContent = moneda
 				let tipoDocumento = xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 				document.getElementById("tipoDocumento").textContent = tipoDocumento == "01" ? "Factura Electrónica" : tipoDocumento == "03" ? "Boleta de Venta Electrónica" : "Desconocido";
