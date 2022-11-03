@@ -661,6 +661,7 @@ function completeDataCustomer(input) {
 			if(opts[i].value === val) {
 				document.getElementById("customer-name").value = opts[i].getAttribute("data-name")
 				document.getElementById("customer-address").value = opts[i].getAttribute("data-address")
+				document.getElementById("customer-identification-type").value = opts[i].getAttribute("data-type")
 				input.setAttribute("data-chosen", "1")
 				break
 			}

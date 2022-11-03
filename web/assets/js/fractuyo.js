@@ -1164,15 +1164,40 @@ var Fractuyo = function() {
 		const likeNumber = `${input.value.trim()}%`
 		const likeName = `%${input.value.trim()}%`
 
-		dbModules.each("SELECT number, name, address FROM customer WHERE number LIKE $likenumber OR name LIKE $likename LIMIT 8", {$likenumber: likeNumber, $likename: likeName},
+		dbModules.each("SELECT number, config, name, address FROM customer WHERE number LIKE $likenumber OR name LIKE $likename LIMIT 8", {$likenumber: likeNumber, $likename: likeName},
 			function(row) {
 				const option = document.createElement("option")
 				option.value = row.number
 				option.appendChild(document.createTextNode(row.name))
 				option.setAttribute("data-name", row.name)
 				option.setAttribute("data-address", row.address ? row.address : "")
+				option.setAttribute("data-type", window.Encoding.numToHex(row.config >> 1 & 0xf).substring(1))
 				customerList.appendChild(option)
 			}
 		)
+	}
+
+	this.addCustomer = async function() {
+		const identification = new Identification()
+		identification.setIdentity(document.getElementById("customer-identification").value, document.getElementById("customer-identification-type").value)
+
+		const name = document.getElementById("customer-name").value.trim()
+		const address = document.getElementById("customer-address").value.trim()
+
+		if(name.length < 2) {
+			Notiflix.Notify.warning("Nombre está muy corto.")
+			return
+		}
+
+		dbModules.run("INSERT INTO customer(number,config,name,address) VALUES(?,?,?,?) ON CONFLICT(number) DO UPDATE SET config = excluded.config, name = excluded.name, address = excluded.address", [identification.getNumber(), identification.getType() << 1 | 1, name, address])
+
+		//Saving file onto disk
+		fileHandle = await globalDirHandle.getDirectoryHandle("config")
+		fileHandle = await fileHandle.getFileHandle("modules.dat", { create: true })
+		writable = await fileHandle.createWritable()
+		await writable.write(dbModules.export())
+		await writable.close()
+
+		Notiflix.Notify.info("Datos guardados.")
 	}
 }

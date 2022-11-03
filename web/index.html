@@ -129,15 +129,15 @@
 													<label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
 													<div class="col-sm-8">
 														<div class="input-group">
-															<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="Tipo de documento" name="customer-identification-type" disabled>
+															<select class="input-group-text text-start text-lg-center form-select d-inline-block text-truncate" aria-label="Tipo de documento" name="customer-identification-type" id="customer-identification-type" disabled>
 																<option value="0">Sin documento</option>
 																<option value="6">RUC</option>
 																<option value="1">DNI</option>
 																<option value="4">Carnet de extranjería</option>
 															</select>
-															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="numeroDocumento" name="customer-identification" oninput="completeDataCustomer(this)" onkeyup="fractuyo.findCustomer(this)" autocomplete="off" disabled>
+															<input list="clientes" type="search" class="form-control text-truncate" placeholder="Número según tipo" aria-label="Número de documento según tipo" aria-describedby="buscarDocumentos" id="customer-identification" name="customer-identification" oninput="completeDataCustomer(this)" onkeyup="fractuyo.findCustomer(this)" autocomplete="off" disabled>
 															<datalist id="clientes"></datalist>
-															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Guardar datos de cliente" disabled><i class="gg-add"></i></button>
+															<button type="button" class="btn btn-outline-primary" id="buscarDocumentos" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Guardar datos de cliente" disabled onclick="fractuyo.addCustomer()"><i class="gg-add"></i></button>
 														</div>
 													</div>
 												</div>
