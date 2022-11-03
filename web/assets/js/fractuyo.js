@@ -413,7 +413,7 @@ var Fractuyo = function() {
 			for(const item of items) {
 				++productIndex
 				const product = new Item(item.getElementsByTagName("textarea")[0].value.trim())
-				product.setUnitCode("ZZ")
+				product.setUnitCode("NIU")
 				product.setClassificationCode("82101500")
 				product.setIscPercentage(0)
 				product.setIgvPercentage(18)
