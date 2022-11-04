@@ -3,7 +3,7 @@ var Invoice = function(taxpayer, customer) {
 	var currencyId //Too used same in products
 	var numeration, serie
 	var typeCode, orderReference
-	var dueDate
+	var dueDate, issueDate = new Date()
 
 	/*
 	 * Global totals
@@ -86,6 +86,10 @@ var Invoice = function(taxpayer, customer) {
 		if(dd.length) {
 			dueDate = dd
 		}
+	}
+
+	this.getIssueDate = function() {
+		return issueDate
 	}
 
 	this.addItem = function(item) {
@@ -185,7 +189,7 @@ var Invoice = function(taxpayer, customer) {
 		xmlDocument.documentElement.appendChild(cbcId)
 
 		const cbcIssueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.appendChild( document.createTextNode(new Date().toISOString().substr(0, 10)) )
+		cbcIssueDate.appendChild( document.createTextNode(issueDate.toISOString().substr(0, 10)) )
 		xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		if(dueDate && shares.length == 0) {

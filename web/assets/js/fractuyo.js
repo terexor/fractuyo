@@ -463,6 +463,8 @@ var Fractuyo = function() {
 			return
 		}
 
+		dbInvoices.run("BEGIN TRANSACTION")
+
 		dbInvoices.run("UPDATE serie SET numero = ? WHERE serie = ?", [invoice.getNumeration(), invoice.getSerie()])
 		dbInvoices.run("INSERT INTO invoice VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [
 			null, Date.now(), invoice.getTypeCode(), invoice.getSerie(), invoice.getNumeration(),
@@ -476,25 +478,54 @@ var Fractuyo = function() {
 			window.Encoding.hexToBuf( taxpayer.getPaillierPublicKey().encrypt(0).toString(16).padStart(512, '0') ) //Temporally for discount
 		])
 
-		// Find directory structure
-		let handleDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
-		handleDirectory = await handleDirectory.getDirectoryHandle("xml", { create: true })
-		handleDirectory = await handleDirectory.getDirectoryHandle(new Date().toISOString().substr(0, 7), { create: true })
+		let creatingErrorFlag = true
+		let handleInvoiceDirectory
+		try {
+			// Find directory structure
+			handleInvoiceDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
+			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle("xml", { create: true })
+			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle(invoice.getIssueDate().toISOString().substr(0, 7), { create: true })
 
-		let fileHandle = await handleDirectory.getFileHandle(invoice.getId(true) + ".xml", { create: true })
-		let writable = await fileHandle.createWritable()
+			let fileHandle
+			try {
+				fileHandle = await handleInvoiceDirectory.getFileHandle(`${invoice.getId(true)}.xml`)
+				creatingErrorFlag = false
+				throw new Error(`${invoice.getId(true)} ya existe localmente.`)
+			}
+			catch(e) {
+				if(e.name == "NotFoundError") {
+					fileHandle = await handleInvoiceDirectory.getFileHandle(`${invoice.getId(true)}.xml`, { create: true })
+				}
+				else {
+					throw new Error(e.message)
+				}
+			}
+			let writable = await fileHandle.createWritable()
 
-		await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
-		await writable.close()
+			await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
+			await writable.close()
+			creatingErrorFlag = false
 
-		//Saving file onto disk
-		fileHandle = await globalDirHandle.getDirectoryHandle("config")
-		fileHandle = await fileHandle.getFileHandle("invoices.dat", { create: true })
-		writable = await fileHandle.createWritable()
-		await writable.write(dbInvoices.export())
-		await writable.close()
+			//Saving db onto disk
+			fileHandle = await globalDirHandle.getDirectoryHandle("config")
+			fileHandle = await fileHandle.getFileHandle("invoices.dat", { create: true })
+			writable = await fileHandle.createWritable()
+			dbInvoices.run("COMMIT")
+			await writable.write(dbInvoices.export())
+			await writable.close()
 
-		Notiflix.Report.success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
+			Notiflix.Report.success("CPE creado", "Se ha guardado el documento " + invoice.getId() + ".", "Aceptar")
+			return
+		}
+		catch(e) {
+			dbInvoices.run("ROLLBACK")
+
+			if(creatingErrorFlag) { //Delete XML file
+				handleInvoiceDirectory.removeEntry(`${invoice.getId(true)}.xml`)
+			}
+
+			Notiflix.Report.failure("CPE no fue creado", e.message, "Aceptar")
+		}
 	}
 
 	this.lock = function() {
