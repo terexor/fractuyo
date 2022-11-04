@@ -541,8 +541,8 @@ var Fractuyo = function() {
 		taxpayer.setEmail(window.Encoding.bufToStr(json.children[5].children[1].value))
 		taxpayer.setTelephone(window.Encoding.bufToStr(json.children[5].children[2].value))
 
-		taxpayer.setCert(decryptedRsaCert)
-		taxpayer.setKey(decryptedRsaPrivate)
+		taxpayer.setCert( removeBeginEndPem( decryptedRsaCert ) )
+		taxpayer.setKey( removeBeginEndPem( decryptedRsaPrivate ) )
 
 		if(decryptedPaillierPrivate) {
 			der =  window.Encoding.base64ToBuf( removeBeginEndPem(decryptedPaillierPrivate) )

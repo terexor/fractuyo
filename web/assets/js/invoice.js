@@ -699,13 +699,13 @@ var Invoice = function(taxpayer, customer) {
 		const alg = getAlgorithm(algorithmName)
 
 		// Read cert
-		const certDer = window.Encoding.base64ToBuf( removeBeginEndPem(taxpayer.getCert()) )
+		const certDer = window.Encoding.base64ToBuf( taxpayer.getCert() )
 
 		// Read key
-		const keyDer = window.Encoding.base64ToBuf( removeBeginEndPem(taxpayer.getKey()) )
+		const keyDer = window.Encoding.base64ToBuf( taxpayer.getKey() )
 		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = removeBeginEndPem(taxpayer.getCert())
+		const x509 = taxpayer.getCert()
 
 		const transforms = ["enveloped", canonMethod]
 
