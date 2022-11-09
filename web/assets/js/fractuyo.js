@@ -124,6 +124,48 @@ var Fractuyo = function() {
 		return contentArray
 	}
 
+	this.restoreData = async function(form) {
+		const ruc = form.elements.ruc.value.trim()
+		if(!validateRuc(ruc)) {
+			Notiflix.Report.warning(
+				"RUC inválido",
+				"El número de RUC no existe.",
+				"Aceptar"
+			)
+			return
+		}
+
+		await Notiflix.Confirm.prompt(
+			"Seguridad de datos",
+			"Escribe contraseña nueva", "",
+			"Guardar", "Cancelar",
+			async (pin) => {
+				await passcode.setupPasscode(pin)
+
+				try {
+					const encryptedDataVector = await fractuyo.checkDirHandle()
+					await passcode.decryptSession(encryptedDataVector)
+
+					populateTaxpayerData(...passcode.getDataSession())
+
+					const oSession = {
+						ruc: ruc,
+						dir: globalDirHandle
+					}
+					storage.add(oSession)
+
+					Notiflix.Notify.success(`Restaurado para ${taxpayer.getName()}.`)
+					app.navigate("/")
+					lockerButton.stop()
+				}
+				catch(e) {
+					Notiflix.Notify.failure("Restauración incorrecta.")
+					console.error(e)
+				}
+			}
+		)
+	}
+
 	this.saveData = async function(form) {
 		const ruc = form.elements.ruc.value.trim()
 		if(!validateRuc(ruc)) {
