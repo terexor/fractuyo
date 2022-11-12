@@ -10,6 +10,8 @@ var Fractuyo = function() {
 	var template
 	var lockerButton
 
+	var currentCdpName = {typeCode:null, serie:null, number:null}
+
 	/**
 	 * Invoice Series.
 	 */
@@ -382,6 +384,73 @@ var Fractuyo = function() {
 			"Bienvenido a Fractuyo",
 			"Debes configurar una cuenta de negocios para empezar a generar tus comprobantes de pago.",
 			"Aceptar"
+		)
+	}
+
+	/**
+	 * Get a zip from current CDP view.
+	 */
+	this.downloadInvoiceBundle = function() {
+		const printableElement = document.getElementById("invoice")
+		if(!printableElement) {
+			return
+		}
+
+		const cdpName = String(currentCdpName.typeCode).padStart(2, '0') + "-" + currentCdpName.serie + "-" + String(currentCdpName.number).padStart(8, '0')
+
+		const zip = new JSZip()
+
+		dbInvoices.each("SELECT fecha, config FROM invoice WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$typecode: currentCdpName.typeCode, $serie: currentCdpName.serie, $number: currentCdpName.number},
+			async function(row) {
+				const folderFinalName = new Date(row.fecha).toISOString().substr(0, 7)
+				let handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("docs")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle("xml")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle(folderFinalName)
+
+				let fileHandle = await handleDirectoryConfig.getFileHandle(`${cdpName}.xml`, {})
+				let file = await fileHandle.getFile()
+				let content = await file.text()
+				zip.file(`${cdpName}.xml`, content)
+
+				handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("docs")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle("cdr")
+				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle(folderFinalName)
+
+				fileHandle = await handleDirectoryConfig.getFileHandle(`R-${cdpName}.zip`, {})
+				file = await fileHandle.getFile()
+				content = await file.text()
+				zip.file(`R-${cdpName}.zip`, content)
+			}
+		)
+
+
+		const opt = {
+			margin:       1.5,
+			filename:     `${cdpName}.pdf`,
+			image:        { type: "jpeg", quality: 0.7 },
+			html2canvas:  { scale: 2, dpi: 300, width: 700, letterRendering: true },
+			jsPDF:        { unit: "cm", format: "a4", orientation: "portrait" }
+		}
+
+		printableElement.classList.add("printable-dark-text")
+
+		html2pdf().from(printableElement).set(opt).toPdf().get("pdf").then(
+			(pdf) => {
+				zip.file(`${cdpName}.pdf`, pdf.output("arraybuffer"), {binary: true})
+				zip.generateAsync({type:"base64"}).then((base64) => {
+					const linkSource = "data:application/zip;base64," + base64
+					const downloadLink = document.createElement("a")
+
+					downloadLink.href = linkSource;
+					downloadLink.download = `${taxpayer.getIdentification().getNumber()}-${cdpName}.zip`
+					downloadLink.click()
+				}, function(err) {
+					Notiflix.Notify.failure(err)
+				})
+
+				//Remove black color style
+				printableElement.classList.remove("printable-dark-text")
+			}
 		)
 	}
 
@@ -859,8 +928,11 @@ var Fractuyo = function() {
 
 	this.viewInvoice = async function(cdpName) {
 		const nameParts = cdpName.split('-')
-		const typeCode = parseInt(nameParts[0]), serie = nameParts[1], number = parseInt(nameParts[2])
-		dbInvoices.each("SELECT fecha, config FROM invoice WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$typecode: typeCode, $serie: serie, $number: number},
+		currentCdpName.typeCode = parseInt(nameParts[0])
+		currentCdpName.serie = nameParts[1]
+		currentCdpName.number = parseInt(nameParts[2])
+
+		dbInvoices.each("SELECT fecha, config FROM invoice WHERE config & 127 = $typecode AND serie = $serie AND numero = $number", {$typecode: currentCdpName.typeCode, $serie: currentCdpName.serie, $number: currentCdpName.number},
 			async function(row) {
 				let handleDirectoryConfig = await globalDirHandle.getDirectoryHandle("docs")
 				handleDirectoryConfig = await handleDirectoryConfig.getDirectoryHandle("xml")

@@ -61,3 +61,11 @@
 		overflow: hidden;
 	}
 }
+
+
+/* For darking text in html2pdf when dark theme is enabled. */
+@media (prefers-color-scheme: dark) {
+	.printable-dark-text, .printable-dark-text .table {
+		color:#111;
+	}
+}

@@ -672,3 +672,31 @@ var monedas = new Map()
 monedas.set("PEN", "Soles")
 monedas.set("USD", "Dólares")
 monedas.set("EUR", "Euros")
+
+function generatePDF(id, width, scale = 2, quality = 0.8) {
+	console.log('converting...')
+
+	const opt = {
+		margin:       1.5,
+		filename:     'F002-00000003.pdf',
+		image:        { type: 'jpeg', quality: quality },
+		html2canvas:  { scale: scale, dpi: 300, width: width, letterRendering: true },
+		jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+	}
+
+	let element = document.getElementById(id)
+	html2pdf().set(opt).from(element).save()
+	//~ html2pdf().from(element).set(opt).toPdf().get('pdf').then(
+		//~ function(pdf) {
+			//~ const buffer = pdf.output('arraybuffer')
+			//~ let zip = new JSZip()
+			//~ zip.file("fact-01.pdf", buffer, {binary: true})
+
+			//~ zip.generateAsync({type:"base64"}).then(function(base64) {
+				//~ window.location = "data:application/zip;base64," + base64
+			//~ }, function(err) {
+				//~ Notiflix.Notify.failure(err)
+			//~ })
+		//~ }
+	//~ )
+}
