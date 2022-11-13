@@ -418,7 +418,7 @@ var Fractuyo = function() {
 
 				fileHandle = await handleDirectoryConfig.getFileHandle(`R-${cdpName}.zip`, {})
 				file = await fileHandle.getFile()
-				content = await file.text()
+				content = await file.arrayBuffer()
 				zip.file(`R-${cdpName}.zip`, content)
 			}
 		)
