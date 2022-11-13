@@ -1094,16 +1094,17 @@ var Fractuyo = function() {
 
 				const hasOrderReference = xmlDoc.evaluate("count(/*/cac:OrderReference/cbc:ID)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
 				if(hasOrderReference) {
-					let rotulo = document.createElement("span")
-					rotulo.setAttribute("class", "fw-bold")
-					rotulo.appendChild(document.createTextNode("Referencia:"))
-					lista.appendChild(rotulo)
-					lista.appendChild(document.createElement("br"))
+					let referenceText = xmlDoc.evaluate("/*/cac:OrderReference/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					const reference = document.getElementById("referencia")
 
-					rotulo = document.createElement("i")
-					rotulo.appendChild(document.createTextNode( xmlDoc.evaluate("/*/cac:OrderReference/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ))
-					lista.appendChild(rotulo)
-					lista.appendChild(document.createElement("br"))
+					const referenceTag = xmlDoc.evaluate("/*/cac:OrderReference/cbc:CustomerReference", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+					if(referenceTag) {
+						referenceText += ` - ${referenceTag}`
+					}
+
+					const referenceTagNode = document.createElement("span")
+					referenceTagNode.appendChild( document.createTextNode( referenceText) )
+					reference.appendChild( referenceTagNode )
 				}
 			}
 		)
