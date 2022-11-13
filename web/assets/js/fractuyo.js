@@ -545,7 +545,8 @@ var Fractuyo = function() {
 		}
 
 		try {
-			invoice.setOrderReference(formulario.elements.reference.value.trim())
+			invoice.setOrderReference(formulario.elements["reference-id"].value.trim())
+			invoice.setOrderReferenceText(formulario.elements["reference-text"].value.trim())
 			invoice.setSerie(formulario.elements["serie"].value)
 			invoice.setCurrencyId(formulario.elements.moneda.value)
 		}

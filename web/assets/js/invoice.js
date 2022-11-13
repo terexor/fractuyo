@@ -2,7 +2,7 @@ var Invoice = function(taxpayer, customer) {
 	var items = Array()
 	var currencyId //Too used same in products
 	var numeration, serie
-	var typeCode, orderReference
+	var typeCode, orderReference, orderReferenceText
 	var dueDate, issueDate = new Date()
 
 	/*
@@ -123,7 +123,22 @@ var Invoice = function(taxpayer, customer) {
 
 	this.setOrderReference = function(reference) {
 		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
+			if( /\s/g.test(reference) ) {
+				throw new Error("La referencia numérica no debe contener espacios.")
+			}
+			if(reference.length > 20) {
+				throw new Error("La referencia numérica no debe tener 20 caracteres como máximo.")
+			}
 			orderReference = reference
+		}
+	}
+
+	this.setOrderReferenceText = function(referenceText) {
+		if(!orderReference) {
+			throw new Error("Asignar previamente la identidad de referencia.")
+		}
+		if( ( typeof referenceText === "string" || referenceText instanceof String ) && referenceText.length > 0 ) {
+			orderReferenceText = referenceText
 		}
 	}
 
@@ -216,9 +231,17 @@ var Invoice = function(taxpayer, customer) {
 			const cacOrderReference = xmlDocument.createElementNS(namespaces.cac, "cac:OrderReference")
 			xmlDocument.documentElement.appendChild(cacOrderReference)
 
-			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.appendChild( document.createTextNode(orderReference) )
-			cacOrderReference.appendChild(cbcId)
+			{
+				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcId.appendChild( document.createTextNode(orderReference) )
+				cacOrderReference.appendChild(cbcId)
+			}
+
+			if(orderReferenceText) {
+				const cbcCustomerReference = xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomerReference")
+				cbcCustomerReference.appendChild( document.createTextNode(orderReferenceText) )
+				cacOrderReference.appendChild(cbcCustomerReference)
+			}
 		}
 
 		{ //Signer data

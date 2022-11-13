@@ -184,7 +184,7 @@
 													</div>
 													<div class="col-12 col-lg-4 float-end text-lg-end text-center">
 														<div class="input-group">
-															<input type="search" list="listaCodigosItems" class="form-control text-truncate pe-2" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable">
+															<input type="search" list="listaCodigosItems" class="form-control text-truncate pe-2" placeholder="Buscar por código" aria-label="Buscar por código" aria-describedby="buscador" id="codigoProductoBuscable" disabled>
 															<span class="input-group-append"><button class="btn btn-outline-secondary bg-transparent border-start-0 border-bottom-0 border" type="button" style="margin-left:-48px" disabled><span data-feather="search"></span></button></span>
 															<button type="button" class="btn btn-outline-primary" id="buscarCodigo"><span data-feather="plus"></span></button>
 														</div>
@@ -276,13 +276,19 @@
 										</div>
 										<hr>
 										<div class="row">
-											<div class="col-lg-10 col-xl-10 col-12">
+											<div class="col-lg-2 col-xl-2 col-md-2 col-12">
 												<div class="form-floating">
-													<input type="text" name="reference" id="reference" class="form-control" autocomplete="off" disabled>
-													<label for="reference">Referencia interna</label>
+													<input type="text" name="reference-id" id="reference" class="form-control" autocomplete="off" disabled>
+													<label for="reference">Referencia n°.</label>
 												</div>
 											</div>
-											<div class="col-lg-2 col-xl-2 col-12 text-lg-end text-center row m-0 p-0 px-3">
+											<div class="col-lg-10 col-xl-10 col-md-10 col-12">
+												<div class="form-floating">
+													<input type="text" name="reference-text" id="reference-text" class="form-control" autocomplete="off" disabled>
+													<label for="reference-text">Referencia textual</label>
+												</div>
+											</div>
+											<div class="col-12 m-0 my-3 d-grid gap-2">
 												<button type="submit" class="btn btn-success text-capitalize fw-bold" disabled>Facturar</button>
 											</div>
 											<div class="col-12 mt-2 text-center">
