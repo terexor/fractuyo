@@ -454,7 +454,17 @@ var Fractuyo = function() {
 		)
 	}
 
-	this.createInvoice = async function(formulario) {
+	this.prepareInvoiceCreation = async function(form) {
+		Notiflix.Confirm.show( "Preparando creación", "¿Crear comprobante de pago?", "Sí", "No",
+			async () => {
+				form.elements.trigger.disabled = true
+				await createInvoice(form)
+				form.elements.trigger.disabled = false
+			}
+		)
+	}
+
+	var createInvoice = async function(formulario) {
 		if(globalDirHandle == undefined) {
 			Notiflix.Report.warning(
 				"Falta directorio",

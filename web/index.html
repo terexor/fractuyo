@@ -80,7 +80,7 @@
 				</div>
 				<div class="row">
 					<div class="container-fluid my-3" id="lienzo">
-						<form id="formulario" class="card" onsubmit="fractuyo.createInvoice(this);return false">
+						<form id="formulario" class="card" onsubmit="fractuyo.prepareInvoiceCreation(this);return false">
 							<div class="card-body">
 								<div class="container-fluid mb-5 mt-3">
 									<div class="row d-flex align-items-baseline">
@@ -289,7 +289,7 @@
 												</div>
 											</div>
 											<div class="col-12 m-0 my-3 d-grid gap-2">
-												<button type="submit" class="btn btn-success text-capitalize fw-bold" disabled>Facturar</button>
+												<button type="submit" class="btn btn-success text-capitalize fw-bold" name="trigger" disabled>Facturar</button>
 											</div>
 											<div class="col-12 mt-2 text-center">
 												<p>Con métodos seguros y eficientes tus datos se procesan y almacenan en tu propio equipo.</p>
