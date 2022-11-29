@@ -1066,7 +1066,7 @@ var Fractuyo = function() {
 				}
 
 				const countPaymentTerms = xmlDoc.evaluate("count(/*/cac:PaymentTerms)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-				let withShare = false
+				let shareCount = 0
 				for(let i = 1; i <= countPaymentTerms; ++i) {
 					const type = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 					switch(type) {
@@ -1079,26 +1079,27 @@ var Fractuyo = function() {
 						case "FormaPago":
 							let paymentType = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:PaymentMeansID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 							if(paymentType == "Credito") {
-								withShare = true
+								shareCount = 1
 								let rotulo = document.createElement("span")
 								rotulo.setAttribute("class", "fw-bold")
-								rotulo.appendChild(document.createTextNode("Cuotas:"))
+								rotulo.appendChild(document.createTextNode("Cuotas del crédito:"))
 								lista.appendChild(rotulo)
 								lista.appendChild(document.createElement("br"))
 								document.getElementById("payment-term").textContent = "Al crédito"
 								continue
 							}
-							else if(!withShare) {
+							else if(shareCount == 0) {
 								document.getElementById("payment-term").textContent = "Al contado"
 								continue
 							}
-							if(withShare) {
+							if(shareCount > 0) {
 								const amount = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:Amount", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 								const dueDate = xmlDoc.evaluate("/*/cac:PaymentTerms[" + i + "]/cbc:PaymentDueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
 								const shareTag = document.createElement("span")
-								shareTag.appendChild(document.createTextNode(`${dueDate}: ${amount} ${moneda}`))
+								shareTag.appendChild(document.createTextNode(`Cuota ${shareCount}:\u0009 ${dueDate}:\u0009 ${amount}\u0009 ${moneda}`))
 								lista.appendChild(shareTag)
 								lista.appendChild(document.createElement("br"))
+								shareCount++
 							}
 							break
 					}
