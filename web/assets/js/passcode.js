@@ -22,24 +22,24 @@ var Passcode = function() {
 		dataSessionVector = new Array()
 
 		//Taxpayer metadata
-		let decrypted = await aesDecrypt(encryptedDataVector[0], currentPasscodeHash)
+		let decrypted = await aesDecrypt(encryptedDataVector[0])
 		dataSessionVector.push(decrypted)
 
 		//Cert
-		decrypted = await aesDecrypt(encryptedDataVector[1], currentPasscodeHash)
+		decrypted = await aesDecrypt(encryptedDataVector[1])
 		dataSessionVector.push(decrypted)
 
 		//Key
-		decrypted = await aesDecrypt(encryptedDataVector[2], currentPasscodeHash)
+		decrypted = await aesDecrypt(encryptedDataVector[2])
 		dataSessionVector.push(decrypted)
 
 		//Paillier public
-		decrypted = await aesDecrypt(encryptedDataVector[3], currentPasscodeHash)
+		decrypted = await aesDecrypt(encryptedDataVector[3])
 		dataSessionVector.push(decrypted)
 
 		//Paillier private
 		if(encryptedDataVector[4]) {
-			decrypted = await aesDecrypt(encryptedDataVector[4], currentPasscodeHash)
+			decrypted = await aesDecrypt(encryptedDataVector[4])
 			dataSessionVector.push(decrypted)
 		}
 	}
@@ -56,7 +56,7 @@ var Passcode = function() {
 			throw new Error("Clave no asignada")
 		}
 
-		const sessionEncrypted = await aesEncrypt(data, currentPasscodeHash)
+		const sessionEncrypted = await aesEncrypt(data)
 		return sessionEncrypted
 	}
 
@@ -64,10 +64,10 @@ var Passcode = function() {
 		return crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${plaintext}${SALT}`))
 	}
 
-	var aesEncrypt = async function(plaintext, pwHash) {
+	var aesEncrypt = async function(plaintext) {
 		const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
 		const alg = { name: "AES-GCM", iv }
-		const key = await crypto.subtle.importKey("raw", pwHash, alg, false, ["encrypt"])
+		const key = await crypto.subtle.importKey("raw", currentPasscodeHash, alg, false, ["encrypt"])
 		const ptUint8 = new TextEncoder().encode(plaintext)
 		const ctBuffer = await crypto.subtle.encrypt(alg, key, ptUint8)
 		const ct = new Uint8Array(ctBuffer)
@@ -77,11 +77,11 @@ var Passcode = function() {
 		return result.buffer
 	}
 
-	var aesDecrypt = async function(data, pwHash) {
+	var aesDecrypt = async function(data) {
 		const dataArray = new Uint8Array(data)
 		const iv = dataArray.slice(0, IV_LENGTH)
 		const alg = { name: "AES-GCM", iv }
-		const key = await crypto.subtle.importKey("raw", pwHash, alg, false, ["decrypt"])
+		const key = await crypto.subtle.importKey("raw", currentPasscodeHash, alg, false, ["decrypt"])
 		const ct = dataArray.slice(IV_LENGTH)
 		const plainBuffer = await crypto.subtle.decrypt(alg, key, ct)
 		return new TextDecoder().decode(plainBuffer)
