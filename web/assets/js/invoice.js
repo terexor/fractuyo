@@ -748,7 +748,7 @@ var Invoice = function(taxpayer, customer) {
 					xmlDocument,// document
 					{           // options
 						references: [
-							{ uri: "", hash: hashAlgorithm, transforms: transforms }
+							{ id: "terexoris", uri: "", hash: hashAlgorithm, transforms: transforms }
 						],
 						x509: [x509],
 						//~ signerRole: { claimed: ["BOSS"] },
