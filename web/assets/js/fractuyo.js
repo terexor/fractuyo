@@ -138,8 +138,8 @@ var Fractuyo = function() {
 		}
 
 		await Notiflix.Confirm.prompt(
-			"Seguridad de datos",
-			"Escribe contraseña nueva", "",
+			"Restableciendo con seguridad",
+			"Escribe contraseña actual", "",
 			"Guardar", "Cancelar",
 			async (pin) => {
 				await passcode.setupPasscode(pin)
@@ -156,7 +156,7 @@ var Fractuyo = function() {
 					}
 					storage.add(oSession)
 
-					Notiflix.Notify.success(`Restaurado para ${taxpayer.getName()}.`)
+					Notiflix.Notify.success(`Reconfigurado para ${taxpayer.getName()}.`)
 					app.navigate("/")
 					lockerButton.stop()
 				}
