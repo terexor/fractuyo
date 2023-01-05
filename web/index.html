@@ -82,7 +82,7 @@
 					<div class="container-fluid my-3" id="lienzo">
 						<form id="formulario" class="card" onsubmit="fractuyo.prepareInvoiceCreation(this);return false">
 							<div class="card-body">
-								<div class="container-fluid mb-5 mt-3">
+								<div class="container-fluid mb-1 mt-3">
 									<div class="row d-flex align-items-baseline">
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
@@ -95,7 +95,7 @@
 										<div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-2">
 											<div class="form-floating">
 												<select class="form-select" id="serie" aria-label="Serie para comprobante de pago" name="serie" required disabled>
-													<option value="" selected>Indisponible</option>
+													<option value="" selected>Según tipo</option>
 												</select>
 												<label for="serie">Serie</label>
 											</div>
@@ -116,15 +116,9 @@
 											</div>
 										</div>
 									</div>
-									<div class="row d-flex align-items-baseline">
-										<div class="col-lg-12 col-sm-12">
-											<p class="text-lg-start text-sm-center text-center text-muted"><em>Con el respaldo de <a href="https://www.terexor.com" target="_blank">Terexor</a></em></p>
-										</div>
-										<hr>
-									</div>
 									<div class="container-fluid">
 										<div class="row">
-											<div class="col-xl-8 col-lg-8 align-self-start">
+											<div class="col-xl-8 col-lg-8 align-self-start mt-1">
 												<div class="mb-2 row">
 													<label for="numeroDocumento" class="col-sm-3 col-form-label">N° de documento</label>
 													<div class="col-sm-8">
@@ -190,7 +184,6 @@
 														</div>
 														<datalist id="listaCodigosItems" class="border">
 															<option value="COD001">Codejemplo 1</option>
-															<option value="RE923TT-1212">Codejemplo 2</option>
 														</datalist>
 													</div>
 												</div>
@@ -292,7 +285,8 @@
 												<button type="submit" class="btn btn-success text-capitalize fw-bold" name="trigger" disabled>Facturar</button>
 											</div>
 											<div class="col-12 mt-2 text-center">
-												<p>Con métodos seguros y eficientes tus datos se procesan y almacenan en tu propio equipo.</p>
+												<p>Con métodos seguros y eficientes tus datos se procesan y almacenan en tu propio equipo.<br>
+												Con el respaldo de <a href="https://www.terexor.com" target="_blank">Terexor</a> y probado en <a href="https://www.lugarexpresivo.com" target="_blank">Lugar Expresivo</a>.</p>
 											</div>
 										</div>
 									</div>
