@@ -202,6 +202,7 @@ var Fractuyo = function() {
 		const telephone = form.elements.telefono.value.trim()
 		const solUser = form.elements.usuario.value.trim()
 		const solPass = form.elements.clave.value.trim()
+		const cuentaDetractora = form.elements["cuenta-detractora"].value.trim()
 		const rsaCert = form.elements.cert.value.trim()
 		const rsaPrivate = form.elements.key.value.trim()
 		const paillierPrivate = form.elements["paillier-privado"].value.trim()
@@ -226,6 +227,7 @@ var Fractuyo = function() {
 				, ASN1.Any('30' // sunat Sequence
 					, ASN1.Any('13', window.Encoding.strToHex(solUser))
 					, ASN1.Any('13', window.Encoding.strToHex(solPass))
+					, ASN1.Any('13', window.Encoding.strToHex(cuentaDetractora))
 				)
 				, ASN1.Any('30' // marketing for printing in invoice
 					, ASN1.Any('13', window.Encoding.strToHex(web))
@@ -682,6 +684,8 @@ var Fractuyo = function() {
 		taxpayer.setTradeName(window.Encoding.bufToStr(json.children[2].value))
 		taxpayer.setSolUser(window.Encoding.bufToStr(json.children[4].children[0].value))
 		taxpayer.setSolPass(window.Encoding.bufToStr(json.children[4].children[1].value))
+		//This bank account is new feature so may not exist
+		taxpayer.setDeductionsAccount(json.children[4].children[2] ? window.Encoding.bufToStr(json.children[4].children[2].value) : "")
 		taxpayer.setAddress(window.Encoding.bufToStr(json.children[3].children[7].value))
 		taxpayer.setMetaAddress(
 			window.Encoding.bufToStr(json.children[3].children[0].value),

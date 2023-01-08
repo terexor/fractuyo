@@ -60,6 +60,7 @@ var Taxpayer = function() {
 	var paillierPublicKey, paillierPrivateKey
 	var cert, key
 	var solUser, solPass
+	var deductionsAccount
 	var web, email, telephone
 	var tradeName
 
@@ -136,6 +137,16 @@ var Taxpayer = function() {
 
 	this.getSolPass = function() {
 		return solPass
+	}
+
+	this.setDeductionsAccount = function(da) {
+		if(da.length > 0) {
+			deductionsAccount = da
+		}
+	}
+
+	this.getDeductionsAccount = function() {
+		return deductionsAccount
 	}
 
 	this.setWeb = function(w) {
