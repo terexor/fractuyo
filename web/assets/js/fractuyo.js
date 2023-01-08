@@ -140,7 +140,7 @@ var Fractuyo = function() {
 		await Notiflix.Confirm.prompt(
 			"Restableciendo con seguridad",
 			"Escribe contraseña actual", "",
-			"Guardar", "Cancelar",
+			"Reestablecer", "Cancelar",
 			async (pin) => {
 				await passcode.setupPasscode(pin)
 
@@ -1249,7 +1249,7 @@ var Fractuyo = function() {
 		})
 	}
 
-	this.reportAmounts = function(form) {
+	this.reportInvoices = function(form) {
 		const paillierPrivateKey = taxpayer.getPaillierPrivateKey()
 		if(!paillierPrivateKey) {
 			Notiflix.Notify.warning("No hay clave para descifrar.")
