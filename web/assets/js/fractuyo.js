@@ -425,7 +425,6 @@ var Fractuyo = function() {
 			}
 		)
 
-
 		const opt = {
 			margin:       1.5,
 			filename:     `${cdpName}.pdf`,
@@ -443,7 +442,7 @@ var Fractuyo = function() {
 					const linkSource = "data:application/zip;base64," + base64
 					const downloadLink = document.createElement("a")
 
-					downloadLink.href = linkSource;
+					downloadLink.href = linkSource
 					downloadLink.download = `${taxpayer.getIdentification().getNumber()}-${cdpName}.zip`
 					downloadLink.click()
 				}, function(err) {
@@ -451,6 +450,33 @@ var Fractuyo = function() {
 				})
 
 				//Remove black color style
+				printableElement.classList.remove("printable-dark-text")
+			}
+		)
+	}
+
+	this.downloadReport = function() {
+		const printableElement = document.getElementById("report")
+		if(!printableElement) {
+			return
+		}
+
+		const opt = {
+			margin:       1.5,
+			filename:     "reporte.pdf",
+			image:        { type: "jpeg", quality: 0.7 },
+			html2canvas:  { scale: 2, dpi: 300, width: 700, letterRendering: true },
+			jsPDF:        { unit: "cm", format: "a4", orientation: "portrait" }
+		}
+
+		printableElement.classList.add("printable-dark-text")
+		html2pdf().from(printableElement).set(opt).toPdf().get("pdf").then(
+			(pdf) => {
+				const downloadLink = document.createElement("a")
+				downloadLink.href = URL.createObjectURL(new Blob([pdf.output("arraybuffer")], {type: "application/pdf"}))
+				downloadLink.download = "reporte.pdf"
+				downloadLink.click()
+
 				printableElement.classList.remove("printable-dark-text")
 			}
 		)
@@ -842,25 +868,7 @@ var Fractuyo = function() {
 				linker.appendChild( document.createTextNode( '\u00A0' ) )
 				linker.appendChild(document.createTextNode(cdpName))
 				_identification.appendChild(linker)
-				switch(row.config & 127) {
-					case 1:
-						tr.insertCell().appendChild(document.createTextNode("Factura"))
-						break
-					case 3:
-						tr.insertCell().appendChild(document.createTextNode("Boleta de venta"))
-						break
-					case 7:
-						tr.insertCell().appendChild(document.createTextNode("Nota de crédito"))
-						break
-					case 8:
-						tr.insertCell().appendChild(document.createTextNode("Nota de débito"))
-						break
-					case 9:
-						tr.insertCell().appendChild(document.createTextNode("Guía de remisión"))
-						break
-					default:
-						tr.insertCell().appendChild(document.createTextNode("Desconocido"))
-				}
+				tr.insertCell().appendChild(document.createTextNode(getInvoiceTypeName(row.config & 127)))
 				tr.insertCell().appendChild(document.createTextNode(imprimirFecha(new Date(row.fecha) )))
 				const _action = tr.insertCell()
 				if(row.config >> 7 & 1) { //eliminated invoice
@@ -1285,13 +1293,91 @@ var Fractuyo = function() {
 			encryptedIcbpSum = encryptedZero,
 			encryptedDescuentoSum = encryptedZero
 
+		const report = document.getElementById("list")
+		while(report.firstChild) {
+			report.firstChild.remove()
+		}
+
 		dbInvoices.each("SELECT fecha, config, serie, numero, gravado, exonerado, inafecto, isc, igv, icbp, descuento FROM invoice WHERE fecha BETWEEN $beginning AND $ending", {$beginning: beginning, $ending: ending},
 			function(row) {
 				const encryptedGravado = BigInt("0x" + window.Encoding.bufToHex( row.gravado ) )
 				encryptedGravadoSum = paillierPublicKey.addition(encryptedGravadoSum, encryptedGravado)
 
+				const encryptedInafecto = BigInt("0x" + window.Encoding.bufToHex( row.inafecto ) )
+				encryptedInafectoSum = paillierPublicKey.addition(encryptedInafectoSum, encryptedInafecto)
+
 				const encryptedIgv = BigInt("0x" + window.Encoding.bufToHex( row.igv ) )
 				encryptedIgvSum = paillierPublicKey.addition(encryptedIgvSum, encryptedIgv)
+
+				//Print in display
+				const reportRow = document.createElement("div")
+				reportRow.setAttribute("class", "row border-top")
+				report.appendChild(reportRow)
+
+				const headerCol = document.createElement("div")
+				headerCol.setAttribute("class", "col-8")
+				reportRow.appendChild(headerCol)
+
+				const invoiceType = document.createElement("h4")
+				invoiceType.appendChild(document.createTextNode(getInvoiceTypeName(row.config & 127)))
+				headerCol.appendChild(invoiceType)
+
+				const sunatStatusBadge = document.createElement("span")
+				if(row.config >> 7 & 1) { //eliminated invoice
+					sunatStatusBadge.setAttribute("class", "badge bg-secondary text-white")
+					sunatStatusBadge.appendChild(document.createTextNode("De baja"))
+				}
+				else if(row.config >> 8 & 1) { //when sunatized
+					const responseCode = row.config >> 9 & 0x3fff
+					switch(true) {
+						case (responseCode < 100):
+							sunatStatusBadge.setAttribute("class", "badge bg-success text-white")
+							sunatStatusBadge.appendChild(document.createTextNode("Aceptado"))
+							break
+						case (responseCode < 2000):
+							sunatStatusBadge.setAttribute("class", "badge bg-info text-black")
+							sunatStatusBadge.appendChild(document.createTextNode("Reenviar"))
+							break
+						case (responseCode < 4000):
+							sunatStatusBadge.setAttribute("class", "badge bg-danger text-black")
+							sunatStatusBadge.appendChild(document.createTextNode("Rechazado"))
+							break
+						default:
+							sunatStatusBadge.setAttribute("class", "badge bg-warning text-black")
+							sunatStatusBadge.appendChild(document.createTextNode("Aceptado"))
+					}
+				}
+				else {
+					sunatStatusBadge.setAttribute("class", "badge bg-secondary text-black")
+					sunatStatusBadge.appendChild(document.createTextNode("No presentado"))
+				}
+
+				const headerData = document.createElement("p")
+				headerData.appendChild( document.createTextNode( String(row.config & 127).padStart(2, '0') + "-" + row.serie + '-' + String(row.numero).padStart(8, '0') ) )
+				headerData.appendChild(document.createElement("br"))
+				headerData.appendChild(document.createTextNode("Estado: "))
+				headerData.appendChild(sunatStatusBadge)
+				headerData.appendChild(document.createElement("br"))
+				headerData.appendChild(document.createTextNode(`Fecha: ${imprimirFecha(new Date(row.fecha) )}`))
+				headerData.appendChild(document.createElement("br"))
+				headerData.appendChild(document.createTextNode(`Total: ${(Number( paillierPrivateKey.decrypt(paillierPublicKey.addition(encryptedGravado, encryptedIgv) ) * 100n / 100n ) /100 ).toFixed(2)}`))
+				headerData.appendChild(document.createElement("br"))
+				headerData.appendChild(document.createTextNode(`Moneda: ${getCurrencyName(row.config)}`))
+				headerCol.appendChild(headerData)
+
+				const dataCol = document.createElement("div")
+				dataCol.setAttribute("class", "col-4")
+				reportRow.appendChild(dataCol)
+
+				const dataData = document.createElement("p")
+				dataData.appendChild(document.createElement("br"))
+				dataData.appendChild(document.createTextNode(`Op. gravadas: ${(Number( paillierPrivateKey.decrypt( encryptedGravado ) * 100n / 100n ) / 100).toFixed(2)}`))
+				dataData.appendChild(document.createElement("br"))
+				dataData.appendChild(document.createTextNode(`Op. inafectas: ${(Number( paillierPrivateKey.decrypt( encryptedInafecto ) * 100n / 100n ) / 100).toFixed(2)}`))
+				dataData.appendChild(document.createElement("br"))
+				dataData.appendChild(document.createTextNode(`IGV: ${(Number( paillierPrivateKey.decrypt( encryptedIgv ) * 100n / 100n ) / 100).toFixed(2)}`))
+				dataData.appendChild(document.createElement("br"))
+				dataCol.appendChild(dataData)
 			}
 		)
 
@@ -1359,5 +1445,29 @@ var Fractuyo = function() {
 		await writable.close()
 
 		Notiflix.Notify.info("Datos guardados.")
+	}
+
+	var getInvoiceTypeName = function(type) {
+		switch(type) {
+			case 1:
+				return "Factura"
+			case 3:
+				return "Boleta de venta"
+			case 7:
+				return "Nota de crédito"
+			case 8:
+				return "Nota de débito"
+			case 9:
+				return "Guía de remisión"
+			default:
+				return "Desconocido"
+		}
+	}
+
+	var getCurrencyName = function(currency) {
+		switch(currency) {
+			default:
+				return "PEN"
+		}
 	}
 }
