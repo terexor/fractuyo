@@ -1471,3 +1471,65 @@ var Fractuyo = function() {
 		}
 	}
 }
+
+let deferredPrompt = null
+const addBtn = document.getElementById("instalador")
+window.addEventListener("beforeinstallprompt", function(e) {
+	e.preventDefault()
+	deferredPrompt = e
+	if(addBtn.classList.contains("d-none")) {
+		addBtn.classList.remove("d-none")
+		const instalabilizador = document.getElementById("instalabilizador")
+		if(instalabilizador) {
+			instalabilizador.classList.remove("d-none")
+		}
+	}
+
+	addBtn.addEventListener("click", addToHome)
+})
+
+function addToHome(e) {
+	const instalabilizador = document.getElementById("instalabilizador")
+	if(instalabilizador) {
+		instalabilizador.classList.add("d-none")
+	}
+	addBtn.classList.add("d-none")
+	deferredPrompt.prompt()
+	deferredPrompt.userChoice.then(function(choiceResult) {
+		if(choiceResult.outcome === "accepted") {
+			Notiflix.Report.success("Fractuyo instalado", "Ahora estamos entre tus demás aplicaciones.<br>Toca el ícono de la llave para lanzar este simpático generador de comprobantes de pago.","Aceptar")
+		}
+		else {
+			Notiflix.Report.info("Sin instalar", "Instálanos para estar estar siempre contigo. No ocupamos casi nada de espacio.", "Aceptar")
+		}
+		deferredPrompt = null
+	})
+}
+
+if("serviceWorker" in navigator) {
+	navigator.serviceWorker.register("/service-worker.js").then(function(reg) {
+		reg.onupdatefound = function() {
+			let installingWorker = reg.installing
+			installingWorker.onstatechange = function() {
+				switch (installingWorker.state) {
+					case "installed":
+						if(navigator.serviceWorker.controller) {
+							console.log("Contenido nuevo o actualizado está disponible.")
+						}
+						else {
+							console.log("El contenido está ahora disponible offline.")
+						}
+						break;
+
+					case "redundant":
+						console.error("Se está repitiendo la instalación del service worker.")
+						break
+					}
+				};
+		}
+		console.log("Fractuyo registrado")
+	}).catch(function(e) {
+		console.error("Error durante registro de SW:", e)
+	})
+
+}
