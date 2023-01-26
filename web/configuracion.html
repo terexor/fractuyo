@@ -8,12 +8,13 @@
 		<meta name="author" content="Terexor">
 		<meta name="color-scheme" content="light dark">
 		<title>Configuración - FracTuyo</title>
-		<link data-senna-track="permanent" rel="icon" href="/assets/images/logo-bootstrap.svg">
+		<link data-senna-track="permanent" rel="manifest" href="/fractuyo.webmanifest">
+		<link data-senna-track="permanent" rel="icon" href="/assets/images/logo.svg">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-nightfall.min.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.5/dist/notiflix-3.2.5.min.css" rel="stylesheet" integrity="sha256-4spYVEf9eBpgOmHFVl/GwBZTYdG8zbUZ0u4qDJ9FnSw=" crossorigin="anonymous">
 		<link data-senna-track="permanent" href="https://cdn.jsdelivr.net/npm/senna@2.7.9/build/senna.css" rel="stylesheet">
-		<link data-senna-track="permanent" href="https://css.gg/css?=|add|feed|folder|home|list|math-plus|options|pen|poll|printer|search|trash-empty|internal" rel="stylesheet">
+		<link data-senna-track="permanent" href="https://css.gg/css?=|add|feed|folder|home|list|math-plus|options|pen|poll|printer|search|trash-empty|internal|anchor" rel="stylesheet">
 		<link data-senna-track="permanent" href="/assets/css/fractuyo.css" rel="stylesheet">
 	</head>
 	<body>
@@ -23,7 +24,7 @@
 					<nav class="navbar navbar-dark bg-dark fixed-top">
 						<div class="container-fluid">
 							<a class="navbar-brand text-muted" href="/">
-								<img src="/assets/images/logo-bootstrap.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
+								<img src="/assets/images/logo.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
 								<strong> FracTuyo</strong>
 							</a>
 							<div class="btn btn-outline-secondary border-0 p-0" id="locker-button" onclick="fractuyo.lock()"></div>
@@ -73,6 +74,7 @@
 											</li>
 										</ul>
 									</div>
+									<button id="instalador" type="button" class="btn btn-sm btn-info mt-3 align-middle d-flex align-items-center d-none"><i class="gg-anchor"></i>&ensp; Instalar</button>
 								</div>
 							</div>
 						</div>
@@ -81,44 +83,126 @@
 				<div class="row">
 					<div class="container-fluid my-3" id="lienzo">
 						<div class="card">
+							<div class="card-header">Restauración del sistema</div>
+							<div class="card-body">
+								<form onsubmit="fractuyo.restoreData(this);return false" class="row g-3">
+									<div class="col-md-3">
+										<label for="reruc" class="form-label">RUC</label>
+										<input id="reruc" name="ruc" type="text" class="form-control" maxlength="11" placeholder="N° de RUC" required>
+									</div>
+									<div class="clearfix"></div>
+									<div class="col-12 col-md-4 d-grid gap-2">
+										<button type="button" class="btn btn-info" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
+									</div>
+									<div class="col-12 col-md-8 d-grid gap-2">
+										<button type="submit" class="btn btn-warning">Restaurar datos</button>
+									</div>
+								</form>
+							</div>
+						</div><!-- .card -->
+						<div class="card mt-3">
 							<div class="card-header">Configuración del sistema</div>
 							<div class="card-body">
-								<form onsubmit="fractuyo.saveData(this);return false">
-									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required>
-									<input name="nombre" type="text" maxlength="128" placeholder="Nombre o Razón social" required>
-									<input name="marca" type="text" maxlength="128" placeholder="Nombre comercial" required>
+								<form onsubmit="fractuyo.saveData(this);return false" class="row g-3">
+									<div class="col-md-3">
+										<label for="ruc" class="form-label">RUC</label>
+										<input id="ruc" name="ruc" type="text" class="form-control" maxlength="11" placeholder="N° de RUC" required>
+									</div>
+									<div class="col-md-6">
+										<label for="nombre" class="form-label">Nombre o razón social</label>
+										<input id="nombre" name="nombre" type="text" class="form-control" maxlength="128" placeholder="Nombre o Razón social" required>
+									</div>
+									<div class="col-md-3">
+										<label for="marca" class="form-label">Nombre comercial</label>
+										<input id="marca" name="marca" type="text" class="form-control" maxlength="128" placeholder="Nombre comercial">
+									</div>
 									<hr>
-									<input name="pais" type="text" maxlength="2" placeholder="País" required>
-									<input name="direccion" type="text" maxlength="128" placeholder="Dirección" required>
-									<input name="ubigeo" type="text" maxlength="6" placeholder="Ubigeo" required>
-									<input name="local" type="text" maxlength="4" placeholder="Código de local" required>
-									<input name="urbanizacion" type="text" maxlength="64" placeholder="Urbanización" required>
-									<input name="departamento" type="text" maxlength="64" placeholder="Departamento" required>
-									<input name="provincia" type="text" maxlength="64" placeholder="Provincia" required>
-									<input name="distrito" type="text" maxlength="64" placeholder="Distrito" required>
+									<div class="col-md-3">
+										<label for="pais" class="form-label">Código de país</label>
+										<input id="pais" name="pais" type="text" class="form-control" maxlength="2" placeholder="País" required>
+									</div>
+									<div class="col-md-3">
+										<label for="ubigeo" class="form-label">Ubigeo</label>
+										<input id="ubigeo" name="ubigeo" type="text" class="form-control" maxlength="6" placeholder="Ubigeo" required>
+									</div>
+									<div class="col-md-3">
+										<label for="local" class="form-label">Código de local</label>
+										<input id="local" name="local" type="text" class="form-control" maxlength="4" placeholder="Código de local" required>
+									</div>
+									<div class="col-md-3">
+										<label for="urbanizacion" class="form-label">Urbanización</label>
+										<input id="urbanizacion" name="urbanizacion" type="text" class="form-control" maxlength="64" placeholder="Urbanización" required>
+									</div>
+									<div class="col-md-3">
+										<label for="departamento" class="form-label">Departamento</label>
+										<input id="departamento" name="departamento" type="text" class="form-control" maxlength="64" placeholder="Departamento" required>
+									</div>
+									<div class="col-md-3">
+										<label for="provincia" class="form-label">Provincia</label>
+										<input id="provincia" name="provincia" type="text" class="form-control" maxlength="64" placeholder="Provincia" required>
+									</div>
+									<div class="col-md-3">
+										<label for="distrito" class="form-label">Distrito</label>
+										<input id="distrito" name="distrito" type="text" class="form-control" maxlength="64" placeholder="Distrito" required>
+									</div>
+									<div class="col-md-12">
+										<label for="direccion" class="form-label">Dirección</label>
+										<input id="direccion" name="direccion" type="text" class="form-control" maxlength="128" placeholder="Dirección" required>
+									</div>
 									<hr>
-									<input name="web" type="text" placeholder="Sitio web">
-									<input name="email" type="text" placeholder="Correo electrónico">
-									<input name="telefono" type="text" placeholder="Número telefónico">
+									<div class="col-md-4">
+										<label for="web" class="form-label">Provincia</label>
+										<input id="web" name="web" type="text" class="form-control" placeholder="Sitio web">
+									</div>
+									<div class="col-md-4">
+										<label for="email" class="form-label">Provincia</label>
+										<input id="email" name="email" type="text" class="form-control" placeholder="Correo electrónico">
+									</div>
+									<div class="col-md-4">
+										<label for="telefono" class="form-label">Provincia</label>
+										<input id="telefono" name="telefono" type="text" class="form-control" placeholder="Número telefónico">
+									</div>
 									<hr>
-									<input name="usuario" type="text" placeholder="Usuario secundario para Sunat" required>
-									<input name="clave" type="text" placeholder="Contraseña para Sunat" required>
+									<div class="col-md-4">
+										<label for="usuario" class="form-label">Usuario SOL</label>
+										<input id="usuario" name="usuario" type="text" class="form-control" placeholder="Usuario secundario para Sunat" required>
+									</div>
+									<div class="col-md-4">
+										<label for="clave" class="form-label">Clave SOL</label>
+										<input id="clave" name="clave" type="text" class="form-control" placeholder="Contraseña para Sunat" required>
+									</div>
+									<div class="col-md-4">
+										<label for="cuenta-bancaria" class="form-label">Cuenta de detracciones</label>
+										<input id="cuenta-bancaria" name="cuenta-detractora" type="text" class="form-control" placeholder="N° de cuenta" required>
+									</div>
 									<hr>
-									<textarea name="cert" placeholder="Certificado" rows="5"></textarea>
-									<textarea name="key" placeholder="Clave privada" rows="5"></textarea>
+									<div class="col-md-6">
+										<label for="cert" class="form-label">Certificado digital</label>
+										<textarea id="cert" name="cert" class="form-control" placeholder="Certificado para firmar comprobantes de pago" rows="7"></textarea>
+									</div>
+									<div class="col-md-6">
+										<label for="key" class="form-label">Clave para firmar</label>
+										<textarea id="key" name="key" class="form-control" placeholder="Clave privada del certificado de firma" rows="7"></textarea>
+									</div>
 									<hr>
-									<textarea name="homoPubl" placeholder="Paillier público" rows="5" id="paillier-publico"></textarea>
-									<textarea name="homoPriv" placeholder="Paillier privado" rows="5" id="paillier-privado"></textarea>
-									<button type="button" class="btn btn-secondary" onclick="generatePaillier()">Generar</button>
+									<div class="col-md-6">
+										<label for="paillier-publico" class="form-label">Clave para firmar</label>
+										<textarea name="homoPubl" class="form-control" placeholder="Paillier público" rows="7" id="paillier-publico"></textarea>
+									</div>
+									<div class="col-md-6">
+										<label for="paillier-privado" class="form-label">Clave para firmar</label>
+										<textarea name="homoPriv" class="form-control" placeholder="Paillier privado" rows="7" id="paillier-privado"></textarea>
+									</div>
+									<div class="col-md-12">
+										<button type="button" class="btn btn-sm btn-secondary float-end" onclick="generatePaillier()">Generar claves Paillier</button>
+									</div>
 									<hr>
-									<button type="button" class="btn btn-secondary" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
-									<button type="submit" class="btn btn-warning">Encriptar sesión</button>
-								</form>
-								<hr>
-								<form onsubmit="fractuyo.restoreData(this);return false">
-									<button type="button" class="btn btn-secondary" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
-									<input name="ruc" type="text" maxlength="11" placeholder="RUC" required>
-									<button type="submit" class="btn btn-primary">Restaurar</button>
+									<div class="col-12 col-md-4 d-grid gap-2">
+										<button type="button" class="btn btn-info" onclick="fractuyo.chooseDirHandle()">Elegir directorio de trabajo</button>
+									</div>
+									<div class="col-12 col-md-8 d-grid gap-2">
+										<button type="submit" class="btn btn-success">Encriptar datos</button>
+									</div>
 								</form>
 							</div>
 						</div><!-- .card -->
