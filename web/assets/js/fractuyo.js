@@ -654,7 +654,7 @@ var Fractuyo = function() {
 			}
 			let writable = await fileHandle.createWritable()
 
-			await writable.write(new XMLSerializer().serializeToString(invoice.getXml()))
+			await writable.write(new XMLSerializer().serializeToString(invoice.xmlDocument))
 			await writable.close()
 			creatingErrorFlag = false
 
