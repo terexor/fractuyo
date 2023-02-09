@@ -174,6 +174,9 @@ class Invoice extends Receipt {
 
 	#shares = Array()
 
+	//Using validate() may change it
+	#hasDetraction = false
+
 	addShare(share) {
 		this.#shares.push(share)
 	}
@@ -257,6 +260,10 @@ class Invoice extends Receipt {
 					throw new Error("El cliente debe tener RUC.")
 				}
 		}
+
+		if(this.#taxInclusiveAmount >= 700) {
+			this.#hasDetraction = true
+		}
 	}
 
 	toXml() {
@@ -299,7 +306,12 @@ class Invoice extends Receipt {
 		}
 
 		const cbcInvoiceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
-		cbcInvoiceTypeCode.setAttribute("listID", "0101")
+		if(this.#hasDetraction) {
+			cbcInvoiceTypeCode.setAttribute("listID", "1001")
+		}
+		else {
+			cbcInvoiceTypeCode.setAttribute("listID", "0101")
+		}
 		cbcInvoiceTypeCode.appendChild( document.createTextNode(this.getTypeCode()) )
 		this.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 
@@ -307,6 +319,13 @@ class Invoice extends Receipt {
 		cbcNote.setAttribute("languageLocaleID", "1000")
 		cbcNote.appendChild( this.xmlDocument.createCDATASection(numberToWords(this.#taxInclusiveAmount.toFixed(2))) )
 		this.xmlDocument.documentElement.appendChild(cbcNote)
+
+		if(this.#hasDetraction) {
+			const cbcNote = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
+			cbcNote.setAttribute("languageLocaleID", "2006")
+			cbcNote.appendChild( this.xmlDocument.createCDATASection("Operación sujeta a detracción") )
+			this.xmlDocument.documentElement.appendChild(cbcNote)
+		}
 
 		const cbcDocumentCurrencyCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
 		cbcDocumentCurrencyCode.appendChild( document.createTextNode(this.getCurrencyId()) )
@@ -507,6 +526,49 @@ class Invoice extends Receipt {
 			}
 		}
 
+		if(this.#hasDetraction) {
+			const cacPaymentMeans = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentMeans")
+			this.xmlDocument.documentElement.appendChild(cacPaymentMeans)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("Detraccion") )
+				cacPaymentMeans.appendChild(cbcID)
+
+				const cbcPaymentMeansCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansCode")
+				cbcPaymentMeansCode.appendChild( document.createTextNode("003") )
+				cacPaymentMeans.appendChild(cbcPaymentMeansCode)
+
+				const cacPayeeFinancialAccount = this.xmlDocument.createElementNS(namespaces.cac, "cac:PayeeFinancialAccount")
+				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
+				{
+					const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode("00-099-025344") )//Must be variable
+					cacPayeeFinancialAccount.appendChild(cbcID)
+				}
+			}
+
+			const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("Detraccion") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("037") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcPaymentPercent = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentPercent")
+				cbcPaymentPercent.appendChild( document.createTextNode("12") )//Must be variable
+				cacPaymentTerms.appendChild(cbcPaymentPercent)
+
+				const cbcAmount  = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcAmount.appendChild( document.createTextNode( (this.#taxInclusiveAmount * 0.12).toFixed(2) ) )//Must be variable
+				cacPaymentTerms.appendChild(cbcAmount)
+			}
+		}
+
 		if(this.#shares.length == 0) { //Cash Payment
 			const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
 			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
@@ -533,7 +595,7 @@ class Invoice extends Receipt {
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
 				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
-				cbcAmount.setAttribute("currencyID", currencyId)
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
 				cbcAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
 				cacPaymentTerms.appendChild(cbcAmount)
 			}
@@ -552,7 +614,7 @@ class Invoice extends Receipt {
 					cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
 					const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
-					cbcAmount.setAttribute("currencyID", currencyId)
+					cbcAmount.setAttribute("currencyID", this.getCurrencyId())
 					cbcAmount.appendChild(document.createTextNode( share.getAmount(true) ))
 					cacPaymentTerms.appendChild(cbcAmount)
 
