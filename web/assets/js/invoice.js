@@ -341,7 +341,7 @@ class Invoice extends Receipt {
 				cacOrderReference.appendChild(cbcId)
 			}
 
-			if(orderReferenceText) {
+			if(this.#orderReferenceText) {
 				const cbcCustomerReference = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomerReference")
 				cbcCustomerReference.appendChild( document.createTextNode(this.#orderReferenceText) )
 				cacOrderReference.appendChild(cbcCustomerReference)
@@ -596,7 +596,12 @@ class Invoice extends Receipt {
 
 				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
 				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
+				if(this.#hasDetraction) {
+					cbcAmount.appendChild( document.createTextNode((this.#taxInclusiveAmount - (this.#taxInclusiveAmount * 0.12)).toFixed(2)) )
+				}
+				else {
+					cbcAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
+				}
 				cacPaymentTerms.appendChild(cbcAmount)
 			}
 
