@@ -1,751 +1,131 @@
-var Invoice = function(taxpayer, customer) {
-	var items = Array()
-	var currencyId //Too used same in products
-	var numeration, serie
-	var typeCode, orderReference, orderReferenceText
-	var dueDate, issueDate = new Date()
+class Receipt {
+	#taxpayer
+	#customer
 
-	/*
-	 * Global totals
-	 */
-	var lineExtensionAmount = 0, taxTotalAmount = 0, taxInclusiveAmount = 0, igvAmount = 0, iscAmount = 0, icbpAmount = 0
-	var operationAmounts = [0, 0, 0]
+	#serie
+	#numeration
+	#typeCode
 
-	var shares = Array()
+	#issueDate = new Date()
 
-	this.ublVersion = "2.1"
-	this.customizationId = "2.0"
+	#currencyId
 
-	var xmlDocument
+	#ublVersion = "2.1"
+	#customizationId = "2.0"
+
+	setUblVersion(ublVersion) {
+		this.#ublVersion = ublVersion
+	}
+
+	constructor(taxpayer, customer) {
+		this.#taxpayer = taxpayer
+		this.#customer = customer
+		this.xmlDocument
+	}
 
 	/**
 	 * Format serie and number: F000-00000001
 	 */
-	this.getId = function(withType = false) {
-		if(serie == undefined || numeration == undefined) {
+	getId(withType = false) {
+		if(this.#serie == undefined || this.#numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
 		}
 		if(withType) {
-			return String(typeCode).padStart(2, '0') + "-" + serie + "-" + String(numeration).padStart(8, '0')
+			return String(this.#typeCode).padStart(2, '0') + "-" + this.#serie + "-" + String(this.#numeration).padStart(8, '0')
 		}
-		return serie + '-' + String(numeration).padStart(8, '0')
+		return this.#serie + '-' + String(this.#numeration).padStart(8, '0')
 	}
 
-	this.addShare = function(share) {
-		shares.push(share)
-	}
-
-	this.setUblVersion = function(ublVersion) {
-		this.ublVersion = ublVersion
-	}
-
-	this.setSerie = function(_serie) {
-		if(_serie.length != 4) {
-			throw new Error("Serie inconsistente")
-		}
-		serie = _serie
-	}
-
-	this.getSerie = function() {
-		return serie
-	}
-
-	this.setNumeration = function(number) {
-		if(number > 0x5F5E0FF) {
-			throw new Error("Numeración supera el límite.")
-		}
-		numeration = number
-	}
-
-	this.getNumeration = function() {
-		return numeration
-	}
-
-	this.setId = function(serie, numeration) {
+	setId(serie, numeration) {
 		this.setSerie(serie)
 		this.setNumeration(numeration)
 	}
 
-	this.setTypeCode = function(code) {
-		typeCode = code
+	setSerie(serie) {
+		if(serie.length != 4) {
+			throw new Error("Serie inconsistente")
+		}
+		this.#serie = serie
 	}
 
-	this.getTypeCode = function() {
-		return typeCode
+	getSerie() {
+		return this.#serie
 	}
 
-	this.setCurrencyId = function(cid) {
-		currencyId = cid
+	setNumeration(number) {
+		if(number > 0x5F5E0FF) {
+			throw new Error("Numeración supera el límite.")
+		}
+		this.#numeration = number
 	}
 
-	this.getCurrencyId = function() {
-		return currencyId
+	getNumeration() {
+		return this.#numeration
 	}
 
-	this.setDueDate = function(dd) {
-		if(dd.length) {
-			dueDate = dd
-		}
+	setTypeCode(code) {
+		this.#typeCode = code
 	}
 
-	this.getIssueDate = function() {
-		return issueDate
+	getTypeCode() {
+		return this.#typeCode
 	}
 
-	this.addItem = function(item) {
-		items.push(item)
-
-		lineExtensionAmount += item.getLineExtensionAmount()
-		taxTotalAmount += item.getTaxTotalAmount()
-		taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
-
-		igvAmount += item.getIgvAmount()
-
-		//Assign data according taxability
-		switch(true) {
-			case (item.getExemptionReasonCode() < 20):
-				operationAmounts[0] += item.getLineExtensionAmount();break
-			case (item.getExemptionReasonCode() < 30):
-				operationAmounts[1] += item.getLineExtensionAmount();break
-			case (item.getExemptionReasonCode() < 40):
-				operationAmounts[2] += item.getLineExtensionAmount();break
-			default:
-				operationAmounts[3] += item.getLineExtensionAmount()
-		}
+	setCurrencyId(cid) {
+		this.#currencyId = cid
 	}
 
-	this.getXml = function() {
-		if(xmlDocument == undefined) {
-			throw new Error("XML no creado.")
-		}
-		return xmlDocument
+	getCurrencyId() {
+		return this.#currencyId
 	}
 
-	this.setOrderReference = function(reference) {
-		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
-			if( /\s/g.test(reference) ) {
-				throw new Error("La referencia numérica no debe contener espacios.")
-			}
-			if(reference.length > 20) {
-				throw new Error("La referencia numérica no debe tener 20 caracteres como máximo.")
-			}
-			orderReference = reference
-		}
+	getIssueDate() {
+		return this.#issueDate
 	}
 
-	this.setOrderReferenceText = function(referenceText) {
-		if(!orderReference) {
-			throw new Error("Asignar previamente la identidad de referencia.")
-		}
-		if( ( typeof referenceText === "string" || referenceText instanceof String ) && referenceText.length > 0 ) {
-			orderReferenceText = referenceText
-		}
+	getTaxpayer() {
+		return this.#taxpayer
 	}
 
-	this.getLineExtensionAmount = function(withFormat = false) {
-		return withFormat ? totalAmount.toFixed(2) : totalAmount
+	getCustomer() {
+		return this.#customer
 	}
 
-	this.getEncryptedOperationAmounts = function(index) {
-		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( operationAmounts[index] * 100 ) / 100 * 100 ) )
+	getUblVersion() {
+		return this.#ublVersion
 	}
 
-	this.getEncryptedIgvAmount = function() {
-		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( igvAmount * 100 ) / 100 * 100 ) )
+	getCustomizationId() {
+		return this.#customizationId
 	}
 
-	this.getEncryptedIscAmount = function() {
-		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( iscAmount * 100 ) / 100 * 100 ) )
-	}
-
-	this.getEncryptedIcbpAmount = function() {
-		return taxpayer.getPaillierPublicKey().encrypt( parseInt( Math.round( icbpAmount * 100 ) / 100 * 100 ) )
-	}
-
-	/**
-	 * Check if everything can be processed.
-	 */
-	this.validate = function() {
-		switch(typeCode) {
-			case "01":
-				if(customer.getIdentification().getType() != 6) {
-					throw new Error("El cliente debe tener RUC.")
-				}
-		}
-	}
-
-	this.toXml = function() {
-		//We create elements using this: xmlDocument.createElement
-		xmlDocument = document.implementation.createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
-		xmlDocument.documentElement.setAttribute("xmlns:cac", namespaces.cac)
-		xmlDocument.documentElement.setAttribute("xmlns:cbc", namespaces.cbc)
-		xmlDocument.documentElement.setAttribute("xmlns:ds", namespaces.ds)
-		xmlDocument.documentElement.setAttribute("xmlns:ext", namespaces.ext)
-
-		const extUblExtensions = xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtensions")
-		xmlDocument.documentElement.appendChild(extUblExtensions)
-
-		const extUblExtension = xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtension")
-		extUblExtensions.appendChild(extUblExtension)
-
-		const extExtensionContent = xmlDocument.createElementNS(namespaces.ext, "ext:ExtensionContent")
-		extUblExtension.appendChild(extExtensionContent)
-
-		const cbcUblVersionId = xmlDocument.createElementNS(namespaces.cbc, "cbc:UBLVersionID")
-		cbcUblVersionId.appendChild( document.createTextNode(this.ublVersion) )
-		xmlDocument.documentElement.appendChild(cbcUblVersionId)
-
-		const cbcCustomizationId = xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomizationID")
-		cbcCustomizationId.appendChild( document.createTextNode(this.customizationId) )
-		xmlDocument.documentElement.appendChild(cbcCustomizationId)
-
-		const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-		cbcId.appendChild( document.createTextNode(this.getId()) )
-		xmlDocument.documentElement.appendChild(cbcId)
-
-		const cbcIssueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.appendChild( document.createTextNode(issueDate.toISOString().substr(0, 10)) )
-		xmlDocument.documentElement.appendChild(cbcIssueDate)
-
-		if(dueDate && shares.length == 0) {
-			const cbcDueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:DueDate")
-			cbcDueDate.appendChild( document.createTextNode(dueDate) )
-			xmlDocument.documentElement.appendChild(cbcDueDate)
-		}
-
-		const cbcInvoiceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
-		cbcInvoiceTypeCode.setAttribute("listID", "0101")
-		cbcInvoiceTypeCode.appendChild( document.createTextNode(typeCode) )
-		xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
-
-		const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
-		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( xmlDocument.createCDATASection(numberToWords(taxInclusiveAmount.toFixed(2))) )
-		xmlDocument.documentElement.appendChild(cbcNote)
-
-		const cbcDocumentCurrencyCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
-		cbcDocumentCurrencyCode.appendChild( document.createTextNode(currencyId) )
-		xmlDocument.documentElement.appendChild(cbcDocumentCurrencyCode)
-
-		if(orderReference) {
-			const cacOrderReference = xmlDocument.createElementNS(namespaces.cac, "cac:OrderReference")
-			xmlDocument.documentElement.appendChild(cacOrderReference)
-
-			{
-				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcId.appendChild( document.createTextNode(orderReference) )
-				cacOrderReference.appendChild(cbcId)
-			}
-
-			if(orderReferenceText) {
-				const cbcCustomerReference = xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomerReference")
-				cbcCustomerReference.appendChild( document.createTextNode(orderReferenceText) )
-				cacOrderReference.appendChild(cbcCustomerReference)
-			}
-		}
-
-		{ //Signer data
-			const cacSignature = xmlDocument.createElementNS(namespaces.cac, "cac:Signature")
-			xmlDocument.documentElement.appendChild(cacSignature)
-
-			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
-			cacSignature.appendChild(cbcId)
-
-			{
-				const cacSignatoreParty = xmlDocument.createElementNS(namespaces.cac, "cac:SignatoryParty")
-				cacSignature.appendChild(cacSignatoreParty)
-
-				const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
-				cacSignatoreParty.appendChild(cacPartyIdentification)
-
-				const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
-				cacPartyIdentification.appendChild(cbcId)
-
-				const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
-				cacSignatoreParty.appendChild(cacPartyName)
-
-				const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-				cbcName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
-				cacPartyName.appendChild(cbcName)
-			}
-			{
-				const cacDigitalSignatureAttachment = xmlDocument.createElementNS(namespaces.cac, "cac:DigitalSignatureAttachment")
-				cacSignature.appendChild(cacDigitalSignatureAttachment)
-
-				const cacExternalReference = xmlDocument.createElementNS(namespaces.cac, "cac:ExternalReference")
-				cacDigitalSignatureAttachment.appendChild(cacExternalReference)
-
-				const cbcUri = xmlDocument.createElementNS(namespaces.cbc, "cbc:URI")
-				cbcUri.appendChild( document.createTextNode("#teroxoris") )
-				cacExternalReference.appendChild(cbcUri)
-			}
-		}
-		{ //Supplier (current taxpayer)
-			const cacAccountingSupplierParty = xmlDocument.createElementNS(namespaces.cac, "cac:AccountingSupplierParty")
-			xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
-
-			const cacParty = xmlDocument.createElementNS(namespaces.cac, "cac:Party")
-			cacAccountingSupplierParty.appendChild(cacParty)
-
-			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
-			cacParty.appendChild(cacPartyIdentification)
-
-			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.setAttribute("schemeID", taxpayer.getIdentification().getType())
-			cbcId.setAttribute("schemeName", "Documento de Identidad")
-			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
-			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.appendChild( document.createTextNode(taxpayer.getIdentification().getNumber()) )
-			cacPartyIdentification.appendChild(cbcId)
-
-			const cacPartyName = xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
-			cacParty.appendChild(cacPartyName)
-
-			const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-			cbcName.appendChild( xmlDocument.createCDATASection(taxpayer.getTradeName()) )
-			cacPartyName.appendChild(cbcName)
-
-			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
-			cacParty.appendChild(cacPartyLegalEntity)
-			{
-				const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
-				cbcRegistrationName.appendChild( xmlDocument.createCDATASection(taxpayer.getName()) )
-				cacPartyLegalEntity.appendChild(cbcRegistrationName)
-
-				const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
-				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
-				{
-					const metaAddress = taxpayer.getMetaAddress()
-
-					const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-					cbcId.appendChild( document.createTextNode(metaAddress[1]) )
-					cacRegistrationAddress.appendChild(cbcId)
-
-					const cbcAddressTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:AddressTypeCode")
-					cbcAddressTypeCode.appendChild( document.createTextNode(metaAddress[2]) )
-					cacRegistrationAddress.appendChild(cbcAddressTypeCode)
-
-					const cbcCitySubdivisionName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CitySubdivisionName")
-					cbcCitySubdivisionName.appendChild( document.createTextNode(metaAddress[3]) )
-					cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
-
-					const cbcCityName = xmlDocument.createElementNS(namespaces.cbc, "cbc:CityName")
-					cbcCityName.appendChild( document.createTextNode(metaAddress[4]) )
-					cacRegistrationAddress.appendChild(cbcCityName)
-
-					const cbcCountrySubentity = xmlDocument.createElementNS(namespaces.cbc, "cbc:CountrySubentity")
-					cbcCountrySubentity.appendChild( document.createTextNode(metaAddress[5]) )
-					cacRegistrationAddress.appendChild(cbcCountrySubentity)
-
-					const cbcDistrict = xmlDocument.createElementNS(namespaces.cbc, "cbc:District")
-					cbcDistrict.appendChild( document.createTextNode(metaAddress[6]) )
-					cacRegistrationAddress.appendChild(cbcDistrict)
-
-					const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
-					cacRegistrationAddress.appendChild(cacAddressLine)
-
-					const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-					cbcLine.appendChild( xmlDocument.createCDATASection(taxpayer.getAddress()) )
-					cacAddressLine.appendChild(cbcLine)
-
-					const cacCountry = xmlDocument.createElementNS(namespaces.cac, "cac:Country")
-					cacRegistrationAddress.appendChild(cacCountry)
-
-					const cbcIdentificationCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:IdentificationCode")
-					cbcIdentificationCode.appendChild( document.createTextNode(metaAddress[0]) )
-					cacCountry.appendChild(cbcIdentificationCode)
-				}
-			}
-
-			if( taxpayer.getWeb() || taxpayer.getEmail() || taxpayer.getTelephone() ) {
-				//Contact or marketing
-				const cacContact = xmlDocument.createElementNS(namespaces.cac, "cac:Contact")
-				cacParty.appendChild(cacContact)
-				{
-					if(taxpayer.getTelephone()) {
-						const cbcTelephone = xmlDocument.createElementNS(namespaces.cbc, "cbc:Telephone")
-						cbcTelephone.appendChild(document.createTextNode(taxpayer.getTelephone()))
-						cacContact.appendChild(cbcTelephone)
-					}
-
-					if(taxpayer.getEmail()) {
-						const cbcElectronicMail = xmlDocument.createElementNS(namespaces.cbc, "cbc:ElectronicMail")
-						cbcElectronicMail.appendChild(document.createTextNode(taxpayer.getEmail()))
-						cacContact.appendChild(cbcElectronicMail)
-					}
-
-					if(taxpayer.getWeb()) {
-						const cbcNote = xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
-						cbcNote.appendChild(document.createTextNode(taxpayer.getWeb()))
-						cacContact.appendChild(cbcNote)
-					}
-				}
-			}
-		}
-		{ //Customer
-			const cacAccountingCustomerParty = xmlDocument.createElementNS(namespaces.cac, "cac:AccountingCustomerParty")
-			xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
-
-			const cacParty = xmlDocument.createElementNS(namespaces.cac, "cac:Party")
-			cacAccountingCustomerParty.appendChild(cacParty)
-
-			const cacPartyIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
-			cacParty.appendChild(cacPartyIdentification)
-
-			const cbcId = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcId.setAttribute("schemeID", customer.getIdentification().getType())
-			cbcId.setAttribute("schemeName", "Documento de Identidad")
-			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
-			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.appendChild( document.createTextNode(customer.getIdentification().getNumber()) )
-			cacPartyIdentification.appendChild(cbcId)
-
-			const cacPartyLegalEntity = xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
-			cacParty.appendChild(cacPartyLegalEntity)
-
-			const cbcRegistrationName = xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
-			cbcRegistrationName.appendChild( xmlDocument.createCDATASection(customer.getName()) )
-			cacPartyLegalEntity.appendChild(cbcRegistrationName)
-
-			if(customer.getAddress()) {
-				const cacRegistrationAddress = xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
-				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
-
-				const cacAddressLine = xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
-				cacRegistrationAddress.appendChild(cacAddressLine)
-
-				const cbcLine = xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
-				cbcLine.appendChild( xmlDocument.createCDATASection(customer.getAddress()) )
-				cacAddressLine.appendChild(cbcLine)
-			}
-		}
-
-		if(shares.length == 0) { //Cash Payment
-			const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
-			xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcID.appendChild( document.createTextNode("FormaPago") )
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
-				cbcPaymentMeansID.appendChild( document.createTextNode("Contado") )
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-			}
-		}
-		else { //Credit payment
-			const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
-			xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcID.appendChild( document.createTextNode("FormaPago") )
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
-				cbcPaymentMeansID.appendChild( document.createTextNode("Credito") )
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-				const cbcAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
-				cbcAmount.setAttribute("currencyID", currencyId)
-				cbcAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
-				cacPaymentTerms.appendChild(cbcAmount)
-			}
-
-			let c = 0
-			for(const share of shares) {
-				const cacPaymentTerms = xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
-				xmlDocument.documentElement.appendChild(cacPaymentTerms)
-				{
-					const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-					cbcID.appendChild( document.createTextNode("FormaPago") )
-					cacPaymentTerms.appendChild(cbcID)
-
-					const cbcPaymentMeansID = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
-					cbcPaymentMeansID.appendChild( document.createTextNode("Cuota" + String(++c).padStart(3, '0')) )
-					cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-					const cbcAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
-					cbcAmount.setAttribute("currencyID", currencyId)
-					cbcAmount.appendChild(document.createTextNode( share.getAmount(true) ))
-					cacPaymentTerms.appendChild(cbcAmount)
-
-					const cbcPaymentDueDate = xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentDueDate")
-					cbcPaymentDueDate.appendChild( document.createTextNode( share.getDueDate() ) )
-					cacPaymentTerms.appendChild(cbcPaymentDueDate)
-				}
-			}
-		}
-
-		{ //Taxes
-			const cacTaxTotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
-			xmlDocument.documentElement.appendChild(cacTaxTotal)
-			{
-				const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-				cbcTaxAmount.setAttribute("currencyID", currencyId)
-				cbcTaxAmount.appendChild( document.createTextNode(taxTotalAmount.toFixed(2)) )
-				cacTaxTotal.appendChild(cbcTaxAmount)
-
-				const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
-				cacTaxTotal.appendChild(cacTaxSubtotal)
-				{
-					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", currencyId)
-					cbcTaxableAmount.appendChild( document.createTextNode(operationAmounts[0].toFixed(2)) )
-					cacTaxSubtotal.appendChild( cbcTaxableAmount )
-
-					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", currencyId)
-					cbcTaxAmount.appendChild( document.createTextNode(igvAmount.toFixed(2)) )
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
-
-					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
-						{
-							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-							cbcID.setAttribute("schemeName", "Codigo de tributos")
-							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
-							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
-							cbcID.appendChild(document.createTextNode("1000"))
-							cacTaxScheme.appendChild(cbcID)
-
-							const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-							cbcName.appendChild( document.createTextNode( "IGV" ) )
-							cacTaxScheme.appendChild(cbcName)
-
-							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
-							cbcTaxTypeCode.appendChild( document.createTextNode( "VAT" ) )
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
-						}
-					}
-				}
-			}
-		}
-
-		{
-			const cacLegalMonetaryTotal = xmlDocument.createElementNS(namespaces.cac, "cac:LegalMonetaryTotal")
-			xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
-			{
-				const cbcLineExtensionAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
-				cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
-				cbcLineExtensionAmount.appendChild( document.createTextNode(lineExtensionAmount.toFixed(2)) )
-				cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
-
-				const cbcTaxInclusiveAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxInclusiveAmount")
-				cbcTaxInclusiveAmount.setAttribute("currencyID", currencyId)
-				cbcTaxInclusiveAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
-				cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
-
-				const cbcPayableAmount  = xmlDocument.createElementNS(namespaces.cbc, "cbc:PayableAmount")
-				cbcPayableAmount.setAttribute("currencyID", currencyId)
-				cbcPayableAmount.appendChild( document.createTextNode(taxInclusiveAmount.toFixed(2)) )
-				cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
-			}
-		}
-
-		for(const item in items) { //Items
-			const cacInvoiceLine = xmlDocument.createElementNS(namespaces.cac, "cac:InvoiceLine")
-			xmlDocument.documentElement.appendChild(cacInvoiceLine)
-
-			const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-			cbcID.appendChild( document.createTextNode(parseInt(item) + 1) )
-			cacInvoiceLine.appendChild(cbcID)
-
-			const cbcInvoicedQuantity = xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoicedQuantity")
-			cbcInvoicedQuantity.setAttribute("unitCode", items[item].getUnitCode())
-			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
-			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
-			cbcInvoicedQuantity.appendChild( document.createTextNode(items[item].getQuantity()) )
-			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
-
-			const cbcLineExtensionAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
-			cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
-			cbcLineExtensionAmount.appendChild( document.createTextNode(items[item].getLineExtensionAmount(true)) )
-			cacInvoiceLine.appendChild(cbcLineExtensionAmount)
-
-			{ //PricingReference
-				const cacPricingReference = xmlDocument.createElementNS(namespaces.cac, "cac:PricingReference")
-				cacInvoiceLine.appendChild(cacPricingReference)
-
-				const cacAlternativeConditionPrice = xmlDocument.createElementNS(namespaces.cac, "cac:AlternativeConditionPrice")
-				cacPricingReference.appendChild(cacAlternativeConditionPrice)
-
-				const cbcPriceAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
-				cbcPriceAmount.setAttribute("currencyID", currencyId)
-				cbcPriceAmount.appendChild( document.createTextNode( items[item].getPricingReferenceAmount(true) ) )
-				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
-
-				const cbcPriceTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
-				cbcPriceTypeCode.appendChild(document.createTextNode("01"))
-				cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
-			}
-
-			{ //TaxTotal
-				const cacTaxTotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
-				cacInvoiceLine.appendChild(cacTaxTotal)
-
-				const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-				cbcTaxAmount.setAttribute("currencyID", currencyId)
-				cbcTaxAmount.appendChild( document.createTextNode( items[item].getTaxTotalAmount(true) ) )
-				cacTaxTotal.appendChild(cbcTaxAmount)
-
-				if( items[item].getIscAmount() > 0 ) { //ISC
-					const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
-					cacTaxTotal.appendChild(cacTaxSubtotal)
-
-					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", currencyId)
-					cbcTaxableAmount.appendChild( document.createTextNode( items[item].getLineExtensionAmount(true) ) )
-					cacTaxSubtotal.appendChild(cbcTaxableAmount)
-
-					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", currencyId)
-					cbcTaxAmount.appendChild( document.createTextNode( items[item].getIscAmount(true) ) )
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
-
-					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cbcPercent = xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
-						cbcPercent.appendChild( document.createTextNode( items[item].getIscPercentage() ) )
-						cacTaxCategory.appendChild(cbcPercent)
-
-						const cbcTierRange = xmlDocument.createElementNS(namespaces.cbc, "cbc:TierRange")
-						cbcTierRange.appendChild( document.createTextNode( "01" ) )
-						cacTaxCategory.appendChild(cbcTierRange)
-
-						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
-						{
-							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-							cbcID.appendChild( document.createTextNode( "2000" ) )
-							cacTaxScheme.appendChild(cbcID)
-
-							const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-							cbcName.appendChild( document.createTextNode( "ISC" ) )
-							cacTaxScheme.appendChild(cbcName)
-
-							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
-							cbcTaxTypeCode.appendChild( document.createTextNode( "EXC" ) )
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
-						}
-					}
-				}
-				if( items[item].getIgvAmount() > 0 ) { //IGV
-					const cacTaxSubtotal = xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
-					cacTaxTotal.appendChild(cacTaxSubtotal)
-
-					const cbcTaxableAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", currencyId)
-					cbcTaxableAmount.appendChild( document.createTextNode( items[item].getTaxableIgvAmount(true) ) )
-					cacTaxSubtotal.appendChild(cbcTaxableAmount)
-
-					const cbcTaxAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", currencyId)
-					cbcTaxAmount.appendChild( document.createTextNode( items[item].getIgvAmount(true) ) )
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
-
-					const cacTaxCategory = xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cbcPercent = xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
-						cbcPercent.appendChild( document.createTextNode( items[item].getIgvPercentage() ) )
-						cacTaxCategory.appendChild(cbcPercent)
-
-						const cbcTaxExemptionReasonCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxExemptionReasonCode")
-						cbcTaxExemptionReasonCode.appendChild( document.createTextNode( items[item].getExemptionReasonCode() ) )
-						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
-
-						const cacTaxScheme = xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
-						{
-							const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-							cbcID.appendChild( document.createTextNode( "1000" ) )
-							cacTaxScheme.appendChild(cbcID)
-
-							const cbcName = xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
-							cbcName.appendChild( document.createTextNode( "IGV" ) )
-							cacTaxScheme.appendChild(cbcName)
-
-							const cbcTaxTypeCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
-							cbcTaxTypeCode.appendChild( document.createTextNode( "VAT" ) )
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
-						}
-					}
-				}
-			}
-
-			{ //Item
-				const cacItem = xmlDocument.createElementNS(namespaces.cac, "cac:Item")
-				cacInvoiceLine.appendChild(cacItem)
-
-				const cbcDescription = xmlDocument.createElementNS(namespaces.cbc, "cbc:Description")
-				cbcDescription.appendChild( xmlDocument.createCDATASection(items[item].getDescription()) )
-				cacItem.appendChild(cbcDescription)
-
-				if(items[item].getCode()) {
-					const cacSellersItemIdentification = xmlDocument.createElementNS(namespaces.cac, "cac:SellersItemIdentification")
-					cacItem.appendChild(cacSellersItemIdentification)
-
-					const cbcID = xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-					cbcID.appendChild( document.createTextNode(items[item].getCode()) )
-					cacSellersItemIdentification.appendChild(cbcID)
-				}
-
-				const cacCommodityClassification = xmlDocument.createElementNS(namespaces.cac, "cac:CommodityClassification")
-				cacItem.appendChild(cacCommodityClassification)
-
-				const cbcItemClassificationCode = xmlDocument.createElementNS(namespaces.cbc, "cbc:ItemClassificationCode")
-				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
-				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
-				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-				cbcItemClassificationCode.appendChild( document.createTextNode(items[item].getClassificationCode()) )
-				cacCommodityClassification.appendChild(cbcItemClassificationCode)
-			}
-
-			{ //Price
-				const cacPrice = xmlDocument.createElementNS(namespaces.cac, "cac:Price")
-				cacInvoiceLine.appendChild(cacPrice)
-
-				const cbcPriceAmount = xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
-				cbcPriceAmount.setAttribute("currencyID", currencyId)
-				cbcPriceAmount.appendChild( document.createTextNode(items[item].getUnitValue(true)) )
-				cacPrice.appendChild(cbcPriceAmount)
-			}
-		}
-	}
-
-	this.sign = async function(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
-		if(xmlDocument == undefined) {
+	async sign(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
 		const alg = getAlgorithm(algorithmName)
 
 		// Read cert
-		const certDer = window.Encoding.base64ToBuf( taxpayer.getCert() )
+		const certDer = window.Encoding.base64ToBuf( this.#taxpayer.getCert() )
 
 		// Read key
-		const keyDer = window.Encoding.base64ToBuf( taxpayer.getKey() )
+		const keyDer = window.Encoding.base64ToBuf( this.#taxpayer.getKey() )
 		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = taxpayer.getCert()
+		const x509 = this.#taxpayer.getCert()
 
 		const transforms = ["enveloped", canonMethod]
 
-		xmlDocument = XAdES.Parse(new XMLSerializer().serializeToString(xmlDocument))
+		this.xmlDocument = XAdES.Parse(new XMLSerializer().serializeToString(this.xmlDocument))
 
 		return Promise.resolve()
-			.then(function() {
+			.then(() => {
 				const signature = new XAdES.SignedXml()
 
 				return signature.Sign(
 					alg,        // algorithm
 					key,        // key
-					xmlDocument,// document
+					this.xmlDocument,// document
 					{           // options
 						references: [
 							{ id: "terexoris", uri: "", hash: hashAlgorithm, transforms: transforms }
@@ -756,9 +136,9 @@ var Invoice = function(taxpayer, customer) {
 					}
 				)
 			})
-			.then(function(signature) {
+			.then((signature) => {
 				// Add signature to document
-				const xmlEl = xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
+				const xmlEl = this.xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
 				xmlEl.appendChild(signature.GetXml())
 				return true
 			})
@@ -766,6 +146,724 @@ var Invoice = function(taxpayer, customer) {
 				console.error(e)
 				return false
 			})
+	}
+}
+
+class Invoice extends Receipt {
+	constructor(taxpayer, customer) {
+		super(taxpayer, customer)
+	}
+
+	#items = Array()
+	 //Too used same in products
+	#currencyId
+	#orderReference
+	#orderReferenceText
+	#dueDate
+
+	/*
+	 * Global totals
+	 */
+	#lineExtensionAmount = 0
+	#taxTotalAmount = 0
+	#taxInclusiveAmount = 0
+	#igvAmount = 0
+	#iscAmount = 0
+	#icbpAmount = 0
+	#operationAmounts = [0, 0, 0]
+
+	#shares = Array()
+
+	//Using validate() may change it
+	#hasDetraction = false
+
+	addShare(share) {
+		this.#shares.push(share)
+	}
+
+	setDueDate(dd) {
+		if(dd.length) {
+			this.#dueDate = dd
+		}
+	}
+
+	addItem(item) {
+		this.#items.push(item)
+
+		this.#lineExtensionAmount += item.getLineExtensionAmount()
+		this.#taxTotalAmount += item.getTaxTotalAmount()
+		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
+
+		this.#igvAmount += item.getIgvAmount()
+
+		//Assign data according taxability
+		switch(true) {
+			case (item.getExemptionReasonCode() < 20):
+				this.#operationAmounts[0] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 30):
+				this.#operationAmounts[1] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 40):
+				this.#operationAmounts[2] += item.getLineExtensionAmount();break
+			default:
+				this.#operationAmounts[3] += item.getLineExtensionAmount()
+		}
+	}
+
+	setOrderReference(reference) {
+		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
+			if( /\s/g.test(reference) ) {
+				throw new Error("La referencia numérica no debe contener espacios.")
+			}
+			if(reference.length > 20) {
+				throw new Error("La referencia numérica no debe tener 20 caracteres como máximo.")
+			}
+			this.#orderReference = reference
+		}
+	}
+
+	setOrderReferenceText(referenceText) {
+		if(!this.#orderReference) {
+			throw new Error("Asignar previamente la identidad de referencia.")
+		}
+		if( ( typeof referenceText === "string" || referenceText instanceof String ) && referenceText.length > 0 ) {
+			this.#orderReferenceText = referenceText
+		}
+	}
+
+	getLineExtensionAmount(withFormat = false) {
+		return withFormat ? this.#lineExtensionAmount.toFixed(2) : this.#lineExtensionAmount
+	}
+
+	getEncryptedOperationAmounts(index) {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#operationAmounts[index] * 100 ) / 100 * 100 ) )
+	}
+
+	getEncryptedIgvAmount() {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#igvAmount * 100 ) / 100 * 100 ) )
+	}
+
+	getEncryptedIscAmount() {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#iscAmount * 100 ) / 100 * 100 ) )
+	}
+
+	getEncryptedIcbpAmount() {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
+	}
+
+	/**
+	 * Check if everything can be processed.
+	 */
+	validate() {
+		switch(this.getTypeCode()) {
+			case "01":
+				if(this.getCustomer().getIdentification().getType() != 6) {
+					throw new Error("El cliente debe tener RUC.")
+				}
+		}
+
+		if(this.#taxInclusiveAmount >= 700) {
+			this.#hasDetraction = true
+		}
+	}
+
+	toXml() {
+		//We create elements using this: xmlDocument.createElement
+		this.xmlDocument = document.implementation.createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
+		this.xmlDocument.documentElement.setAttribute("xmlns:cac", namespaces.cac)
+		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", namespaces.cbc)
+		this.xmlDocument.documentElement.setAttribute("xmlns:ds", namespaces.ds)
+		this.xmlDocument.documentElement.setAttribute("xmlns:ext", namespaces.ext)
+
+		const extUblExtensions = this.xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtensions")
+		this.xmlDocument.documentElement.appendChild(extUblExtensions)
+
+		const extUblExtension = this.xmlDocument.createElementNS(namespaces.ext, "ext:UBLExtension")
+		extUblExtensions.appendChild(extUblExtension)
+
+		const extExtensionContent = this.xmlDocument.createElementNS(namespaces.ext, "ext:ExtensionContent")
+		extUblExtension.appendChild(extExtensionContent)
+
+		const cbcUblVersionId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:UBLVersionID")
+		cbcUblVersionId.appendChild( document.createTextNode(this.getUblVersion()) )
+		this.xmlDocument.documentElement.appendChild(cbcUblVersionId)
+
+		const cbcCustomizationId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomizationID")
+		cbcCustomizationId.appendChild( document.createTextNode(this.getCustomizationId()) )
+		this.xmlDocument.documentElement.appendChild(cbcCustomizationId)
+
+		const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+		cbcId.appendChild( document.createTextNode(this.getId()) )
+		this.xmlDocument.documentElement.appendChild(cbcId)
+
+		const cbcIssueDate = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
+		cbcIssueDate.appendChild( document.createTextNode(this.getIssueDate().toISOString().substr(0, 10)) )
+		this.xmlDocument.documentElement.appendChild(cbcIssueDate)
+
+		if(this.#dueDate && shares.length == 0) {
+			const cbcDueDate = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:DueDate")
+			cbcDueDate.appendChild( document.createTextNode(this.#dueDate) )
+			this.xmlDocument.documentElement.appendChild(cbcDueDate)
+		}
+
+		const cbcInvoiceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
+		if(this.#hasDetraction) {
+			cbcInvoiceTypeCode.setAttribute("listID", "1001")
+		}
+		else {
+			cbcInvoiceTypeCode.setAttribute("listID", "0101")
+		}
+		cbcInvoiceTypeCode.appendChild( document.createTextNode(this.getTypeCode()) )
+		this.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+
+		const cbcNote = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
+		cbcNote.setAttribute("languageLocaleID", "1000")
+		cbcNote.appendChild( this.xmlDocument.createCDATASection(numberToWords(this.#taxInclusiveAmount.toFixed(2))) )
+		this.xmlDocument.documentElement.appendChild(cbcNote)
+
+		if(this.#hasDetraction) {
+			const cbcNote = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
+			cbcNote.setAttribute("languageLocaleID", "2006")
+			cbcNote.appendChild( this.xmlDocument.createCDATASection("Operación sujeta a detracción") )
+			this.xmlDocument.documentElement.appendChild(cbcNote)
+		}
+
+		const cbcDocumentCurrencyCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:DocumentCurrencyCode")
+		cbcDocumentCurrencyCode.appendChild( document.createTextNode(this.getCurrencyId()) )
+		this.xmlDocument.documentElement.appendChild(cbcDocumentCurrencyCode)
+
+		if(this.#orderReference) {
+			const cacOrderReference = this.xmlDocument.createElementNS(namespaces.cac, "cac:OrderReference")
+			this.xmlDocument.documentElement.appendChild(cacOrderReference)
+
+			{
+				const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcId.appendChild( document.createTextNode(this.#orderReference) )
+				cacOrderReference.appendChild(cbcId)
+			}
+
+			if(orderReferenceText) {
+				const cbcCustomerReference = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CustomerReference")
+				cbcCustomerReference.appendChild( document.createTextNode(this.#orderReferenceText) )
+				cacOrderReference.appendChild(cbcCustomerReference)
+			}
+		}
+
+		{ //Signer data
+			const cacSignature = this.xmlDocument.createElementNS(namespaces.cac, "cac:Signature")
+			this.xmlDocument.documentElement.appendChild(cacSignature)
+
+			const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.appendChild( document.createTextNode(this.getTaxpayer().getIdentification().getNumber()) )
+			cacSignature.appendChild(cbcId)
+
+			{
+				const cacSignatoreParty = this.xmlDocument.createElementNS(namespaces.cac, "cac:SignatoryParty")
+				cacSignature.appendChild(cacSignatoreParty)
+
+				const cacPartyIdentification = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
+				cacSignatoreParty.appendChild(cacPartyIdentification)
+
+				const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcId.appendChild( document.createTextNode(this.getTaxpayer().getIdentification().getNumber()) )
+				cacPartyIdentification.appendChild(cbcId)
+
+				const cacPartyName = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
+				cacSignatoreParty.appendChild(cacPartyName)
+
+				const cbcName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+				cbcName.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getName()) )
+				cacPartyName.appendChild(cbcName)
+			}
+			{
+				const cacDigitalSignatureAttachment = this.xmlDocument.createElementNS(namespaces.cac, "cac:DigitalSignatureAttachment")
+				cacSignature.appendChild(cacDigitalSignatureAttachment)
+
+				const cacExternalReference = this.xmlDocument.createElementNS(namespaces.cac, "cac:ExternalReference")
+				cacDigitalSignatureAttachment.appendChild(cacExternalReference)
+
+				const cbcUri = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:URI")
+				cbcUri.appendChild( document.createTextNode("#teroxoris") )
+				cacExternalReference.appendChild(cbcUri)
+			}
+		}
+		{ //Supplier (current taxpayer)
+			const cacAccountingSupplierParty = this.xmlDocument.createElementNS(namespaces.cac, "cac:AccountingSupplierParty")
+			this.xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
+
+			const cacParty = this.xmlDocument.createElementNS(namespaces.cac, "cac:Party")
+			cacAccountingSupplierParty.appendChild(cacParty)
+
+			const cacPartyIdentification = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyIdentification)
+
+			const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.setAttribute("schemeID", this.getTaxpayer().getIdentification().getType())
+			cbcId.setAttribute("schemeName", "Documento de Identidad")
+			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
+			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+			cbcId.appendChild( document.createTextNode(this.getTaxpayer().getIdentification().getNumber()) )
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyName = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyName")
+			cacParty.appendChild(cacPartyName)
+
+			const cbcName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+			cbcName.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getTradeName()) )
+			cacPartyName.appendChild(cbcName)
+
+			const cacPartyLegalEntity = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
+			cacParty.appendChild(cacPartyLegalEntity)
+			{
+				const cbcRegistrationName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
+				cbcRegistrationName.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getName()) )
+				cacPartyLegalEntity.appendChild(cbcRegistrationName)
+
+				const cacRegistrationAddress = this.xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
+				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+				{
+					const metaAddress = this.getTaxpayer().getMetaAddress()
+
+					const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcId.appendChild( document.createTextNode(metaAddress[1]) )
+					cacRegistrationAddress.appendChild(cbcId)
+
+					const cbcAddressTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:AddressTypeCode")
+					cbcAddressTypeCode.appendChild( document.createTextNode(metaAddress[2]) )
+					cacRegistrationAddress.appendChild(cbcAddressTypeCode)
+
+					const cbcCitySubdivisionName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CitySubdivisionName")
+					cbcCitySubdivisionName.appendChild( document.createTextNode(metaAddress[3]) )
+					cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
+
+					const cbcCityName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CityName")
+					cbcCityName.appendChild( document.createTextNode(metaAddress[4]) )
+					cacRegistrationAddress.appendChild(cbcCityName)
+
+					const cbcCountrySubentity = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:CountrySubentity")
+					cbcCountrySubentity.appendChild( document.createTextNode(metaAddress[5]) )
+					cacRegistrationAddress.appendChild(cbcCountrySubentity)
+
+					const cbcDistrict = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:District")
+					cbcDistrict.appendChild( document.createTextNode(metaAddress[6]) )
+					cacRegistrationAddress.appendChild(cbcDistrict)
+
+					const cacAddressLine = this.xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+					cacRegistrationAddress.appendChild(cacAddressLine)
+
+					const cbcLine = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
+					cbcLine.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getAddress()) )
+					cacAddressLine.appendChild(cbcLine)
+
+					const cacCountry = this.xmlDocument.createElementNS(namespaces.cac, "cac:Country")
+					cacRegistrationAddress.appendChild(cacCountry)
+
+					const cbcIdentificationCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:IdentificationCode")
+					cbcIdentificationCode.appendChild( document.createTextNode(metaAddress[0]) )
+					cacCountry.appendChild(cbcIdentificationCode)
+				}
+			}
+
+			if( this.getTaxpayer().getWeb() || this.getTaxpayer().getEmail() || this.getTaxpayer().getTelephone() ) {
+				//Contact or marketing
+				const cacContact = this.xmlDocument.createElementNS(namespaces.cac, "cac:Contact")
+				cacParty.appendChild(cacContact)
+				{
+					if(this.getTaxpayer().getTelephone()) {
+						const cbcTelephone = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Telephone")
+						cbcTelephone.appendChild(document.createTextNode(this.getTaxpayer().getTelephone()))
+						cacContact.appendChild(cbcTelephone)
+					}
+
+					if(this.getTaxpayer().getEmail()) {
+						const cbcElectronicMail = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ElectronicMail")
+						cbcElectronicMail.appendChild(document.createTextNode(this.getTaxpayer().getEmail()))
+						cacContact.appendChild(cbcElectronicMail)
+					}
+
+					if(this.getTaxpayer().getWeb()) {
+						const cbcNote = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
+						cbcNote.appendChild(document.createTextNode(this.getTaxpayer().getWeb()))
+						cacContact.appendChild(cbcNote)
+					}
+				}
+			}
+		}
+		{ //Customer
+			const cacAccountingCustomerParty = this.xmlDocument.createElementNS(namespaces.cac, "cac:AccountingCustomerParty")
+			this.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
+
+			const cacParty = this.xmlDocument.createElementNS(namespaces.cac, "cac:Party")
+			cacAccountingCustomerParty.appendChild(cacParty)
+
+			const cacPartyIdentification = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyIdentification")
+			cacParty.appendChild(cacPartyIdentification)
+
+			const cbcId = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcId.setAttribute("schemeID", this.getCustomer().getIdentification().getType())
+			cbcId.setAttribute("schemeName", "Documento de Identidad")
+			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
+			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+			cbcId.appendChild( document.createTextNode(this.getCustomer().getIdentification().getNumber()) )
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyLegalEntity = this.xmlDocument.createElementNS(namespaces.cac, "cac:PartyLegalEntity")
+			cacParty.appendChild(cacPartyLegalEntity)
+
+			const cbcRegistrationName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:RegistrationName")
+			cbcRegistrationName.appendChild( this.xmlDocument.createCDATASection(this.getCustomer().getName()) )
+			cacPartyLegalEntity.appendChild(cbcRegistrationName)
+
+			if(this.getCustomer().getAddress()) {
+				const cacRegistrationAddress = this.xmlDocument.createElementNS(namespaces.cac, "cac:RegistrationAddress")
+				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+
+				const cacAddressLine = this.xmlDocument.createElementNS(namespaces.cac, "cac:AddressLine")
+				cacRegistrationAddress.appendChild(cacAddressLine)
+
+				const cbcLine = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Line")
+				cbcLine.appendChild( this.xmlDocument.createCDATASection(this.getCustomer().getAddress()) )
+				cacAddressLine.appendChild(cbcLine)
+			}
+		}
+
+		if(this.#hasDetraction) {
+			const cacPaymentMeans = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentMeans")
+			this.xmlDocument.documentElement.appendChild(cacPaymentMeans)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("Detraccion") )
+				cacPaymentMeans.appendChild(cbcID)
+
+				const cbcPaymentMeansCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansCode")
+				cbcPaymentMeansCode.appendChild( document.createTextNode("003") )
+				cacPaymentMeans.appendChild(cbcPaymentMeansCode)
+
+				const cacPayeeFinancialAccount = this.xmlDocument.createElementNS(namespaces.cac, "cac:PayeeFinancialAccount")
+				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
+				{
+					const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode("00-099-025344") )//Must be variable
+					cacPayeeFinancialAccount.appendChild(cbcID)
+				}
+			}
+
+			const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("Detraccion") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("037") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcPaymentPercent = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentPercent")
+				cbcPaymentPercent.appendChild( document.createTextNode("12") )//Must be variable
+				cacPaymentTerms.appendChild(cbcPaymentPercent)
+
+				const cbcAmount  = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcAmount.appendChild( document.createTextNode( (this.#taxInclusiveAmount * 0.12).toFixed(2) ) )//Must be variable
+				cacPaymentTerms.appendChild(cbcAmount)
+			}
+		}
+
+		if(this.#shares.length == 0) { //Cash Payment
+			const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("FormaPago") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("Contado") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+			}
+		}
+		else { //Credit payment
+			const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+				cbcID.appendChild( document.createTextNode("FormaPago") )
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.appendChild( document.createTextNode("Credito") )
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
+				cacPaymentTerms.appendChild(cbcAmount)
+			}
+
+			let c = 0
+			for(const share of this.#shares) {
+				const cacPaymentTerms = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentTerms")
+				this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+				{
+					const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode("FormaPago") )
+					cacPaymentTerms.appendChild(cbcID)
+
+					const cbcPaymentMeansID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentMeansID")
+					cbcPaymentMeansID.appendChild( document.createTextNode("Cuota" + String(++c).padStart(3, '0')) )
+					cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+					const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+					cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+					cbcAmount.appendChild(document.createTextNode( share.getAmount(true) ))
+					cacPaymentTerms.appendChild(cbcAmount)
+
+					const cbcPaymentDueDate = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PaymentDueDate")
+					cbcPaymentDueDate.appendChild( document.createTextNode( share.getDueDate() ) )
+					cacPaymentTerms.appendChild(cbcPaymentDueDate)
+				}
+			}
+		}
+
+		{ //Taxes
+			const cacTaxTotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
+			this.xmlDocument.documentElement.appendChild(cacTaxTotal)
+			{
+				const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
+				cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcTaxAmount.appendChild( document.createTextNode(this.#taxTotalAmount.toFixed(2)) )
+				cacTaxTotal.appendChild(cbcTaxAmount)
+
+				const cacTaxSubtotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
+				cacTaxTotal.appendChild(cacTaxSubtotal)
+				{
+					const cbcTaxableAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
+					cbcTaxableAmount.appendChild( document.createTextNode(this.#operationAmounts[0].toFixed(2)) )
+					cacTaxSubtotal.appendChild( cbcTaxableAmount )
+
+					const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
+					cbcTaxAmount.appendChild( document.createTextNode(this.#igvAmount.toFixed(2)) )
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+					const cacTaxCategory = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
+					cacTaxSubtotal.appendChild(cacTaxCategory)
+					{
+						const cacTaxScheme = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
+						cacTaxCategory.appendChild(cacTaxScheme)
+						{
+							const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+							cbcID.setAttribute("schemeName", "Codigo de tributos")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
+							cbcID.appendChild(document.createTextNode("1000"))
+							cacTaxScheme.appendChild(cbcID)
+
+							const cbcName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+							cbcName.appendChild( document.createTextNode( "IGV" ) )
+							cacTaxScheme.appendChild(cbcName)
+
+							const cbcTaxTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
+							cbcTaxTypeCode.appendChild( document.createTextNode( "VAT" ) )
+							cacTaxScheme.appendChild(cbcTaxTypeCode)
+						}
+					}
+				}
+			}
+		}
+
+		{
+			const cacLegalMonetaryTotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:LegalMonetaryTotal")
+			this.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
+			{
+				const cbcLineExtensionAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
+				cbcLineExtensionAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcLineExtensionAmount.appendChild( document.createTextNode(this.#lineExtensionAmount.toFixed(2)) )
+				cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
+
+				const cbcTaxInclusiveAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxInclusiveAmount")
+				cbcTaxInclusiveAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcTaxInclusiveAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
+				cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
+
+				const cbcPayableAmount  = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PayableAmount")
+				cbcPayableAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcPayableAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
+				cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
+			}
+		}
+
+		for(const item in this.#items) { //Items
+			const cacInvoiceLine = this.xmlDocument.createElementNS(namespaces.cac, "cac:InvoiceLine")
+			this.xmlDocument.documentElement.appendChild(cacInvoiceLine)
+
+			const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcID.appendChild( document.createTextNode(parseInt(item) + 1) )
+			cacInvoiceLine.appendChild(cbcID)
+
+			const cbcInvoicedQuantity = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoicedQuantity")
+			cbcInvoicedQuantity.setAttribute("unitCode", this.#items[item].getUnitCode())
+			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
+			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
+			cbcInvoicedQuantity.appendChild( document.createTextNode(this.#items[item].getQuantity()) )
+			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
+
+			const cbcLineExtensionAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
+			cbcLineExtensionAmount.setAttribute("currencyID", this.getCurrencyId())
+			cbcLineExtensionAmount.appendChild( document.createTextNode(this.#items[item].getLineExtensionAmount(true)) )
+			cacInvoiceLine.appendChild(cbcLineExtensionAmount)
+
+			{ //PricingReference
+				const cacPricingReference = this.xmlDocument.createElementNS(namespaces.cac, "cac:PricingReference")
+				cacInvoiceLine.appendChild(cacPricingReference)
+
+				const cacAlternativeConditionPrice = this.xmlDocument.createElementNS(namespaces.cac, "cac:AlternativeConditionPrice")
+				cacPricingReference.appendChild(cacAlternativeConditionPrice)
+
+				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
+				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcPriceAmount.appendChild( document.createTextNode( this.#items[item].getPricingReferenceAmount(true) ) )
+				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
+
+				const cbcPriceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
+				cbcPriceTypeCode.appendChild(document.createTextNode("01"))
+				cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
+			}
+
+			{ //TaxTotal
+				const cacTaxTotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
+				cacInvoiceLine.appendChild(cacTaxTotal)
+
+				const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
+				cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcTaxAmount.appendChild( document.createTextNode( this.#items[item].getTaxTotalAmount(true) ) )
+				cacTaxTotal.appendChild(cbcTaxAmount)
+
+				if( this.#items[item].getIscAmount() > 0 ) { //ISC
+					const cacTaxSubtotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
+					cacTaxTotal.appendChild(cacTaxSubtotal)
+
+					const cbcTaxableAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", currencyId)
+					cbcTaxableAmount.appendChild( document.createTextNode( this.#items[item].getLineExtensionAmount(true) ) )
+					cacTaxSubtotal.appendChild(cbcTaxableAmount)
+
+					const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", currencyId)
+					cbcTaxAmount.appendChild( document.createTextNode( this.#items[item].getIscAmount(true) ) )
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+					const cacTaxCategory = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
+					cacTaxSubtotal.appendChild(cacTaxCategory)
+					{
+						const cbcPercent = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
+						cbcPercent.appendChild( document.createTextNode( this.#items[item].getIscPercentage() ) )
+						cacTaxCategory.appendChild(cbcPercent)
+
+						const cbcTierRange = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TierRange")
+						cbcTierRange.appendChild( document.createTextNode( "01" ) )
+						cacTaxCategory.appendChild(cbcTierRange)
+
+						const cacTaxScheme = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
+						cacTaxCategory.appendChild(cacTaxScheme)
+						{
+							const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+							cbcID.appendChild( document.createTextNode( "2000" ) )
+							cacTaxScheme.appendChild(cbcID)
+
+							const cbcName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+							cbcName.appendChild( document.createTextNode( "ISC" ) )
+							cacTaxScheme.appendChild(cbcName)
+
+							const cbcTaxTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
+							cbcTaxTypeCode.appendChild( document.createTextNode( "EXC" ) )
+							cacTaxScheme.appendChild(cbcTaxTypeCode)
+						}
+					}
+				}
+				if( this.#items[item].getIgvAmount() > 0 ) { //IGV
+					const cacTaxSubtotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxSubtotal")
+					cacTaxTotal.appendChild(cacTaxSubtotal)
+
+					const cbcTaxableAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
+					cbcTaxableAmount.appendChild( document.createTextNode( this.#items[item].getTaxableIgvAmount(true) ) )
+					cacTaxSubtotal.appendChild(cbcTaxableAmount)
+
+					const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
+					cbcTaxAmount.appendChild( document.createTextNode( this.#items[item].getIgvAmount(true) ) )
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+					const cacTaxCategory = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxCategory")
+					cacTaxSubtotal.appendChild(cacTaxCategory)
+					{
+						const cbcPercent = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Percent")
+						cbcPercent.appendChild( document.createTextNode( this.#items[item].getIgvPercentage() ) )
+						cacTaxCategory.appendChild(cbcPercent)
+
+						const cbcTaxExemptionReasonCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxExemptionReasonCode")
+						cbcTaxExemptionReasonCode.appendChild( document.createTextNode( this.#items[item].getExemptionReasonCode() ) )
+						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
+
+						const cacTaxScheme = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxScheme")
+						cacTaxCategory.appendChild(cacTaxScheme)
+						{
+							const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+							cbcID.appendChild( document.createTextNode( "1000" ) )
+							cacTaxScheme.appendChild(cbcID)
+
+							const cbcName = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Name")
+							cbcName.appendChild( document.createTextNode( "IGV" ) )
+							cacTaxScheme.appendChild(cbcName)
+
+							const cbcTaxTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxTypeCode")
+							cbcTaxTypeCode.appendChild( document.createTextNode( "VAT" ) )
+							cacTaxScheme.appendChild(cbcTaxTypeCode)
+						}
+					}
+				}
+			}
+
+			{ //Item
+				const cacItem = this.xmlDocument.createElementNS(namespaces.cac, "cac:Item")
+				cacInvoiceLine.appendChild(cacItem)
+
+				const cbcDescription = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Description")
+				cbcDescription.appendChild( this.xmlDocument.createCDATASection(this.#items[item].getDescription()) )
+				cacItem.appendChild(cbcDescription)
+
+				if(this.#items[item].getCode()) {
+					const cacSellersItemIdentification = this.xmlDocument.createElementNS(namespaces.cac, "cac:SellersItemIdentification")
+					cacItem.appendChild(cacSellersItemIdentification)
+
+					const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+					cbcID.appendChild( document.createTextNode(this.#items[item].getCode()) )
+					cacSellersItemIdentification.appendChild(cbcID)
+				}
+
+				const cacCommodityClassification = this.xmlDocument.createElementNS(namespaces.cac, "cac:CommodityClassification")
+				cacItem.appendChild(cacCommodityClassification)
+
+				const cbcItemClassificationCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ItemClassificationCode")
+				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
+				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
+				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
+				cbcItemClassificationCode.appendChild( document.createTextNode(this.#items[item].getClassificationCode()) )
+				cacCommodityClassification.appendChild(cbcItemClassificationCode)
+			}
+
+			{ //Price
+				const cacPrice = this.xmlDocument.createElementNS(namespaces.cac, "cac:Price")
+				cacInvoiceLine.appendChild(cacPrice)
+
+				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
+				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true)) )
+				cacPrice.appendChild(cbcPriceAmount)
+			}
+		}
 	}
 }
 

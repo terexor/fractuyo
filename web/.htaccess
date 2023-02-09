@@ -14,6 +14,7 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)/$ /$1 [L,R=301]
 
 #Visor imprimible
+RewriteRule ^cdp/[0-9]{2}-[F|B|T][0-9A-Z]{3}-[0-9]{1,8}$ cdp-manipular.html [L]
 RewriteRule ^cdp/[0-9]{2}-[F|B|T][0-9A-Z]{3}-[0-9]{1,8}/visor$ visor.html [L]
 
 #Para quitar las extensiones finales
