@@ -299,7 +299,7 @@ class Invoice extends Receipt {
 		cbcIssueDate.appendChild( document.createTextNode(this.getIssueDate().toISOString().substr(0, 10)) )
 		this.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
-		if(this.#dueDate && shares.length == 0) {
+		if(this.#dueDate && this.#shares.length == 0) {
 			const cbcDueDate = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:DueDate")
 			cbcDueDate.appendChild( document.createTextNode(this.#dueDate) )
 			this.xmlDocument.documentElement.appendChild(cbcDueDate)
@@ -750,12 +750,12 @@ class Invoice extends Receipt {
 					cacTaxTotal.appendChild(cacTaxSubtotal)
 
 					const cbcTaxableAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", currencyId)
+					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
 					cbcTaxableAmount.appendChild( document.createTextNode( this.#items[item].getLineExtensionAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
 					const cbcTaxAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", currencyId)
+					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
 					cbcTaxAmount.appendChild( document.createTextNode( this.#items[item].getIscAmount(true) ) )
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
 
