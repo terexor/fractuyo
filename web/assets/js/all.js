@@ -233,7 +233,7 @@ function addRowForShare() {
 		return
 	}
 	const share = document.createElement("div")
-	share.setAttribute("class", "row share")
+	share.setAttribute("class", "row mb-1 share")
 	shares.appendChild(share)
 
 	const groupShare = document.createElement("div")

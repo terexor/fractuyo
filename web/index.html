@@ -160,7 +160,7 @@
 													</div>
 													<div class="col-lg-12 col-sm-12 col-12 mb-2 collapse hide" id="acreditando">
 														<div class="row">
-															<div class="col-12 pb-4" id="cuotas">
+															<div class="col-12 pb-3" id="cuotas">
 																<div class="text-center replaceable"><i>Acá debes agregar cuotas.</i></div>
 															</div>
 															<div class="position-relative top-100 start-50 translate-middle mt-0 text-center">
@@ -168,7 +168,24 @@
 															</div>
 														</div>
 													</div>
-												</div>
+												</div><!-- .row -->
+												<hr>
+												<div class="row">
+													<div class="col-lg-12 col-sm-12 col-12 mb-2">
+														<div class="form-check">
+															<input class="form-check-input" type="checkbox" id="detractable" name="detraccion" data-bs-toggle="collapse" data-bs-target="#detrayendo" disabled>
+															<label class="form-check-label" for="detractable">Porcentaje para detracciones</label>
+														</div>
+													</div>
+													<div class="col-lg-12 col-sm-12 col-12 mb-2 collapse hide" id="detrayendo">
+														<div class="row">
+															<div class="input-group">
+																<input type="number" name="detraccion-porcentaje" value="12" step="1" min="1" max="100" placeholder="Porcentaje" class="form-control" aria-label="Porcentaje para detraer">
+																<input type="number" class="form-control" value="0.00" readonly>
+															</div>
+														</div>
+													</div>
+												</div><!-- .row -->
 											</div>
 										</div>
 
