@@ -589,6 +589,9 @@ var Fractuyo = function() {
 			}
 			invoice.setSerie(formulario.elements["serie"].value)
 			invoice.setCurrencyId(formulario.elements.moneda.value)
+			if(formulario.elements.detraccion.checked) {
+				invoice.setDetractionPercentage(formulario.elements["detraccion-porcentaje"].value.trim())
+			}
 		}
 		catch(e) {
 			Notiflix.Notify.failure(e.message)
