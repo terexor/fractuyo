@@ -101,7 +101,7 @@
 							</div>
 						</div><!-- .card -->
 						<div class="card mt-3">
-							<div class="card-header">Configuración del sistema</div>
+							<div class="card-header">Datos de nuevo contribuyente</div>
 							<div class="card-body">
 								<form onsubmit="fractuyo.saveData(this);return false" class="row g-3">
 									<div class="col-md-3">
@@ -110,7 +110,7 @@
 									</div>
 									<div class="col-md-6">
 										<label for="nombre" class="form-label">Nombre o razón social</label>
-										<input id="nombre" name="nombre" type="text" class="form-control" maxlength="128" placeholder="Nombre o Razón social" required>
+										<input id="nombre" name="nombre" type="text" class="form-control" maxlength="128" placeholder="Nombre completo" required>
 									</div>
 									<div class="col-md-3">
 										<label for="marca" class="form-label">Nombre comercial</label>
@@ -146,20 +146,20 @@
 										<input id="distrito" name="distrito" type="text" class="form-control" maxlength="64" placeholder="Distrito" required>
 									</div>
 									<div class="col-md-12">
-										<label for="direccion" class="form-label">Dirección</label>
+										<label for="direccion" class="form-label">Domicilio fiscal</label>
 										<input id="direccion" name="direccion" type="text" class="form-control" maxlength="128" placeholder="Dirección" required>
 									</div>
 									<hr>
 									<div class="col-md-4">
-										<label for="web" class="form-label">Provincia</label>
-										<input id="web" name="web" type="text" class="form-control" placeholder="Sitio web">
+										<label for="web" class="form-label">Sitio web</label>
+										<input id="web" name="web" type="text" class="form-control" placeholder="URL">
 									</div>
 									<div class="col-md-4">
-										<label for="email" class="form-label">Provincia</label>
+										<label for="email" class="form-label">Correo electrónico</label>
 										<input id="email" name="email" type="text" class="form-control" placeholder="Correo electrónico">
 									</div>
 									<div class="col-md-4">
-										<label for="telefono" class="form-label">Provincia</label>
+										<label for="telefono" class="form-label">Teléfono</label>
 										<input id="telefono" name="telefono" type="text" class="form-control" placeholder="Número telefónico">
 									</div>
 									<hr>
@@ -169,11 +169,11 @@
 									</div>
 									<div class="col-md-4">
 										<label for="clave" class="form-label">Clave SOL</label>
-										<input id="clave" name="clave" type="text" class="form-control" placeholder="Contraseña para Sunat" required>
+										<input id="clave" name="clave" type="text" class="form-control" placeholder="Contraseña de usuario secundario" required>
 									</div>
 									<div class="col-md-4">
 										<label for="cuenta-bancaria" class="form-label">Cuenta de detracciones</label>
-										<input id="cuenta-bancaria" name="cuenta-detractora" type="text" class="form-control" placeholder="N° de cuenta" required>
+										<input id="cuenta-bancaria" name="cuenta-detractora" type="text" class="form-control" placeholder="N° de cuenta en Banco de la Nación" required>
 									</div>
 									<hr>
 									<div class="col-md-6">
@@ -186,11 +186,11 @@
 									</div>
 									<hr>
 									<div class="col-md-6">
-										<label for="paillier-publico" class="form-label">Clave para firmar</label>
+										<label for="paillier-publico" class="form-label">Clave para encriptar</label>
 										<textarea name="homoPubl" class="form-control" placeholder="Paillier público" rows="7" id="paillier-publico"></textarea>
 									</div>
 									<div class="col-md-6">
-										<label for="paillier-privado" class="form-label">Clave para firmar</label>
+										<label for="paillier-privado" class="form-label">Clave para desencriptar</label>
 										<textarea name="homoPriv" class="form-control" placeholder="Paillier privado" rows="7" id="paillier-privado"></textarea>
 									</div>
 									<div class="col-md-12">
