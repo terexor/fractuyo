@@ -39,6 +39,16 @@ window.onload = function() {
 			}
 
 			fractuyo.orderSeries()
+
+			//We override
+			if(fractuyo.config) {
+				if(fractuyo.config.detraction) {
+					if(fractuyo.config.detraction.enabled) {
+						document.getElementById("detractable").click()
+					}
+					document.getElementById("detraccion-porcentaje").value = fractuyo.config.detraction.percent
+				}
+			}
 		}
 	}
 

@@ -10,6 +10,11 @@ var Fractuyo = function() {
 	var template
 	var lockerButton
 
+	/**
+	 * Data used as default in forms.
+	 */
+	this.config
+
 	var currentCdpName = {typeCode:null, serie:null, number:null}
 
 	/**
@@ -121,6 +126,19 @@ var Fractuyo = function() {
 		}
 		catch(e) {
 			console.info("Usando visor CDP predeterminado.")
+		}
+
+		//Load config file
+		try {
+			fileHandle = await globalDirHandle.getFileHandle("config.json", {})
+			file = await fileHandle.getFile()
+			content = await file.text()
+			this.config = JSON.parse(content)
+			debugger
+		}
+		catch(e) {
+			console.error(e)
+			console.info("No hay configuraciones predeterminadas.")
 		}
 
 		return contentArray
