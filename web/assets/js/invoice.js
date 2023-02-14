@@ -173,6 +173,7 @@ class Invoice extends Receipt {
 	#operationAmounts = [0, 0, 0]
 
 	#shares = Array()
+	#sharesAmount = 0
 
 	#detractionPercentage
 	#detractionAmount
@@ -187,6 +188,8 @@ class Invoice extends Receipt {
 
 	addShare(share) {
 		this.#shares.push(share)
+
+		this.#sharesAmount += share.getAmount()
 	}
 
 	setDueDate(dd) {
@@ -273,6 +276,17 @@ class Invoice extends Receipt {
 		if(this.#taxInclusiveAmount >= 700) {
 			if(this.#detractionPercentage > 0) {
 				this.#detractionAmount = this.#taxInclusiveAmount * this.#detractionPercentage / 100
+			}
+		}
+
+		if(this.#sharesAmount) {
+			if(this.#detractionAmount) {
+				if(this.#sharesAmount.toFixed(2) != (this.#taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
+					throw new Error("La suma de las cuotas difiere del total menos detracción.")
+				}
+			}
+			else if(this.#sharesAmount.toFixed(2) != this.#taxInclusiveAmount.toFixed(2)) {
+				throw new Error("La suma de las cuotas difiere del total.")
 			}
 		}
 	}

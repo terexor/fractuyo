@@ -257,6 +257,7 @@ function addRowForShare() {
 
 	const entradaFecha = document.createElement("input")
 	entradaFecha.type = "date"
+	entradaFecha.required = true
 	entradaFecha.setAttribute("class", "form-control")
 	groupShare.appendChild(entradaFecha)
 
