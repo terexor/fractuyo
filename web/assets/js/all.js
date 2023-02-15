@@ -39,6 +39,16 @@ window.onload = function() {
 			}
 
 			fractuyo.orderSeries()
+
+			//We override
+			if(fractuyo.config) {
+				if(fractuyo.config.detraction) {
+					if(fractuyo.config.detraction.enabled) {
+						document.getElementById("detractable").click()
+					}
+					document.getElementById("detraccion-porcentaje").value = fractuyo.config.detraction.percent
+				}
+			}
 		}
 	}
 
@@ -233,7 +243,7 @@ function addRowForShare() {
 		return
 	}
 	const share = document.createElement("div")
-	share.setAttribute("class", "row share")
+	share.setAttribute("class", "row mb-1 share")
 	shares.appendChild(share)
 
 	const groupShare = document.createElement("div")
@@ -257,6 +267,7 @@ function addRowForShare() {
 
 	const entradaFecha = document.createElement("input")
 	entradaFecha.type = "date"
+	entradaFecha.required = true
 	entradaFecha.setAttribute("class", "form-control")
 	groupShare.appendChild(entradaFecha)
 

@@ -173,12 +173,23 @@ class Invoice extends Receipt {
 	#operationAmounts = [0, 0, 0]
 
 	#shares = Array()
+	#sharesAmount = 0
 
-	//Using validate() may change it
-	#hasDetraction = false
+	#detractionPercentage
+	#detractionAmount
+
+	setDetractionPercentage(dp) {
+		if(dp >= 0 || dp <= 100) {
+			this.#detractionPercentage = dp
+			return
+		}
+		throw new Error("Porcentajede detracción inconsistente.")
+	}
 
 	addShare(share) {
 		this.#shares.push(share)
+
+		this.#sharesAmount += share.getAmount()
 	}
 
 	setDueDate(dd) {
@@ -252,6 +263,7 @@ class Invoice extends Receipt {
 
 	/**
 	 * Check if everything can be processed.
+	 * It does some calculations
 	 */
 	validate() {
 		switch(this.getTypeCode()) {
@@ -262,7 +274,20 @@ class Invoice extends Receipt {
 		}
 
 		if(this.#taxInclusiveAmount >= 700) {
-			this.#hasDetraction = true
+			if(this.#detractionPercentage > 0) {
+				this.#detractionAmount = this.#taxInclusiveAmount * this.#detractionPercentage / 100
+			}
+		}
+
+		if(this.#sharesAmount) {
+			if(this.#detractionAmount) {
+				if(this.#sharesAmount.toFixed(2) != (this.#taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
+					throw new Error("La suma de las cuotas difiere del total menos detracción.")
+				}
+			}
+			else if(this.#sharesAmount.toFixed(2) != this.#taxInclusiveAmount.toFixed(2)) {
+				throw new Error("La suma de las cuotas difiere del total.")
+			}
 		}
 	}
 
@@ -306,7 +331,7 @@ class Invoice extends Receipt {
 		}
 
 		const cbcInvoiceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:InvoiceTypeCode")
-		if(this.#hasDetraction) {
+		if(this.#detractionAmount) {
 			cbcInvoiceTypeCode.setAttribute("listID", "1001")
 		}
 		else {
@@ -320,7 +345,7 @@ class Invoice extends Receipt {
 		cbcNote.appendChild( this.xmlDocument.createCDATASection(numberToWords(this.#taxInclusiveAmount.toFixed(2))) )
 		this.xmlDocument.documentElement.appendChild(cbcNote)
 
-		if(this.#hasDetraction) {
+		if(this.#detractionAmount) {
 			const cbcNote = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Note")
 			cbcNote.setAttribute("languageLocaleID", "2006")
 			cbcNote.appendChild( this.xmlDocument.createCDATASection("Operación sujeta a detracción") )
@@ -526,7 +551,7 @@ class Invoice extends Receipt {
 			}
 		}
 
-		if(this.#hasDetraction) {
+		if(this.#detractionAmount) {
 			const cacPaymentMeans = this.xmlDocument.createElementNS(namespaces.cac, "cac:PaymentMeans")
 			this.xmlDocument.documentElement.appendChild(cacPaymentMeans)
 			{
@@ -564,7 +589,7 @@ class Invoice extends Receipt {
 
 				const cbcAmount  = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
 				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcAmount.appendChild( document.createTextNode( (this.#taxInclusiveAmount * 0.12).toFixed(2) ) )//Must be variable
+				cbcAmount.appendChild( document.createTextNode( (this.#detractionAmount).toFixed(2) ) )//Must be variable
 				cacPaymentTerms.appendChild(cbcAmount)
 			}
 		}
@@ -596,8 +621,8 @@ class Invoice extends Receipt {
 
 				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
 				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				if(this.#hasDetraction) {
-					cbcAmount.appendChild( document.createTextNode((this.#taxInclusiveAmount - (this.#taxInclusiveAmount * 0.12)).toFixed(2)) )
+				if(this.#detractionAmount) {
+					cbcAmount.appendChild( document.createTextNode((this.#taxInclusiveAmount - (this.#detractionAmount)).toFixed(2)) )
 				}
 				else {
 					cbcAmount.appendChild( document.createTextNode(this.#taxInclusiveAmount.toFixed(2)) )
