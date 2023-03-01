@@ -134,7 +134,6 @@ var Fractuyo = function() {
 			file = await fileHandle.getFile()
 			content = await file.text()
 			this.config = JSON.parse(content)
-			debugger
 		}
 		catch(e) {
 			console.error(e)
