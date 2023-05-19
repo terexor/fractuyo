@@ -704,6 +704,9 @@ var Fractuyo = function() {
 		taxpayer.clearData()
 		document.getElementById("company-tag").textContent = "Nombre encriptado"
 		document.getElementById("ruc-tag").textContent = "RUC encriptado"
+		document.getElementById("warn-validity").textContent = ""
+		document.getElementById("warn-validity").classList.remove("bg-warning")
+		document.getElementById("warn-validity").classList.remove("bg-danger")
 		app.navigate("/bloqueo")
 		lockerButton.play()
 	}
@@ -746,7 +749,7 @@ var Fractuyo = function() {
 		taxpayer.setEmail(window.Encoding.bufToStr(json.children[5].children[1].value))
 		taxpayer.setTelephone(window.Encoding.bufToStr(json.children[5].children[2].value))
 
-		taxpayer.setCert( removeBeginEndPem( decryptedRsaCert ) )
+		const remainingValidity = taxpayer.setCert( removeBeginEndPem( decryptedRsaCert ) )
 		taxpayer.setKey( removeBeginEndPem( decryptedRsaPrivate ) )
 
 		if(decryptedPaillierPrivate) {
@@ -773,6 +776,16 @@ var Fractuyo = function() {
 		//Modify in view
 		document.getElementById("company-tag").textContent = taxpayer.getName()
 		document.getElementById("ruc-tag").textContent = taxpayer.getIdentification().getNumber()
+		if(remainingValidity == -1) {
+			document.getElementById("warn-validity").textContent = "Certificado vencido"
+			document.getElementById("warn-validity").classList.add("bg-danger")
+		}
+		else {
+			if(remainingValidity < 8) {
+				document.getElementById("warn-validity").textContent = `Certificado vencerá en ${remainingValidity} días.`
+				document.getElementById("warn-validity").classList.add("bg-warning")
+			}
+		}
 	}
 
 	this.handleUnlocked = async function(event) {
