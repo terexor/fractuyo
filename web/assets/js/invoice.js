@@ -6,12 +6,14 @@ class Receipt {
 	#numeration
 	#typeCode
 
-	#issueDate = new Date()
+	#issueDate
 
 	#currencyId
 
 	#ublVersion = "2.1"
 	#customizationId = "2.0"
+
+	#hash
 
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
@@ -21,6 +23,10 @@ class Receipt {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
 		this.xmlDocument
+	}
+
+	setCustomer(customer) {
+		this.#customer = customer
 	}
 
 	/**
@@ -79,6 +85,15 @@ class Receipt {
 		return this.#currencyId
 	}
 
+	setIssueDate(date) {
+		if(date) {
+			this.#issueDate = date
+		}
+		else {
+			this.#issueDate = new Date()
+		}
+	}
+
 	getIssueDate() {
 		return this.#issueDate
 	}
@@ -97,6 +112,14 @@ class Receipt {
 
 	getCustomizationId() {
 		return this.#customizationId
+	}
+
+	setHash(hash) {
+		this.#hash = hash
+	}
+
+	getHash() {
+		return this.#hash
 	}
 
 	async sign(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
@@ -155,8 +178,6 @@ class Invoice extends Receipt {
 	}
 
 	#items = Array()
-	 //Too used same in products
-	#currencyId
 	#orderReference
 	#orderReferenceText
 	#dueDate
@@ -183,7 +204,7 @@ class Invoice extends Receipt {
 			this.#detractionPercentage = dp
 			return
 		}
-		throw new Error("Porcentajede detracción inconsistente.")
+		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
 	addShare(share) {
@@ -261,6 +282,17 @@ class Invoice extends Receipt {
 		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
 	}
 
+	getDataQr() {
+		return
+			this.getTaxpayer().getIdentification().getNumber()
+			+ '|' + this.getId(true)
+			+ '|' + this.getIgvAmount(true)
+			+ '|' + this.getTaxTotalAmount(true)
+			+ '|' + this.getIssueDate()
+			+ '|' + this.getCustomer().getIdentification().getType()
+			+ '|' + this.getCustomer().getIdentification().getNumber()
+	}
+
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations
@@ -271,6 +303,10 @@ class Invoice extends Receipt {
 				if(this.getCustomer().getIdentification().getType() != 6) {
 					throw new Error("El cliente debe tener RUC.")
 				}
+		}
+
+		if(!this.getIssueDate()) {
+			this.setIssueDate()
 		}
 
 		if(this.#taxInclusiveAmount >= 700) {
@@ -892,6 +928,100 @@ class Invoice extends Receipt {
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
 				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true)) )
 				cacPrice.appendChild(cbcPriceAmount)
+			}
+		}
+	}
+
+	/**
+	 * Parse xml string for filling attributes.
+	 * If printed taxpayer is different from system current taxpayer then throw error.
+	 */
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		let ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		if(ruc == "") {
+			ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		}
+		if(ruc != this.getTaxpayer().getIdentification().getNumber()) {
+			throw new Error("Comprobante de pago no fue emitido por el contribuyente actual.")
+		}
+
+		this.setHash(
+			xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		const issueDate = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		this.setIssueDate()
+
+		const customer = new Person()
+		customer.setName(
+			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+		)
+		customer.setAddress(
+			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+		)
+		try {
+			customer.setIdentification(
+				new Identification().setIdentity(
+					removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ),
+					xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				)
+			)
+		}
+		catch(e) {
+			Notiflix.Report.warning("Inconsistencia", e.message, "Aceptar")
+			return
+		}
+		this.setCustomer(customer)
+
+		const identification = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue.split('-')
+		this.setId(identification[0], Number.parseInt(identification[1]))
+
+		this.setCurrencyId(
+			xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		this.setTypeCode(
+			xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		const productsLength = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+		for(let i = 1; i <= productsLength; ++i) {
+			const product = new Item(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setUnitCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setClassificationCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cac:CommodityClassification/cbc:ItemClassificationCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setExemptionReasonCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:TaxExemptionReasonCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			product.setIgvPercentage(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			product.setIscPercentage(0)
+			product.setQuantity(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setUnitValue(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			this.addItem(product)
+		}
+
+		const orderReference = xmlDoc.evaluate("count(/*/cac:OrderReference/cbc:ID)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+		if(orderReference) {
+			this.setOrderReference(
+				orderReference
+			)
+
+			const orderReferenceText = xmlDoc.evaluate("/*/cac:OrderReference/cbc:CustomerReference", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			if(orderReferenceText) {
+				this.setOrderReferenceText(referenceTag)
 			}
 		}
 	}
