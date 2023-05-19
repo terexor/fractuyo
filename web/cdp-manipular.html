@@ -88,7 +88,7 @@
 								<form class="row">
 									<div class="col-12 col-sm-6 col-md-4">
 										<div class="form-floating">
-											<select class="form-select" id="tipo" aria-label="Tipo de comprobante de pago" name="type-code" required>
+											<select class="form-select" id="tipo" onclick="listarSerie(this)" aria-label="Tipo de nota" name="type-code" required>
 												<option hidden="" value="">Elegir&hellip;</option>
 												<option value="07">Nota de crédito</option>
 												<option value="08">Nota de débito</option>
@@ -96,10 +96,16 @@
 											<label for="tipo">Tipo</label>
 										</div>
 										<div class="form-floating mt-2">
-											<select class="form-select" id="tipo" aria-label="Tipo de comprobante de pago" name="type-code" required">
+											<select class="form-select" id="motivo" aria-label="Motivo de nota" name="reason" required">
 												<option hidden="" value="">Elegir&hellip;</option>
 											</select>
 											<label for="tipo">Motivo</label>
+										</div>
+										<div class="form-floating mt-2">
+											<select class="form-select" id="serie" aria-label="Serie de nota" name="serie" required">
+												<option hidden="" value="">Elegir&hellip;</option>
+											</select>
+											<label for="tipo">Serie</label>
 										</div>
 									</div>
 									<div class="col-12 col-sm-6 col-md-8">
