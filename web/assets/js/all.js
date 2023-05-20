@@ -653,8 +653,8 @@ function generatePaillier() {
 	document.getElementById("paillier-privado").value = privateKeyDerData
 }
 
-function imprimirFecha(fecha, conHora = true) {
-	let dateString = ("0" + fecha.getDate()).slice(-2) + "/" + ("0" + (fecha.getMonth()+1)).slice(-2) + "/" + fecha.getFullYear()
+function imprimirFecha(fecha, conHora = true, dateSeparator = '-') {
+	let dateString = fecha.getFullYear() + dateSeparator + ("0" + (fecha.getMonth()+1)).slice(-2) + dateSeparator + ("0" + fecha.getDate()).slice(-2)
 	//Ahora la hora
 	if(conHora) {
 		dateString += " " + ("0" + fecha.getHours()).slice(-2) + ":" + ("0" + fecha.getMinutes()).slice(-2) + ":" + ("0" + fecha.getSeconds()).slice(-2)
