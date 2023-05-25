@@ -656,7 +656,7 @@ var Fractuyo = function() {
 			// Find directory structure
 			handleInvoiceDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle("xml", { create: true })
-			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle(invoice.getIssueDate().toISOString().substr(0, 7), { create: true })
+			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle( imprimirFecha(invoice.getIssueDate(), false, '-', false), { create: true })
 
 			let fileHandle
 			try {
@@ -938,7 +938,7 @@ var Fractuyo = function() {
 					sender.setAttribute("id", "sunatizador-" + cdpName)
 					sender.onclick = function() {
 						//Send to Sunat server
-						fractuyo.declareInvoice(cdpName, new Date(row.fecha).toISOString().substr(0, 7), this)
+						fractuyo.declareInvoice(cdpName, imprimirFecha(new Date(row.fecha), false, '-', false), this)
 					}
 					sender.appendChild(document.createTextNode("Sunatizar"))
 					_action.appendChild(sender)
