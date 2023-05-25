@@ -199,6 +199,8 @@ class Invoice extends Receipt {
 	#detractionPercentage
 	#detractionAmount
 
+	#discount
+
 	setDetractionPercentage(dp) {
 		if(dp >= 0 || dp <= 100) {
 			this.#detractionPercentage = dp
@@ -280,6 +282,28 @@ class Invoice extends Receipt {
 
 	getEncryptedIcbpAmount() {
 		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
+	}
+
+	setDiscount(discountAmount) {
+		this.#discount = new Charge(false)
+		this.#discount.setTypeCode("02")
+		this.#discount.setFactor(discountAmount / this.#taxInclusiveAmount, this.#lineExtensionAmount)
+
+		//Recalc amounts
+		const factorInverse = 1 - this.#discount.factor
+		this.#igvAmount *= factorInverse
+		this.#iscAmount *= factorInverse
+		this.#taxTotalAmount *= factorInverse
+		this.#taxInclusiveAmount *= factorInverse
+		this.#lineExtensionAmount *= factorInverse
+		this.#operationAmounts[0] *= factorInverse
+		this.#operationAmounts[1] *= factorInverse
+		this.#operationAmounts[2] *= factorInverse
+		this.#operationAmounts[3] *= factorInverse
+	}
+
+	getDiscount() {
+		return this.#discount
 	}
 
 	getDataQr() {
@@ -691,6 +715,34 @@ class Invoice extends Receipt {
 			}
 		}
 
+		if(this.#discount) {
+			const cacAllowanceCharge = this.xmlDocument.createElementNS(namespaces.cac, "cac:AllowanceCharge")
+			this.xmlDocument.documentElement.appendChild(cacAllowanceCharge)
+			{
+				const cbcChargeIndicator = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ChargeIndicator")
+				cbcChargeIndicator.appendChild( document.createTextNode(this.#discount.indicator) )
+				cacAllowanceCharge.appendChild(cbcChargeIndicator)
+
+				const cbcAllowanceChargeReasonCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:AllowanceChargeReasonCode")
+				cbcAllowanceChargeReasonCode.appendChild( document.createTextNode(this.#discount.getTypeCode()) )
+				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
+
+				const cbcMultiplierFactorNumeric = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:MultiplierFactorNumeric")
+				cbcMultiplierFactorNumeric.appendChild( document.createTextNode( this.#discount.factor.toFixed(3) ) )
+				cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
+
+				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcAmount.appendChild( document.createTextNode( this.#discount.amount.toFixed(2) ) )
+				cacAllowanceCharge.appendChild(cbcAmount)
+
+				const cbcBaseAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:BaseAmount")
+				cbcBaseAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcBaseAmount.appendChild( document.createTextNode(this.#discount.baseAmount.toFixed(2)) )
+				cacAllowanceCharge.appendChild(cbcBaseAmount)
+			}
+		}
+
 		{ //Taxes
 			const cacTaxTotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
 			this.xmlDocument.documentElement.appendChild(cacTaxTotal)
@@ -1024,6 +1076,57 @@ class Invoice extends Receipt {
 				this.setOrderReferenceText(referenceTag)
 			}
 		}
+	}
+}
+
+class Charge {
+	#indicator
+	#amount
+	#typeCode
+	#factor
+
+	/**
+	 * Original amount.
+	 * Line extension amount.
+	 */
+	#baseAmount
+
+	constructor(isCharge) {
+		this.#indicator = isCharge
+	}
+
+	get indicator() {
+		return this.#indicator
+	}
+
+	setAmount(amount) {
+		this.#amount = amount
+	}
+
+	get amount() {
+		return this.#amount
+	}
+
+	setTypeCode(typeCode) {
+		this.#typeCode = typeCode
+	}
+
+	getTypeCode() {
+		return this.#typeCode
+	}
+
+	setFactor(factor, baseAmount) {
+		this.#factor = factor
+		this.#amount = factor * baseAmount
+		this.#baseAmount = baseAmount
+	}
+
+	get factor() {
+		return this.#factor
+	}
+
+	get baseAmount() {
+		return this.#baseAmount
 	}
 }
 
