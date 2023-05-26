@@ -363,8 +363,10 @@ function addRowForItem(object) {
 	colDescripcion.appendChild(floatingTextarea)
 
 	const textareaDescripcion = document.createElement("textarea")
+	textareaDescripcion.maxLength = "250"
+	textareaDescripcion.required = true
 	textareaDescripcion.setAttribute("class", "form-control h-100")
-	textareaDescripcion.placeholder = "Cualquier descripción"
+	textareaDescripcion.placeholder = "Descripción detallada hasta máximo 250 caracteres"
 	floatingTextarea.appendChild(textareaDescripcion)
 
 	const etiquetaDescripcion = document.createElement("label")
@@ -410,7 +412,10 @@ function addRowForItem(object) {
 
 	const entradaCantidad = document.createElement("input")
 	entradaCantidad.type = "number"
-	entradaCantidad.step = "0.01"
+	entradaCantidad.step = "0.0000000001"
+	entradaCantidad.max = "999999999999.9999999999"
+	entradaCantidad.min = "0.0000000001"
+	entradaCantidad.required = true
 	entradaCantidad.placeholder = "Cantidad"
 	entradaCantidad.setAttribute("class", "form-control w-25")
 	entradaCantidad.setAttribute("data-type", "quantity")
@@ -461,7 +466,10 @@ function addRowForItem(object) {
 
 	const entradaValorUnitario = document.createElement("input")
 	entradaValorUnitario.type = "number"
-	entradaValorUnitario.step = "0.01"
+	entradaValorUnitario.step = "0.0000000001"
+	entradaValorUnitario.max = "999999999999.9999999999"
+	entradaValorUnitario.min = "0.0000000001"
+	entradaValorUnitario.required = true
 	entradaValorUnitario.placeholder = "Valor unitario"
 	entradaValorUnitario.setAttribute("class", "form-control")
 	entradaValorUnitario.setAttribute("aria-label", "Valor unitario")

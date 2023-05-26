@@ -734,7 +734,7 @@ class Invoice extends Receipt {
 				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
 
 				const cbcMultiplierFactorNumeric = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:MultiplierFactorNumeric")
-				cbcMultiplierFactorNumeric.appendChild( document.createTextNode( this.#discount.factor.toFixed(3) ) )
+				cbcMultiplierFactorNumeric.appendChild( document.createTextNode( this.#discount.factor.toFixed(5) ) )
 				cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
 
 				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
@@ -830,7 +830,7 @@ class Invoice extends Receipt {
 			cbcInvoicedQuantity.setAttribute("unitCode", this.#items[item].getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
-			cbcInvoicedQuantity.appendChild( document.createTextNode(this.#items[item].getQuantity()) )
+			cbcInvoicedQuantity.appendChild( document.createTextNode(this.#items[item].getQuantity(true, 10)) )
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
 			const cbcLineExtensionAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
@@ -847,7 +847,7 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.appendChild( document.createTextNode( this.#items[item].getPricingReferenceAmount(true) ) )
+				cbcPriceAmount.appendChild( document.createTextNode( this.#items[item].getPricingReferenceAmount(true, 10) ) )
 				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
 				const cbcPriceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
@@ -984,7 +984,7 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true)) )
+				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true, 10)) )
 				cacPrice.appendChild(cbcPriceAmount)
 			}
 		}
@@ -1197,8 +1197,8 @@ var Item = function(_description) {
 		return code
 	}
 
-	this.getQuantity = function(withFormat = false) {
-		return withFormat ? quantity.toFixed(2) : quantity
+	this.getQuantity = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? quantity.toFixed(decimalLength) : quantity
 	}
 
 	this.setQuantity = function(q) {
@@ -1269,8 +1269,8 @@ var Item = function(_description) {
 		return withFormat ? igvAmount.toFixed(2) : igvAmount
 	}
 
-	this.getUnitValue = function(withFormat = false) {
-		return withFormat ? unitValue.toFixed(2) : unitValue
+	this.getUnitValue = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? unitValue.toFixed(decimalLength) : unitValue
 	}
 
 	this.setUnitValue = function(uv, withoutIgv) {
@@ -1310,8 +1310,8 @@ var Item = function(_description) {
 		return withFormat ? taxableIgvAmount.toFixed(2) : taxableIgvAmount
 	}
 
-	this.getPricingReferenceAmount = function(withFormat = false) {
-		return withFormat ? pricingReferenceAmount.toFixed(2) : pricingReferenceAmount
+	this.getPricingReferenceAmount = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? pricingReferenceAmount.toFixed(decimalLength) : pricingReferenceAmount
 	}
 
 	this.getTaxTotalAmount = function(withFormat = false) {
