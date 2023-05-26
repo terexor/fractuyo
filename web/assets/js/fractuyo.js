@@ -650,7 +650,7 @@ var Fractuyo = function() {
 			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16).padStart(512, '0') ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16).padStart(512, '0') ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16).padStart(512, '0') ),
-			window.Encoding.hexToBuf( taxpayer.getPaillierPublicKey().encrypt(0).toString(16).padStart(512, '0') ) //Temporally for discount
+			window.Encoding.hexToBuf( invoice.getEncryptedDiscountAmount().toString(16).padStart(512, '0') )
 		])
 
 		let creatingErrorFlag = true

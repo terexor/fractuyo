@@ -284,6 +284,10 @@ class Invoice extends Receipt {
 		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
 	}
 
+	getEncryptedDiscountAmount() {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt(!this.#discount ? 0 : parseInt( Math.round( this.#discount.amount * 100 ) / 100 * 100 ) )
+	}
+
 	setDiscount(discountAmount) {
 		if(discountAmount > 0) {
 			this.#discount = new Charge(false)
