@@ -285,21 +285,23 @@ class Invoice extends Receipt {
 	}
 
 	setDiscount(discountAmount) {
-		this.#discount = new Charge(false)
-		this.#discount.setTypeCode("02")
-		this.#discount.setFactor(discountAmount / this.#taxInclusiveAmount, this.#lineExtensionAmount)
+		if(discountAmount > 0) {
+			this.#discount = new Charge(false)
+			this.#discount.setTypeCode("02")
+			this.#discount.setFactor(discountAmount / this.#taxInclusiveAmount, this.#lineExtensionAmount)
 
-		//Recalc amounts
-		const factorInverse = 1 - this.#discount.factor
-		this.#igvAmount *= factorInverse
-		this.#iscAmount *= factorInverse
-		this.#taxTotalAmount *= factorInverse
-		this.#taxInclusiveAmount *= factorInverse
-		this.#lineExtensionAmount *= factorInverse
-		this.#operationAmounts[0] *= factorInverse
-		this.#operationAmounts[1] *= factorInverse
-		this.#operationAmounts[2] *= factorInverse
-		this.#operationAmounts[3] *= factorInverse
+			//Recalc amounts
+			const factorInverse = 1 - this.#discount.factor
+			this.#igvAmount *= factorInverse
+			this.#iscAmount *= factorInverse
+			this.#taxTotalAmount *= factorInverse
+			this.#taxInclusiveAmount *= factorInverse
+			this.#lineExtensionAmount *= factorInverse
+			this.#operationAmounts[0] *= factorInverse
+			this.#operationAmounts[1] *= factorInverse
+			this.#operationAmounts[2] *= factorInverse
+			this.#operationAmounts[3] *= factorInverse
+		}
 	}
 
 	getDiscount() {
