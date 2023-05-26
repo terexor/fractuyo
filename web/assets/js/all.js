@@ -591,11 +591,20 @@ function calcOperations() {
 		amounts[4] += lineExtensionAmount * 0.18
 	}
 
+	let globalTotal = amounts[0] + amounts[1] + amounts[2] + amounts[3] + amounts[4] + amounts[5] + amounts[6]
+
+	const discountTotal = parseFloat(form.elements["descuento-global"].value)
+	if( ! ( Number.isNaN(discountTotal) || discountTotal == 0 )) {
+		const factorInverse = 1 - discountTotal / globalTotal
+		amounts[0] *= factorInverse
+		amounts[1] *= factorInverse
+		amounts[4] *= factorInverse
+		globalTotal *= factorInverse
+	}
+
 	form.elements["gravado-global"].value = amounts[0].toFixed(2)
-
 	form.elements["igv-global"].value = amounts[4].toFixed(2)
-
-	form.elements["total-global"].value = ( amounts[0] + amounts[1] + amounts[2] + amounts[3] + amounts[4] + amounts[5] + amounts[6] ).toFixed(2)
+	form.elements["total-global"].value = globalTotal.toFixed(2)
 }
 
 function showItemEditor() {

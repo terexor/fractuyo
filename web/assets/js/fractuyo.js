@@ -609,6 +609,9 @@ var Fractuyo = function() {
 			if(formulario.elements.detraccion.checked) {
 				invoice.setDetractionPercentage(formulario.elements["detraccion-porcentaje"].value.trim())
 			}
+			if(formulario.elements["descuento-global"].value.trim().length != 0) {
+				invoice.setDiscount(parseFloat(formulario.elements["descuento-global"].value))
+			}
 		}
 		catch(e) {
 			Notiflix.Notify.failure(e.message)
