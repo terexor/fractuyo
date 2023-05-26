@@ -103,8 +103,53 @@ var Taxpayer = function() {
 		return paillierPrivateKey
 	}
 
+	/**
+	 * @return int -1 when now is out of range of validity or major than -1 for remaining days
+	 */
 	this.setCert = function(c) {
 		cert = c
+
+		let der =  window.Encoding.base64ToBuf( c.split(/\n/).filter(function (line) {
+			return !/-----/.test(line)
+		}).join('') )
+
+		let json = ASN1.parse({ der: der, json: false, verbose: true })
+		const notBefore = json.children[0].children[4].children[0]
+		const notAfter = json.children[0].children[4].children[1]
+		let validityNotBefore = window.Encoding.bufToStr(notBefore.value)
+		let validityNotAfter = window.Encoding.bufToStr(notAfter.value)
+		let timeNotBefore, timeNotAfter
+		if(notAfter.type == 23) {
+			//prepend two digits of year
+			validityNotAfter = ( parseInt(validityNotAfter.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotAfter
+		}
+		timeNotAfter = new Date(Date.UTC(
+			validityNotAfter.substring(0, 4),
+			validityNotAfter.substring(4, 6),
+			validityNotAfter.substring(6, 8),
+			validityNotAfter.substring(8, 10),
+			validityNotAfter.substring(10, 12),
+			validityNotAfter.substring(12, 14)
+		))
+		if(notBefore.type == 23) {
+			validityNotBefore = ( parseInt(validityNotBefore.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotBefore
+		}
+		timeNotBefore = new Date(Date.UTC(
+			validityNotBefore.substring(0, 4),
+			validityNotBefore.substring(4, 6),
+			validityNotBefore.substring(6, 8),
+			validityNotBefore.substring(8, 10),
+			validityNotBefore.substring(10, 12),
+			validityNotBefore.substring(12, 14)
+		))
+
+		const now = new Date()
+		if(now < timeNotBefore || now > timeNotAfter) {
+			return -1
+		}
+		else {
+			return Math.round( ( timeNotAfter - now ) / (1000 * 60 * 60 * 24) )
+		}
 	}
 
 	this.getCert = function() {

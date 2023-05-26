@@ -363,8 +363,10 @@ function addRowForItem(object) {
 	colDescripcion.appendChild(floatingTextarea)
 
 	const textareaDescripcion = document.createElement("textarea")
+	textareaDescripcion.maxLength = "250"
+	textareaDescripcion.required = true
 	textareaDescripcion.setAttribute("class", "form-control h-100")
-	textareaDescripcion.placeholder = "Cualquier descripción"
+	textareaDescripcion.placeholder = "Descripción detallada hasta máximo 250 caracteres"
 	floatingTextarea.appendChild(textareaDescripcion)
 
 	const etiquetaDescripcion = document.createElement("label")
@@ -410,7 +412,10 @@ function addRowForItem(object) {
 
 	const entradaCantidad = document.createElement("input")
 	entradaCantidad.type = "number"
-	entradaCantidad.step = "0.01"
+	entradaCantidad.step = "0.0000000001"
+	entradaCantidad.max = "999999999999.9999999999"
+	entradaCantidad.min = "0.0000000001"
+	entradaCantidad.required = true
 	entradaCantidad.placeholder = "Cantidad"
 	entradaCantidad.setAttribute("class", "form-control w-25")
 	entradaCantidad.setAttribute("data-type", "quantity")
@@ -461,7 +466,10 @@ function addRowForItem(object) {
 
 	const entradaValorUnitario = document.createElement("input")
 	entradaValorUnitario.type = "number"
-	entradaValorUnitario.step = "0.01"
+	entradaValorUnitario.step = "0.0000000001"
+	entradaValorUnitario.max = "999999999999.9999999999"
+	entradaValorUnitario.min = "0.0000000001"
+	entradaValorUnitario.required = true
 	entradaValorUnitario.placeholder = "Valor unitario"
 	entradaValorUnitario.setAttribute("class", "form-control")
 	entradaValorUnitario.setAttribute("aria-label", "Valor unitario")
@@ -591,11 +599,20 @@ function calcOperations() {
 		amounts[4] += lineExtensionAmount * 0.18
 	}
 
+	let globalTotal = amounts[0] + amounts[1] + amounts[2] + amounts[3] + amounts[4] + amounts[5] + amounts[6]
+
+	const discountTotal = parseFloat(form.elements["descuento-global"].value)
+	if( ! ( Number.isNaN(discountTotal) || discountTotal == 0 )) {
+		const factorInverse = 1 - discountTotal / globalTotal
+		amounts[0] *= factorInverse
+		amounts[1] *= factorInverse
+		amounts[4] *= factorInverse
+		globalTotal *= factorInverse
+	}
+
 	form.elements["gravado-global"].value = amounts[0].toFixed(2)
-
 	form.elements["igv-global"].value = amounts[4].toFixed(2)
-
-	form.elements["total-global"].value = ( amounts[0] + amounts[1] + amounts[2] + amounts[3] + amounts[4] + amounts[5] + amounts[6] ).toFixed(2)
+	form.elements["total-global"].value = globalTotal.toFixed(2)
 }
 
 function showItemEditor() {
@@ -653,8 +670,8 @@ function generatePaillier() {
 	document.getElementById("paillier-privado").value = privateKeyDerData
 }
 
-function imprimirFecha(fecha, conHora = true) {
-	let dateString = ("0" + fecha.getDate()).slice(-2) + "/" + ("0" + (fecha.getMonth()+1)).slice(-2) + "/" + fecha.getFullYear()
+function imprimirFecha(fecha, conHora = true, dateSeparator = '-', withYear = true) {
+	let dateString = fecha.getFullYear() + dateSeparator + ("0" + (fecha.getMonth()+1)).slice(-2) + (withYear ? (dateSeparator + ("0" + fecha.getDate()).slice(-2)) : '')
 	//Ahora la hora
 	if(conHora) {
 		dateString += " " + ("0" + fecha.getHours()).slice(-2) + ":" + ("0" + fecha.getMinutes()).slice(-2) + ":" + ("0" + fecha.getSeconds()).slice(-2)

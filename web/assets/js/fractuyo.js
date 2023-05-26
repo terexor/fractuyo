@@ -134,7 +134,6 @@ var Fractuyo = function() {
 			file = await fileHandle.getFile()
 			content = await file.text()
 			this.config = JSON.parse(content)
-			debugger
 		}
 		catch(e) {
 			console.error(e)
@@ -610,6 +609,9 @@ var Fractuyo = function() {
 			if(formulario.elements.detraccion.checked) {
 				invoice.setDetractionPercentage(formulario.elements["detraccion-porcentaje"].value.trim())
 			}
+			if(formulario.elements["descuento-global"].value.trim().length != 0) {
+				invoice.setDiscount(parseFloat(formulario.elements["descuento-global"].value))
+			}
 		}
 		catch(e) {
 			Notiflix.Notify.failure(e.message)
@@ -648,7 +650,7 @@ var Fractuyo = function() {
 			window.Encoding.hexToBuf( invoice.getEncryptedIscAmount().toString(16).padStart(512, '0') ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIgvAmount().toString(16).padStart(512, '0') ),
 			window.Encoding.hexToBuf( invoice.getEncryptedIcbpAmount().toString(16).padStart(512, '0') ),
-			window.Encoding.hexToBuf( taxpayer.getPaillierPublicKey().encrypt(0).toString(16).padStart(512, '0') ) //Temporally for discount
+			window.Encoding.hexToBuf( invoice.getEncryptedDiscountAmount().toString(16).padStart(512, '0') )
 		])
 
 		let creatingErrorFlag = true
@@ -657,7 +659,7 @@ var Fractuyo = function() {
 			// Find directory structure
 			handleInvoiceDirectory = await globalDirHandle.getDirectoryHandle("docs", { create: true })
 			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle("xml", { create: true })
-			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle(invoice.getIssueDate().toISOString().substr(0, 7), { create: true })
+			handleInvoiceDirectory = await handleInvoiceDirectory.getDirectoryHandle( imprimirFecha(invoice.getIssueDate(), false, '-', false), { create: true })
 
 			let fileHandle
 			try {
@@ -705,6 +707,9 @@ var Fractuyo = function() {
 		taxpayer.clearData()
 		document.getElementById("company-tag").textContent = "Nombre encriptado"
 		document.getElementById("ruc-tag").textContent = "RUC encriptado"
+		document.getElementById("warn-validity").textContent = ""
+		document.getElementById("warn-validity").classList.remove("bg-warning")
+		document.getElementById("warn-validity").classList.remove("bg-danger")
 		app.navigate("/bloqueo")
 		lockerButton.play()
 	}
@@ -747,7 +752,7 @@ var Fractuyo = function() {
 		taxpayer.setEmail(window.Encoding.bufToStr(json.children[5].children[1].value))
 		taxpayer.setTelephone(window.Encoding.bufToStr(json.children[5].children[2].value))
 
-		taxpayer.setCert( removeBeginEndPem( decryptedRsaCert ) )
+		const remainingValidity = taxpayer.setCert( removeBeginEndPem( decryptedRsaCert ) )
 		taxpayer.setKey( removeBeginEndPem( decryptedRsaPrivate ) )
 
 		if(decryptedPaillierPrivate) {
@@ -774,6 +779,16 @@ var Fractuyo = function() {
 		//Modify in view
 		document.getElementById("company-tag").textContent = taxpayer.getName()
 		document.getElementById("ruc-tag").textContent = taxpayer.getIdentification().getNumber()
+		if(remainingValidity == -1) {
+			document.getElementById("warn-validity").textContent = "Certificado vencido"
+			document.getElementById("warn-validity").classList.add("bg-danger")
+		}
+		else {
+			if(remainingValidity < 8) {
+				document.getElementById("warn-validity").textContent = `Certificado vencerá en ${remainingValidity} días.`
+				document.getElementById("warn-validity").classList.add("bg-warning")
+			}
+		}
 	}
 
 	this.handleUnlocked = async function(event) {
@@ -926,7 +941,7 @@ var Fractuyo = function() {
 					sender.setAttribute("id", "sunatizador-" + cdpName)
 					sender.onclick = function() {
 						//Send to Sunat server
-						fractuyo.declareInvoice(cdpName, new Date(row.fecha).toISOString().substr(0, 7), this)
+						fractuyo.declareInvoice(cdpName, imprimirFecha(new Date(row.fecha), false, '-', false), this)
 					}
 					sender.appendChild(document.createTextNode("Sunatizar"))
 					_action.appendChild(sender)

@@ -6,12 +6,14 @@ class Receipt {
 	#numeration
 	#typeCode
 
-	#issueDate = new Date()
+	#issueDate
 
 	#currencyId
 
 	#ublVersion = "2.1"
 	#customizationId = "2.0"
+
+	#hash
 
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
@@ -21,6 +23,10 @@ class Receipt {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
 		this.xmlDocument
+	}
+
+	setCustomer(customer) {
+		this.#customer = customer
 	}
 
 	/**
@@ -79,6 +85,15 @@ class Receipt {
 		return this.#currencyId
 	}
 
+	setIssueDate(date) {
+		if(date) {
+			this.#issueDate = date
+		}
+		else {
+			this.#issueDate = new Date()
+		}
+	}
+
 	getIssueDate() {
 		return this.#issueDate
 	}
@@ -97,6 +112,14 @@ class Receipt {
 
 	getCustomizationId() {
 		return this.#customizationId
+	}
+
+	setHash(hash) {
+		this.#hash = hash
+	}
+
+	getHash() {
+		return this.#hash
 	}
 
 	async sign(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
@@ -155,8 +178,6 @@ class Invoice extends Receipt {
 	}
 
 	#items = Array()
-	 //Too used same in products
-	#currencyId
 	#orderReference
 	#orderReferenceText
 	#dueDate
@@ -178,12 +199,14 @@ class Invoice extends Receipt {
 	#detractionPercentage
 	#detractionAmount
 
+	#discount
+
 	setDetractionPercentage(dp) {
 		if(dp >= 0 || dp <= 100) {
 			this.#detractionPercentage = dp
 			return
 		}
-		throw new Error("Porcentajede detracción inconsistente.")
+		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
 	addShare(share) {
@@ -261,6 +284,45 @@ class Invoice extends Receipt {
 		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
 	}
 
+	getEncryptedDiscountAmount() {
+		return this.getTaxpayer().getPaillierPublicKey().encrypt(!this.#discount ? 0 : parseInt( Math.round( this.#discount.amount * 100 ) / 100 * 100 ) )
+	}
+
+	setDiscount(discountAmount) {
+		if(discountAmount > 0) {
+			this.#discount = new Charge(false)
+			this.#discount.setTypeCode("02")
+			this.#discount.setFactor(discountAmount / this.#taxInclusiveAmount, this.#lineExtensionAmount)
+
+			//Recalc amounts
+			const factorInverse = 1 - this.#discount.factor
+			this.#igvAmount *= factorInverse
+			this.#iscAmount *= factorInverse
+			this.#taxTotalAmount *= factorInverse
+			this.#taxInclusiveAmount *= factorInverse
+			this.#lineExtensionAmount *= factorInverse
+			this.#operationAmounts[0] *= factorInverse
+			this.#operationAmounts[1] *= factorInverse
+			this.#operationAmounts[2] *= factorInverse
+			this.#operationAmounts[3] *= factorInverse
+		}
+	}
+
+	getDiscount() {
+		return this.#discount
+	}
+
+	getDataQr() {
+		return
+			this.getTaxpayer().getIdentification().getNumber()
+			+ '|' + this.getId(true)
+			+ '|' + this.getIgvAmount(true)
+			+ '|' + this.getTaxTotalAmount(true)
+			+ '|' + this.getIssueDate()
+			+ '|' + this.getCustomer().getIdentification().getType()
+			+ '|' + this.getCustomer().getIdentification().getNumber()
+	}
+
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations
@@ -271,6 +333,10 @@ class Invoice extends Receipt {
 				if(this.getCustomer().getIdentification().getType() != 6) {
 					throw new Error("El cliente debe tener RUC.")
 				}
+		}
+
+		if(!this.getIssueDate()) {
+			this.setIssueDate()
 		}
 
 		if(this.#taxInclusiveAmount >= 700) {
@@ -321,7 +387,7 @@ class Invoice extends Receipt {
 		this.xmlDocument.documentElement.appendChild(cbcId)
 
 		const cbcIssueDate = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.appendChild( document.createTextNode(this.getIssueDate().toISOString().substr(0, 10)) )
+		cbcIssueDate.appendChild( document.createTextNode( imprimirFecha( this.getIssueDate(), false ) ) )
 		this.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		if(this.#dueDate && this.#shares.length == 0) {
@@ -655,6 +721,34 @@ class Invoice extends Receipt {
 			}
 		}
 
+		if(this.#discount) {
+			const cacAllowanceCharge = this.xmlDocument.createElementNS(namespaces.cac, "cac:AllowanceCharge")
+			this.xmlDocument.documentElement.appendChild(cacAllowanceCharge)
+			{
+				const cbcChargeIndicator = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ChargeIndicator")
+				cbcChargeIndicator.appendChild( document.createTextNode(this.#discount.indicator) )
+				cacAllowanceCharge.appendChild(cbcChargeIndicator)
+
+				const cbcAllowanceChargeReasonCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:AllowanceChargeReasonCode")
+				cbcAllowanceChargeReasonCode.appendChild( document.createTextNode(this.#discount.getTypeCode()) )
+				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
+
+				const cbcMultiplierFactorNumeric = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:MultiplierFactorNumeric")
+				cbcMultiplierFactorNumeric.appendChild( document.createTextNode( this.#discount.factor.toFixed(5) ) )
+				cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
+
+				const cbcAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcAmount.appendChild( document.createTextNode( this.#discount.amount.toFixed(2) ) )
+				cacAllowanceCharge.appendChild(cbcAmount)
+
+				const cbcBaseAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:BaseAmount")
+				cbcBaseAmount.setAttribute("currencyID", this.getCurrencyId())
+				cbcBaseAmount.appendChild( document.createTextNode(this.#discount.baseAmount.toFixed(2)) )
+				cacAllowanceCharge.appendChild(cbcBaseAmount)
+			}
+		}
+
 		{ //Taxes
 			const cacTaxTotal = this.xmlDocument.createElementNS(namespaces.cac, "cac:TaxTotal")
 			this.xmlDocument.documentElement.appendChild(cacTaxTotal)
@@ -736,7 +830,7 @@ class Invoice extends Receipt {
 			cbcInvoicedQuantity.setAttribute("unitCode", this.#items[item].getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
-			cbcInvoicedQuantity.appendChild( document.createTextNode(this.#items[item].getQuantity()) )
+			cbcInvoicedQuantity.appendChild( document.createTextNode(this.#items[item].getQuantity(true, 10)) )
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
 			const cbcLineExtensionAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:LineExtensionAmount")
@@ -753,7 +847,7 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.appendChild( document.createTextNode( this.#items[item].getPricingReferenceAmount(true) ) )
+				cbcPriceAmount.appendChild( document.createTextNode( this.#items[item].getPricingReferenceAmount(true, 10) ) )
 				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
 				const cbcPriceTypeCode = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceTypeCode")
@@ -890,10 +984,155 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true)) )
+				cbcPriceAmount.appendChild( document.createTextNode(this.#items[item].getUnitValue(true, 10)) )
 				cacPrice.appendChild(cbcPriceAmount)
 			}
 		}
+	}
+
+	/**
+	 * Parse xml string for filling attributes.
+	 * If printed taxpayer is different from system current taxpayer then throw error.
+	 */
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		let ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		if(ruc == "") {
+			ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		}
+		if(ruc != this.getTaxpayer().getIdentification().getNumber()) {
+			throw new Error("Comprobante de pago no fue emitido por el contribuyente actual.")
+		}
+
+		this.setHash(
+			xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		const issueDate = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		this.setIssueDate()
+
+		const customer = new Person()
+		customer.setName(
+			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+		)
+		customer.setAddress(
+			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
+		)
+		try {
+			customer.setIdentification(
+				new Identification().setIdentity(
+					removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ),
+					xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+				)
+			)
+		}
+		catch(e) {
+			Notiflix.Report.warning("Inconsistencia", e.message, "Aceptar")
+			return
+		}
+		this.setCustomer(customer)
+
+		const identification = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue.split('-')
+		this.setId(identification[0], Number.parseInt(identification[1]))
+
+		this.setCurrencyId(
+			xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		this.setTypeCode(
+			xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+		)
+
+		const productsLength = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+		for(let i = 1; i <= productsLength; ++i) {
+			const product = new Item(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setUnitCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setClassificationCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cac:CommodityClassification/cbc:ItemClassificationCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setExemptionReasonCode(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:TaxExemptionReasonCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			product.setIgvPercentage(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			product.setIscPercentage(0)
+			product.setQuantity(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			)
+			product.setUnitValue(
+				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+			)
+			this.addItem(product)
+		}
+
+		const orderReference = xmlDoc.evaluate("count(/*/cac:OrderReference/cbc:ID)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
+		if(orderReference) {
+			this.setOrderReference(
+				orderReference
+			)
+
+			const orderReferenceText = xmlDoc.evaluate("/*/cac:OrderReference/cbc:CustomerReference", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
+			if(orderReferenceText) {
+				this.setOrderReferenceText(referenceTag)
+			}
+		}
+	}
+}
+
+class Charge {
+	#indicator
+	#amount
+	#typeCode
+	#factor
+
+	/**
+	 * Original amount.
+	 * Line extension amount.
+	 */
+	#baseAmount
+
+	constructor(isCharge) {
+		this.#indicator = isCharge
+	}
+
+	get indicator() {
+		return this.#indicator
+	}
+
+	setAmount(amount) {
+		this.#amount = amount
+	}
+
+	get amount() {
+		return this.#amount
+	}
+
+	setTypeCode(typeCode) {
+		this.#typeCode = typeCode
+	}
+
+	getTypeCode() {
+		return this.#typeCode
+	}
+
+	setFactor(factor, baseAmount) {
+		this.#factor = factor
+		this.#amount = factor * baseAmount
+		this.#baseAmount = baseAmount
+	}
+
+	get factor() {
+		return this.#factor
+	}
+
+	get baseAmount() {
+		return this.#baseAmount
 	}
 }
 
@@ -958,8 +1197,8 @@ var Item = function(_description) {
 		return code
 	}
 
-	this.getQuantity = function(withFormat = false) {
-		return withFormat ? quantity.toFixed(2) : quantity
+	this.getQuantity = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? quantity.toFixed(decimalLength) : quantity
 	}
 
 	this.setQuantity = function(q) {
@@ -1030,8 +1269,8 @@ var Item = function(_description) {
 		return withFormat ? igvAmount.toFixed(2) : igvAmount
 	}
 
-	this.getUnitValue = function(withFormat = false) {
-		return withFormat ? unitValue.toFixed(2) : unitValue
+	this.getUnitValue = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? unitValue.toFixed(decimalLength) : unitValue
 	}
 
 	this.setUnitValue = function(uv, withoutIgv) {
@@ -1071,8 +1310,8 @@ var Item = function(_description) {
 		return withFormat ? taxableIgvAmount.toFixed(2) : taxableIgvAmount
 	}
 
-	this.getPricingReferenceAmount = function(withFormat = false) {
-		return withFormat ? pricingReferenceAmount.toFixed(2) : pricingReferenceAmount
+	this.getPricingReferenceAmount = function(withFormat = false, decimalLength = 2) {
+		return withFormat ? pricingReferenceAmount.toFixed(decimalLength) : pricingReferenceAmount
 	}
 
 	this.getTaxTotalAmount = function(withFormat = false) {

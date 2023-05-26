@@ -22,6 +22,7 @@
 			<div class="container-fluid">
 				<div class="row mb-5 d-print-none">
 					<nav class="navbar navbar-dark bg-dark fixed-top">
+						<div class="container-fluid text-dark" id="warn-validity"></div>
 						<div class="container-fluid">
 							<a class="navbar-brand text-muted" href="/">
 								<img src="/assets/images/logo.svg" alt="" width="30" height="24" class="d-inline-block align-text-top">
@@ -242,15 +243,6 @@
 											</div>
 										</div>
 										<div class="hstack gap-2">
-											<div class="ms-auto"><span class="text-blood">Descuento&ensp;</span></div>
-											<div class="p-1 text-end">
-												<div class="input-group">
-													<span class="input-group-text">S/</span>
-													<input type="number" name="descuento-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Descuentos" readonly>
-												</div>
-											</div>
-										</div>
-										<div class="hstack gap-2">
 											<div class="ms-auto"><span class="text-blood">IGV&ensp;</span></div>
 											<div class="p-1 text-end">
 												<div class="input-group">
@@ -283,6 +275,15 @@
 												<div class="input-group">
 													<span class="input-group-text">S/</span>
 													<input type="number" name="total-global" class="form-control" value="0.00" placeholder="0.00" aria-label="Total" readonly>
+												</div>
+											</div>
+										</div>
+										<div class="hstack gap-2">
+											<div class="ms-auto"><span class="text-blood">Desc. global&ensp;</span></div>
+											<div class="p-1 text-end">
+												<div class="input-group">
+													<span class="input-group-text">(S/)</span>
+													<input type="number" name="descuento-global" class="form-control" placeholder="0.00" step="0.01" aria-label="Descuentos" onkeyup="calcOperations()">
 												</div>
 											</div>
 										</div>
