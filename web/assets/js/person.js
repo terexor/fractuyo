@@ -123,27 +123,27 @@ var Taxpayer = function() {
 			//prepend two digits of year
 			validityNotAfter = ( parseInt(validityNotAfter.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotAfter
 		}
-		timeNotAfter = new Date(Date.UTC(
+		timeNotAfter = Date.UTC(
 			validityNotAfter.substring(0, 4),
-			validityNotAfter.substring(4, 6),
+			parseInt(validityNotAfter.substring(4, 6)) - 1,
 			validityNotAfter.substring(6, 8),
 			validityNotAfter.substring(8, 10),
 			validityNotAfter.substring(10, 12),
 			validityNotAfter.substring(12, 14)
-		))
+		)
 		if(notBefore.type == 23) {
 			validityNotBefore = ( parseInt(validityNotBefore.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotBefore
 		}
-		timeNotBefore = new Date(Date.UTC(
+		timeNotBefore = Date.UTC(
 			validityNotBefore.substring(0, 4),
-			validityNotBefore.substring(4, 6),
+			parseInt(validityNotBefore.substring(4, 6)) - 1,
 			validityNotBefore.substring(6, 8),
 			validityNotBefore.substring(8, 10),
 			validityNotBefore.substring(10, 12),
 			validityNotBefore.substring(12, 14)
-		))
+		)
 
-		const now = new Date()
+		const now = Date.now()
 		if(now < timeNotBefore || now > timeNotAfter) {
 			return -1
 		}

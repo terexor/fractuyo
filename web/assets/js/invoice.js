@@ -154,8 +154,13 @@ class Receipt {
 							{ id: "terexoris", uri: "", hash: hashAlgorithm, transforms: transforms }
 						],
 						x509: [x509],
-						//~ signerRole: { claimed: ["BOSS"] },
-						signingCertificate: x509
+						signerRole: { claimed: ["Taxpayer"] },
+						/*
+						 * It exists, but Sunat does not handle big numbers (20 bytes) in serial numbers so was removed.
+						 * Structure can be found in http://www.datypic.com/sc/ubl21/e-xades_SigningCertificate.html
+						 * It could be enabled using global options.
+						 */
+						// signingCertificate: x509
 					}
 				)
 			})
