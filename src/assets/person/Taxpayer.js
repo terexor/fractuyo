@@ -1,55 +1,65 @@
-var Taxpayer = function() {
-	var paillierPublicKey, paillierPrivateKey
-	var cert, key
-	var solUser, solPass
-	var deductionsAccount
-	var web, email, telephone
-	var tradeName
+class Taxpayer extends Person {
+	#paillierPublicKey
+	#paillierPrivateKey
+
+	#cert
+	#key
+
+	#solUser
+	#solPass
+
+	#deductionsAccount
+
+	#web
+	#email
+	#telephone
+
+	#tradeName
 
 	/**
 	 * Vector holding address metadata.
 	 */
-	var metaAddress
+	#metaAddress
 
-	this.setMetaAddress = function(country, ubigeo, typecode, urbanization, city, subentity, district) {
-		if(metaAddress == undefined) {
-			metaAddress = Array(7)
+	setMetaAddress(country, ubigeo, typecode, urbanization, city, subentity, district) {
+		if(this.#metaAddress == undefined) {
+			this.#metaAddress = Array(7)
 		}
-		metaAddress[0] = country
-		metaAddress[1] = ubigeo
-		metaAddress[2] = typecode
-		metaAddress[3] = urbanization
-		metaAddress[4] = city
-		metaAddress[5] = subentity
-		metaAddress[6] = district
+		this.#metaAddress[0] = country
+		this.#metaAddress[1] = ubigeo
+		this.#metaAddress[2] = typecode
+		this.#metaAddress[3] = urbanization
+		this.#metaAddress[4] = city
+		this.#metaAddress[5] = subentity
+		this.#metaAddress[6] = district
 	}
 
-	this.getMetaAddress = function() {
-		return metaAddress
+	getMetaAddress() {
+		return this.#metaAddress
 	}
 
-	this.createPaillierPublicKey = function(n, g) {
-		paillierPublicKey = new PublicKey(n, g)
+	createPaillierPublicKey(n, g) {
+		this.#paillierPublicKey = new PublicKey(n, g)
 	}
 
-	this.getPaillierPublicKey = function() {
-		return paillierPublicKey
+	getPaillierPublicKey() {
+		return this.#paillierPublicKey
 	}
 
-	this.createPaillierPrivateKey = function(lambda, mu, n, g, p, q) {
-		paillierPublicKey = new PublicKey(n, g)
-		paillierPrivateKey = new PrivateKey(lambda, mu, paillierPublicKey, p, q)
+	createPaillierPrivateKey(lambda, mu, n, g, p, q) {
+		this.#paillierPublicKey = new PublicKey(n, g)
+		this.#paillierPrivateKey = new PrivateKey(lambda, mu, paillierPublicKey, p, q)
 	}
 
-	this.getPaillierPrivateKey = function() {
-		return paillierPrivateKey
+	getPaillierPrivateKey() {
+		return this.#paillierPrivateKey
 	}
 
 	/**
 	 * @return int -1 when now is out of range of validity or major than -1 for remaining days
 	 */
-	this.setCert = function(c) {
-		cert = c
+	setCert(c) {
+		this.#cert = c
 
 		let der =  window.Encoding.base64ToBuf( c.split(/\n/).filter(function (line) {
 			return !/-----/.test(line)
@@ -94,87 +104,87 @@ var Taxpayer = function() {
 		}
 	}
 
-	this.getCert = function() {
-		return cert
+	getCert() {
+		return this.#cert
 	}
 
-	this.getKey = function() {
-		return key
+	getKey() {
+		return this.#key
 	}
 
-	this.getKey = function() {
-		return key
+	getKey() {
+		return this.#key
 	}
 
-	this.setKey = function(k) {
-		key = k
+	setKey(k) {
+		this.#key = k
 	}
 
-	this.setSolUser = function(su) {
-		solUser = su
+	setSolUser(su) {
+		this.#solUser = su
 	}
 
-	this.getSolUser = function() {
-		return solUser
+	getSolUser() {
+		return this.#solUser
 	}
 
-	this.setSolPass = function(sp) {
-		solPass = sp
+	setSolPass(sp) {
+		this.#solPass = sp
 	}
 
-	this.getSolPass = function() {
-		return solPass
+	getSolPass() {
+		return this.#solPass
 	}
 
-	this.setDeductionsAccount = function(da) {
+	setDeductionsAccount(da) {
 		if(da.length > 0) {
-			deductionsAccount = da
+			this.#deductionsAccount = da
 		}
 	}
 
-	this.getDeductionsAccount = function() {
-		return deductionsAccount
+	getDeductionsAccount() {
+		return this.#deductionsAccount
 	}
 
-	this.setWeb = function(w) {
+	setWeb(w) {
 		if(w.length != 0) {
-			web = w
+			this.#web = w
 		}
 	}
 
-	this.setEmail = function(em) {
+	setEmail(em) {
 		if(em.length != 0) {
-			email = em
+			this.#email = em
 		}
 	}
 
-	this.setTelephone = function(t) {
+	setTelephone(t) {
 		if(t.length != 0) {
-			telephone = t
+			this.#telephone = t
 		}
 	}
 
-	this.getWeb = function() {
-		return web
+	getWeb() {
+		return this.#web
 	}
 
-	this.getEmail = function() {
-		return email
+	getEmail() {
+		return this.#email
 	}
 
-	this.getTelephone = function() {
-		return telephone
+	getTelephone() {
+		return this.#telephone
 	}
 
-	this.setTradeName = function(tn) {
-		tradeName = tn
+	setTradeName(tn) {
+		this.#tradeName = tn
 	}
 
-	this.getTradeName = function() {
-		return tradeName
+	getTradeName() {
+		return this.#tradeName
 	}
 
-	this.clearData = function() {
-		name = identity = cert = key = solUser = solPass = web = email = telephone = null
+	clearData() {
+		this.#name = this.#identity = this.#cert = this.#key = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
