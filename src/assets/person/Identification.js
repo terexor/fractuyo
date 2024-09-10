@@ -8,18 +8,18 @@ class Identification {
 	 */
 	setIdentity(n, t) {
 		if(validateDocumentNumber(parseInt(t, 16), n)) {
-			number = n
-			type = t
+			this.#number = n
+			this.#type = t
 			return this
 		}
 		throw new Error("Número de identificación de persona inconsistente.")
 	}
 
 	getNumber() {
-		return number
+		return this.#number
 	}
 
 	getType() {
-		return type
+		return this.#type
 	}
 }
