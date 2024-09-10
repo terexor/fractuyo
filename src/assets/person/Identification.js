@@ -1,11 +1,12 @@
-var Identification = function() {
-	var number, type
+class Identification {
+	#number
+	#type
 
 	/**
 	 * Set document number according type
 	 * @var t integer type according catalog 06
 	 */
-	this.setIdentity = function(n, t) {
+	setIdentity(n, t) {
 		if(validateDocumentNumber(parseInt(t, 16), n)) {
 			number = n
 			type = t
@@ -14,11 +15,11 @@ var Identification = function() {
 		throw new Error("Número de identificación de persona inconsistente.")
 	}
 
-	this.getNumber = function() {
+	getNumber() {
 		return number
 	}
 
-	this.getType = function() {
+	getType() {
 		return type
 	}
 }
