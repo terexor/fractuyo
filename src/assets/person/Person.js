@@ -1,32 +1,33 @@
-var Person = function() {
-	var name, identification
-	var address
+class Person {
+	#name
+	#address
+	#identification
 
-	this.getName = function() {
-		return name
+	getName() {
+		return this.#name
 	}
 
-	this.setName = function(n) {
+	setName(n) {
 		if(n.length > 0) {
-			name = n
+			this.#name = n
 		}
 	}
 
-	this.setIdentification = function(i) {
-		identification = i
+	setIdentification(i) {
+		this.#identification = i
 	}
 
-	this.getIdentification = function() {
-		return identification
+	getIdentification() {
+		return this.#identification
 	}
 
-	this.setAddress = function(a) {
+	setAddress(a) {
 		if( ( typeof a === "string" || a instanceof String ) && a.length > 0 ) {
-			address = a
+			this.#address = a
 		}
 	}
 
-	this.getAddress = function() {
-		return address
+	getAddress() {
+		return this.#address
 	}
 }
