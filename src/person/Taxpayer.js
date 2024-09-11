@@ -1,3 +1,5 @@
+import Person from "./Person.js"
+
 class Taxpayer extends Person {
 	#paillierPublicKey
 	#paillierPrivateKey
@@ -185,6 +187,6 @@ class Taxpayer extends Person {
 	}
 
 	clearData() {
-		this.#name = this.#identity = this.#cert = this.#key = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
+		this.#cert = this.#key = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
