@@ -4,7 +4,7 @@
   "description": "Invoice generator.",
   "main": "src/fractuyo.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/all.js"
   },
   "repository": {
     "type": "git",
