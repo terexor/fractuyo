@@ -30,6 +30,9 @@ else {
 
 	invoice.addItem(product)
 
+	invoice.toXml()
+	invoice.sign()
+
 	console.log("Taxpayer:", taxpayer.getName(), "/ ID:", taxpayer.getIdentification().getNumber())
 	console.log("Invoice:", invoice.getId(true))
 	console.log("QR data:", invoice.getDataQr())
