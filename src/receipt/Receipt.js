@@ -126,7 +126,13 @@ class Receipt {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
-		const alg = getAlgorithm(algorithmName)
+
+		const alg = {
+			name: "RSASSA-PKCS1-v1_5",
+			hash: hashAlgorithm,
+			modulusLength: 1024,
+			publicExponent: new Uint8Array([1, 0, 1])
+		}
 
 		// Read cert
 		const certDer = window.Encoding.base64ToBuf( this.#taxpayer.getCert() )
@@ -174,6 +180,36 @@ class Receipt {
 				console.error(e)
 				return false
 			})
+	}
+
+	static namespaces = Object.freeze(
+		{
+			cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+			cbc: "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+			ds: "http://www.w3.org/2000/09/xmldsig#",
+			ext: "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2",
+			qdt: "urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2",
+			udt: "urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2",
+			xsi: "http://www.w3.org/2001/XMLSchema-instance",
+			xmlns: "http://www.w3.org/1999/xhtml",
+			ccts: "urn:un:unece:uncefact:documentation:2"
+		}
+	)
+
+	static nsResolver(prefix) {
+		return Receipt.namespaces[prefix] || "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+	}
+
+	static removeCdataTag(cdata) {
+		return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
+	}
+
+	static removeBeginEndPem(pem) {
+		return pem
+			// remove BEGIN/END
+			.replace(/-----(BEGIN|END)[\w\d\s]+-----/g, "")
+			// remove \r, \n
+			.replace(/[\r\n]/g, "")
 	}
 }
 
