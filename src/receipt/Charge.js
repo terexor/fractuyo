@@ -48,3 +48,5 @@ class Charge {
 		return this.#baseAmount
 	}
 }
+
+export default Charge;

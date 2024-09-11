@@ -910,3 +910,5 @@ class Invoice extends Receipt {
 		}
 	}
 }
+
+export default Invoice;

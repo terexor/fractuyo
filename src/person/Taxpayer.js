@@ -190,3 +190,5 @@ class Taxpayer extends Person {
 		this.#cert = this.#key = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
+
+export default Taxpayer;

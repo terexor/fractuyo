@@ -23,3 +23,5 @@ class Identification {
 		return this.#type
 	}
 }
+
+export default Identification;

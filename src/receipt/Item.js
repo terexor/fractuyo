@@ -164,3 +164,5 @@ var Item = function(_description) {
 
 	this.setDescription(_description)
 }
+
+export default Item;

@@ -23,3 +23,5 @@ var Share = function(today) {
 		return withFormat ? amount.toFixed(2) : amount
 	}
 }
+
+export default Share;
