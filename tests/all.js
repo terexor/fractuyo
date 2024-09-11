@@ -30,7 +30,7 @@ else {
 
 	invoice.addItem(product)
 
-	console.log("Taxpayer:", taxpayer.getName())
+	console.log("Taxpayer:", taxpayer.getName(), "/ ID:", taxpayer.getIdentification().getNumber())
 	console.log("Invoice:", invoice.getId(true))
 	console.log("QR data:", invoice.getDataQr())
 }
