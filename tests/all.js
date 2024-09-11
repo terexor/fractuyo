@@ -8,10 +8,12 @@ else {
 	customer.setName("Garmur")
 
 	const taxpayer = new Taxpayer()
+	taxpayer.setName("Efectibit SAC")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
 
 	const invoice = new Invoice(taxpayer, customer)
 	invoice.setCurrencyId("USD")
+	invoice.setTypeCode(3)
 	invoice.setSerie("F000")
 	invoice.setNumeration(19970601)
 	invoice.setOrderReference("test-002")
@@ -28,6 +30,7 @@ else {
 
 	invoice.addItem(product)
 
+	console.log("Taxpayer:", taxpayer.getName())
 	console.log("Invoice:", invoice.getId(true))
 	console.log("QR data:", invoice.getDataQr())
 }
