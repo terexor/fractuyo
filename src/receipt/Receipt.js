@@ -122,7 +122,7 @@ class Receipt {
 		return this.#hash
 	}
 
-	async sign(algorithmName, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+	async sign(hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
