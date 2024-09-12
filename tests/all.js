@@ -5,7 +5,8 @@ if (typeof Invoice === 'undefined') {
 }
 else {
 	const customer = new Person()
-	customer.setName("Garmur")
+	customer.setName("Lugar Expresivo SAC")
+	customer.setIdentification(new Identification(6, "20545314437"))
 
 	const taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
