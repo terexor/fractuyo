@@ -1,9 +1,6 @@
 import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
 
-if (typeof Invoice === 'undefined') {
-	throw new Error('Invoice is not defined');
-}
-else {
+test("creating invoice", () => {
 	const customer = new Person()
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
@@ -34,7 +31,9 @@ else {
 	invoice.toXml()
 	invoice.sign()
 
-	console.log("Taxpayer:", taxpayer.getName(), "/ ID:", taxpayer.getIdentification().getNumber())
-	console.log("Invoice:", invoice.getId(true))
-	console.log("QR data:", invoice.getDataQr())
-}
+	assert.equal(taxpayer.getName(), "Efectibit SAC")
+	assert.equal(taxpayer.getIdentification().getNumber(), "20606829265")
+
+	assert.equal(invoice.getId(true), "03-F000-19970601")
+	assert.equal(invoice.getDataQr(), "")
+})
