@@ -5,7 +5,7 @@
 	"main": "src/fractuyo.js",
 	"type": "module",
 	"scripts": {
-		"test": "node tests/all.js"
+		"test": "jest --verbose ./tests"
 	},
 	"repository": {
 		"type": "git",
@@ -24,6 +24,10 @@
 	},
 	"homepage": "https://github.com/terexor/fractuyo#readme",
 	"dependencies": {
+		"asn1js": "^3.0.5",
 		"xadesjs": "^2.4.4"
+	},
+	"devDependencies": {
+		"jest": "^29.7.0"
 	}
 }
