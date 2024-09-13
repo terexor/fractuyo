@@ -12,6 +12,7 @@ test("creating invoice", (tester) => {
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
 
 	const invoice = new Invoice(taxpayer, customer)
+	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
 	invoice.setCurrencyId("USD")
 	invoice.setTypeCode(1)
 	invoice.setSerie("F000")
@@ -37,4 +38,5 @@ test("creating invoice", (tester) => {
 	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
+	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|06|20545314437|")
 })
