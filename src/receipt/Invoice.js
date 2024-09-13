@@ -142,12 +142,11 @@ class Invoice extends Receipt {
 	}
 
 	getDataQr() {
-		return
-			this.getTaxpayer().getIdentification().getNumber()
-			+ '|' + this.getId(true)
-			+ '|' + this.getIgvAmount(true)
-			+ '|' + this.getTaxTotalAmount(true)
-			+ '|' + this.getIssueDate()
+		return this.getTaxpayer().getIdentification().getNumber()
+			+ '|' + this.getId(true).replaceAll('-', '|')
+			+ '|' + this.#igvAmount.toFixed(2)
+			+ '|' + this.#taxInclusiveAmount.toFixed(2)
+			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
 			+ '|' + this.getCustomer().getIdentification().getType()
 			+ '|' + this.getCustomer().getIdentification().getNumber()
 	}
