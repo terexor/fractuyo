@@ -3,22 +3,37 @@ import { JSDOM } from 'jsdom'
 
 import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
 
-// Configura jsdom antes de cada prueba
-test.beforeEach(t => {
+let customer
+let taxpayer
+
+test.before(async t => {
+	customer = new Person()
+	taxpayer = new Taxpayer()
+})
+
+test.beforeEach(tester => {
 	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
 	global.window = window
 	global.document = window.document
-});
 
-test("creating invoice", (tester) => {
+	tester.context.customer = customer
+	tester.context.taxpayer = taxpayer
+})
 
-	const customer = new Person()
+test("creating persons", tester => {
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
 
-	const taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
+
+	tester.is(taxpayer.getName(), "Efectibit SAC")
+	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
+})
+
+test("creating invoice", (tester) => {
+	const customer = tester.context.customer
+	const taxpayer = tester.context.taxpayer
 
 	const invoice = new Invoice(taxpayer, customer)
 	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
@@ -43,8 +58,7 @@ test("creating invoice", (tester) => {
 	invoice.toXml()
 	invoice.sign()
 
-	tester.is(taxpayer.getName(), "Efectibit SAC")
-	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
+	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
 	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|06|20545314437|")
