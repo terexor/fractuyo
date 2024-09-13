@@ -58,7 +58,9 @@ test("showing metadata", (tester) => {
 
 test("signing invoice", async tester => {
 	invoice.toXml()
-	const isSigned = await invoice.sign()
+
+	const { subtle } = globalThis.crypto // from Node API
+	const isSigned = await invoice.sign(subtle)
 
 	tester.true(isSigned)
 })
