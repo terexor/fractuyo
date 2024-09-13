@@ -7,23 +7,17 @@ let customer
 let taxpayer
 
 test.before(async t => {
-	customer = new Person()
-	taxpayer = new Taxpayer()
-})
-
-test.beforeEach(tester => {
 	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
 	global.window = window
 	global.document = window.document
-
-	tester.context.customer = customer
-	tester.context.taxpayer = taxpayer
 })
 
 test("creating persons", tester => {
+	customer = new Person()
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
 
+	taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
 
@@ -32,9 +26,6 @@ test("creating persons", tester => {
 })
 
 test("creating invoice", (tester) => {
-	const customer = tester.context.customer
-	const taxpayer = tester.context.taxpayer
-
 	const invoice = new Invoice(taxpayer, customer)
 	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
 	invoice.setCurrencyId("USD")
