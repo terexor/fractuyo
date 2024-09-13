@@ -50,12 +50,15 @@ test("creating invoice", (tester) => {
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
+})
+
+test("showing metadata", (tester) => {
 	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|06|20545314437|")
 })
 
-test("signing invoice", (tester) => {
+test("signing invoice", async tester => {
 	invoice.toXml()
-	invoice.sign()
+	const isSigned = await invoice.sign()
 
-	tester.pass()
+	tester.true(isSigned)
 })
