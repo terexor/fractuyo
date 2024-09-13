@@ -5,6 +5,7 @@ import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '
 
 let customer
 let taxpayer
+let invoice
 
 test.before(async t => {
 	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
@@ -26,7 +27,7 @@ test("creating persons", tester => {
 })
 
 test("creating invoice", (tester) => {
-	const invoice = new Invoice(taxpayer, customer)
+	invoice = new Invoice(taxpayer, customer)
 	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
 	invoice.setCurrencyId("USD")
 	invoice.setTypeCode(1)
@@ -46,11 +47,15 @@ test("creating invoice", (tester) => {
 
 	invoice.addItem(product)
 
-	invoice.toXml()
-	invoice.sign()
-
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
 	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|06|20545314437|")
+})
+
+test("signing invoice", (tester) => {
+	invoice.toXml()
+	invoice.sign()
+
+	tester.pass()
 })
