@@ -53,7 +53,7 @@ test("creating invoice", (tester) => {
 })
 
 test("showing metadata", (tester) => {
-	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|06|20545314437|")
+	tester.is(invoice.getDataQr(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
 })
 
 test("signing invoice", async tester => {
