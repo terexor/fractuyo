@@ -122,7 +122,7 @@ class Receipt {
 		return this.#hash
 	}
 
-	async sign(hashAlgorithm = "SHA-256", canonMethod = "c14n") {
+	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
@@ -139,7 +139,7 @@ class Receipt {
 
 		// Read key
 		const keyDer = this.#taxpayer.getKey()
-		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
+		const key = await cryptoSubtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
 		const x509 = this.#taxpayer.getCert()
 
