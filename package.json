@@ -5,7 +5,7 @@
 	"main": "src/fractuyo.js",
 	"type": "module",
 	"scripts": {
-		"test": "jest --verbose ./tests"
+		"test": "ava --verbose ./tests"
 	},
 	"repository": {
 		"type": "git",
@@ -28,6 +28,6 @@
 		"xadesjs": "^2.4.4"
 	},
 	"devDependencies": {
-		"jest": "^29.7.0"
+		"ava": "^6.1.3"
 	}
 }
