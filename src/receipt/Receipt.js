@@ -135,10 +135,10 @@ class Receipt {
 		}
 
 		// Read cert
-		const certDer = window.Encoding.base64ToBuf( this.#taxpayer.getCert() )
+		const certDer = this.#taxpayer.getCert()
 
 		// Read key
-		const keyDer = window.Encoding.base64ToBuf( this.#taxpayer.getKey() )
+		const keyDer = this.#taxpayer.getKey()
 		const key = await window.crypto.subtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
 		const x509 = this.#taxpayer.getCert()

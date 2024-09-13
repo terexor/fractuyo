@@ -106,14 +106,16 @@ class Taxpayer extends Person {
 		}
 	}
 
+	/**
+	 * @return Buffer created from base64 in setCert()
+	 */
 	getCert() {
 		return this.#cert
 	}
 
-	getKey() {
-		return this.#key
-	}
-
+	/**
+	 * @return Buffer created from base64 in setKey()
+	 */
 	getKey() {
 		return this.#key
 	}
