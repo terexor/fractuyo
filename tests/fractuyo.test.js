@@ -1,8 +1,17 @@
 import test from 'ava'
+import { JSDOM } from 'jsdom'
 
 import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
 
+// Configura jsdom antes de cada prueba
+test.beforeEach(t => {
+	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
+	global.window = window
+	global.document = window.document
+});
+
 test("creating invoice", (tester) => {
+
 	const customer = new Person()
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
