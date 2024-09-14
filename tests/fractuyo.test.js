@@ -1,6 +1,7 @@
 import test from 'ava'
 import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
+import XAdES from "xadesjs"
 
 import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
 
@@ -12,6 +13,8 @@ test.before(async t => {
 	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
 	global.window = window
 	global.document = window.document
+
+	XAdES.Application.setEngine("NodeJS", globalThis.crypto)
 })
 
 test("creating persons", tester => {
