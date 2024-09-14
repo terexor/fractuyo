@@ -8,7 +8,6 @@ class Taxpayer extends Person {
 
 	#certPem
 	#certDer
-	#keyPem
 	#keyDer
 
 	#solUser
@@ -145,7 +144,8 @@ class Taxpayer extends Person {
 	}
 
 	setKey(k) {
-		[ this.#keyPem, this.#keyDer ] = Taxpayer.transformPemToDer(k)
+		let keyPem // never used
+		[ keyPem, this.#keyDer ] = Taxpayer.transformPemToDer(k)
 	}
 
 	setSolUser(su) {
@@ -213,7 +213,7 @@ class Taxpayer extends Person {
 	}
 
 	clearData() {
-		this.#certPem = this.#certDer = this.#keyPem = this.#keyDer = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
+		this.#certPem = this.#certDer = this.#keyDer = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
 
