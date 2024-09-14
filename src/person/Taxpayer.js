@@ -141,6 +141,8 @@ class Taxpayer extends Person {
 
 	setKey(k) {
 		this.#keyPem = k
+
+		this.#keyDer = Taxpayer.transformPemToDer(k)
 	}
 
 	setSolUser(su) {
