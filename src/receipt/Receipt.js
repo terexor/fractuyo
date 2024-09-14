@@ -147,8 +147,6 @@ class Receipt {
 
 		const transforms = ["enveloped", canonMethod]
 
-		this.xmlDocument = XAdES.Parse(new XMLSerializer().serializeToString(this.xmlDocument))
-
 		return Promise.resolve()
 			.then(() => {
 				const signature = new XAdES.SignedXml()
