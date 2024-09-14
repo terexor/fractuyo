@@ -1,3 +1,5 @@
+import XAdES from "xadesjs"
+
 class Receipt {
 	#taxpayer
 	#customer
