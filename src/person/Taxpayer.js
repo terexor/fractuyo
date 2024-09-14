@@ -1,5 +1,7 @@
 import Person from "./Person.js"
 
+import asn1js from "asn1js"
+
 class Taxpayer extends Person {
 	#paillierPublicKey
 	#paillierPrivateKey
@@ -93,34 +95,25 @@ class Taxpayer extends Person {
 
 		this.#certDer = Taxpayer.transformPemToDer(c)
 
-		let json = ASN1.parse({ der: der, json: false, verbose: true })
-		const notBefore = json.children[0].children[4].children[0]
-		const notAfter = json.children[0].children[4].children[1]
-		let validityNotBefore = window.Encoding.bufToStr(notBefore.value)
-		let validityNotAfter = window.Encoding.bufToStr(notAfter.value)
-		let timeNotBefore, timeNotAfter
-		if(notAfter.type == 23) {
-			//prepend two digits of year
-			validityNotAfter = ( parseInt(validityNotAfter.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotAfter
-		}
-		timeNotAfter = Date.UTC(
-			validityNotAfter.substring(0, 4),
-			parseInt(validityNotAfter.substring(4, 6)) - 1,
-			validityNotAfter.substring(6, 8),
-			validityNotAfter.substring(8, 10),
-			validityNotAfter.substring(10, 12),
-			validityNotAfter.substring(12, 14)
+		const asn1 = asn1js.fromBER(this.#certDer)
+		const notBefore = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
+		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
+
+		const timeNotBefore = Date.UTC(
+			notBefore.year,
+			notBefore.month - 1,
+			notBefore.day,
+			notBefore.hour,
+			notBefore.minute,
+			notBefore.second
 		)
-		if(notBefore.type == 23) {
-			validityNotBefore = ( parseInt(validityNotBefore.substring(0, 2)) < 50 ? "20" : "19" ) + validityNotBefore
-		}
-		timeNotBefore = Date.UTC(
-			validityNotBefore.substring(0, 4),
-			parseInt(validityNotBefore.substring(4, 6)) - 1,
-			validityNotBefore.substring(6, 8),
-			validityNotBefore.substring(8, 10),
-			validityNotBefore.substring(10, 12),
-			validityNotBefore.substring(12, 14)
+		const timeNotAfter = Date.UTC(
+			notAfter.year,
+			notAfter.month - 1,
+			notAfter.day,
+			notAfter.hour,
+			notAfter.minute,
+			notAfter.second
 		)
 
 		const now = Date.now()
