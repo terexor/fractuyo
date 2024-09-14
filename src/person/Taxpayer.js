@@ -4,8 +4,10 @@ class Taxpayer extends Person {
 	#paillierPublicKey
 	#paillierPrivateKey
 
-	#cert
-	#key
+	#certPem
+	#certDer
+	#keyPem
+	#keyDer
 
 	#solUser
 	#solPass
@@ -57,15 +59,39 @@ class Taxpayer extends Person {
 		return this.#paillierPrivateKey
 	}
 
+	static transformPemToDer(base64String) {
+		const pem = base64String.split(/\n/).filter(function (line) {
+			return !/-----/.test(line)
+		}).join('') // all array elements in a single line
+
+		if (typeof Buffer !== 'undefined') {
+			// for Node.js, use Buffer.from
+			return Buffer.from(pem, 'base64')
+		}
+		else if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+			// in browser
+			const binaryString = window.atob(pem)
+			const len = binaryString.length
+			const bytes = new Uint8Array(len)
+
+			for (let i = 0; i < len; i++) {
+				bytes[i] = binaryString.charCodeAt(i)
+			}
+
+			return bytes.buffer
+		}
+		else {
+			throw new Error('El entorno no es compatible con esta función.')
+		}
+	}
+
 	/**
 	 * @return int -1 when now is out of range of validity or major than -1 for remaining days
 	 */
 	setCert(c) {
-		this.#cert = c
+		this.#certPem = c
 
-		let der =  window.Encoding.base64ToBuf( c.split(/\n/).filter(function (line) {
-			return !/-----/.test(line)
-		}).join('') )
+		this.#certDer = Taxpayer.transformPemToDer(c)
 
 		let json = ASN1.parse({ der: der, json: false, verbose: true })
 		const notBefore = json.children[0].children[4].children[0]
@@ -110,18 +136,18 @@ class Taxpayer extends Person {
 	 * @return Buffer created from base64 in setCert()
 	 */
 	getCert() {
-		return this.#cert
+		return this.#certDer
 	}
 
 	/**
 	 * @return Buffer created from base64 in setKey()
 	 */
 	getKey() {
-		return this.#key
+		return this.#keyDer
 	}
 
 	setKey(k) {
-		this.#key = k
+		this.#keyPem = k
 	}
 
 	setSolUser(su) {
@@ -189,7 +215,7 @@ class Taxpayer extends Person {
 	}
 
 	clearData() {
-		this.#cert = this.#key = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
+		this.#certPem = this.#certDer = this.#keyPem = this.#keyDer = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
 
