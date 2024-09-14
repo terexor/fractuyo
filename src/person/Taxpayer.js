@@ -61,6 +61,9 @@ class Taxpayer extends Person {
 		return this.#paillierPrivateKey
 	}
 
+	/**
+	 * @return array containing PEM in single string and DER.
+	 */
 	static transformPemToDer(base64String) {
 		const pem = base64String.split(/\n/).filter(function (line) {
 			return !/-----/.test(line)
@@ -68,7 +71,7 @@ class Taxpayer extends Person {
 
 		if (typeof Buffer !== 'undefined') {
 			// for Node.js, use Buffer.from
-			return Buffer.from(pem, 'base64')
+			return [ pem, Buffer.from(pem, 'base64') ]
 		}
 		else if (typeof window !== 'undefined' && typeof window.atob === 'function') {
 			// in browser
@@ -80,7 +83,7 @@ class Taxpayer extends Person {
 				bytes[i] = binaryString.charCodeAt(i)
 			}
 
-			return bytes.buffer
+			return [ pem, bytes.buffer ]
 		}
 		else {
 			throw new Error('El entorno no es compatible con esta función.')
@@ -91,9 +94,7 @@ class Taxpayer extends Person {
 	 * @return int -1 when now is out of range of validity or major than -1 for remaining days
 	 */
 	setCert(c) {
-		this.#certPem = c
-
-		this.#certDer = Taxpayer.transformPemToDer(c)
+		[ this.#certPem, this.#certDer ] = Taxpayer.transformPemToDer(c)
 
 		const asn1 = asn1js.fromBER(this.#certDer)
 		const notBefore = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
@@ -132,6 +133,10 @@ class Taxpayer extends Person {
 		return this.#certDer
 	}
 
+	getCertPem() {
+		return this.#certPem
+	}
+
 	/**
 	 * @return Buffer created from base64 in setKey()
 	 */
@@ -140,9 +145,7 @@ class Taxpayer extends Person {
 	}
 
 	setKey(k) {
-		this.#keyPem = k
-
-		this.#keyDer = Taxpayer.transformPemToDer(k)
+		[ this.#keyPem, this.#keyDer ] = Taxpayer.transformPemToDer(k)
 	}
 
 	setSolUser(su) {

@@ -143,7 +143,7 @@ class Receipt {
 		const keyDer = this.#taxpayer.getKey()
 		const key = await cryptoSubtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
 
-		const x509 = this.#taxpayer.getCert()
+		const x509 = this.#taxpayer.getCertPem()
 
 		const transforms = ["enveloped", canonMethod]
 
