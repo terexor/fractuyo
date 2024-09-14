@@ -1,5 +1,6 @@
 import test from 'ava'
 import { JSDOM } from 'jsdom'
+import fs from 'node:fs'
 
 import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
 
@@ -21,6 +22,16 @@ test("creating persons", tester => {
 	taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
+
+	try {
+		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
+		taxpayer.setCert(cert)
+		const key =  fs.readFileSync("./tests/key.pem", "utf8")
+		taxpayer.setKey(key)
+	}
+	catch (err) {
+		console.error(err)
+	}
 
 	tester.is(taxpayer.getName(), "Efectibit SAC")
 	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
