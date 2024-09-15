@@ -147,6 +147,8 @@ class Receipt {
 
 		const transforms = ["enveloped", canonMethod]
 
+		this.xmlDocument = XAdES.Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
+
 		return Promise.resolve()
 			.then(() => {
 				const signature = new XAdES.SignedXml()
