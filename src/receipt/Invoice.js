@@ -4,6 +4,8 @@ import { DOMImplementation } from '@xmldom/xmldom'
 class Invoice extends Receipt {
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer)
+
+		this.xmlDocument = (new DOMImplementation()).createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
 	}
 
 	#items = Array()
@@ -186,10 +188,6 @@ class Invoice extends Receipt {
 	}
 
 	toXml() {
-		//We create elements using this: xmlDocument.createElement
-		const impl = new DOMImplementation()
-		this.xmlDocument = impl.createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
-		//~ this.xmlDocument = document.implementation.createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
