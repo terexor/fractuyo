@@ -217,7 +217,7 @@ class Invoice extends Receipt {
 		this.xmlDocument.documentElement.appendChild(cbcId)
 
 		const cbcIssueDate = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueDate")
-		//~ cbcIssueDate.appendChild( this.xmlDocument.createTextNode( imprimirFecha( this.getIssueDate(), false ) ) )
+		cbcIssueDate.textContent = this.getIssueDate().toISOString().substr(0, 10)
 		this.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		if(this.#dueDate && this.#shares.length == 0) {
