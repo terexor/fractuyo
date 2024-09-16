@@ -127,15 +127,6 @@ class Invoice extends Receipt {
 	}
 
 	toXml() {
-		const extUblExtensions = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtensions")
-		this.xmlDocument.documentElement.appendChild(extUblExtensions)
-
-		const extUblExtension = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtension")
-		extUblExtensions.appendChild(extUblExtension)
-
-		const extExtensionContent = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:ExtensionContent")
-		extUblExtension.appendChild(extExtensionContent)
-
 		const cbcUblVersionId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:UBLVersionID")
 		cbcUblVersionId.textContent = this.getUblVersion()
 		this.xmlDocument.documentElement.appendChild(cbcUblVersionId)

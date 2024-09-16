@@ -46,6 +46,16 @@ class Receipt {
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ext", Receipt.namespaces.ext)
+
+		// Space for appending signature
+		const extUblExtensions = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtensions")
+		this.xmlDocument.documentElement.appendChild(extUblExtensions)
+
+		const extUblExtension = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtension")
+		extUblExtensions.appendChild(extUblExtension)
+
+		const extExtensionContent = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:ExtensionContent")
+		extUblExtension.appendChild(extExtensionContent)
 	}
 
 	setCustomer(customer) {
