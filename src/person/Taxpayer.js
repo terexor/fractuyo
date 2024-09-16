@@ -64,9 +64,12 @@ class Taxpayer extends Person {
 	 * @return array containing PEM in single string and DER.
 	 */
 	static transformPemToDer(base64String) {
-		const pem = base64String.split(/\n/).filter(function (line) {
-			return !/-----/.test(line)
-		}).join('') // all array elements in a single line
+		// Clean the PEM string
+		const pem = base64String
+			// remove BEGIN/END
+			.replace(/-----(BEGIN|END)[\w\d\s]+-----/g, "")
+			// remove \r, \n
+			.replace(/[\r\n]/g, "")
 
 		if (typeof Buffer !== 'undefined') {
 			// for Node.js, use Buffer.from

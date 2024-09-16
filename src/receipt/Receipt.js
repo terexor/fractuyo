@@ -205,14 +205,6 @@ class Receipt {
 	static removeCdataTag(cdata) {
 		return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
 	}
-
-	static removeBeginEndPem(pem) {
-		return pem
-			// remove BEGIN/END
-			.replace(/-----(BEGIN|END)[\w\d\s]+-----/g, "")
-			// remove \r, \n
-			.replace(/[\r\n]/g, "")
-	}
 }
 
 export default Receipt;
