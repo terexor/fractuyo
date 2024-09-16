@@ -127,11 +127,6 @@ class Invoice extends Receipt {
 	}
 
 	toXml() {
-		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
-		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
-		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
-		this.xmlDocument.documentElement.setAttribute("xmlns:ext", Receipt.namespaces.ext)
-
 		const extUblExtensions = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtensions")
 		this.xmlDocument.documentElement.appendChild(extUblExtensions)
 
