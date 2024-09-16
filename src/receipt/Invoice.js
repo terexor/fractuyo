@@ -236,7 +236,7 @@ class Invoice extends Receipt {
 
 		const cbcNote = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		//~ cbcNote.appendChild( this.xmlDocument.createCDATASection(numberToWords(this.#taxInclusiveAmount.toFixed(2))) )
+		cbcNote.appendChild( this.xmlDocument.createCDATASection(Receipt.amountToWords(this.#taxInclusiveAmount, "con", this.getCurrencyId())) )
 		this.xmlDocument.documentElement.appendChild(cbcNote)
 
 		if(this.#detractionAmount) {

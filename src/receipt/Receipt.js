@@ -1,4 +1,5 @@
 import XAdES from "xadesjs"
+import writtenNumber from "written-number"
 
 class Receipt {
 	#taxpayer
@@ -204,6 +205,17 @@ class Receipt {
 
 	static removeCdataTag(cdata) {
 		return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
+	}
+
+	/**
+	 * @param amount is a decimal number.
+	 */
+	static amountToWords(amount, junctor, tail) {
+		if (amount == 0.0) {
+			return `CERO ${junctor} 00/100 ${tail}`
+		}
+
+		return writtenNumber(amount, { lang: "es" }) + ` ${junctor} ${amount.toFixed(2).split('.')[1]}/100 ${tail}`
 	}
 }
 
