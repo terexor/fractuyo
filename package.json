@@ -25,6 +25,7 @@
 	"homepage": "https://github.com/terexor/fractuyo#readme",
 	"dependencies": {
 		"asn1js": "^3.0.5",
+		"written-number": "^0.11.1",
 		"xadesjs": "^2.4.4"
 	},
 	"devDependencies": {
