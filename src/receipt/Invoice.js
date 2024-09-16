@@ -345,7 +345,7 @@ class Invoice extends Receipt {
 					cacRegistrationAddress.appendChild(cbcId)
 
 					const cbcAddressTypeCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:AddressTypeCode")
-					cbcAddressTypeCode.textContent = this.getTaxpayer().getAddress().typeCode
+					cbcAddressTypeCode.textContent = this.getTaxpayer().getAddress().typecode
 					cacRegistrationAddress.appendChild(cbcAddressTypeCode)
 
 					const cbcCitySubdivisionName = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CitySubdivisionName")
