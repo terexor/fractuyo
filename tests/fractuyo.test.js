@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import XAdES from "xadesjs"
 
-import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification } from '../src/fractuyo.js';
+import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
@@ -22,9 +22,20 @@ test("creating persons", tester => {
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
 
+	const address = new Address()
+	address.line = "An address in Peru"
+	address.country = "PE"
+	address.ubigeo = "150101"
+	address.typecode = "0000"
+	address.urbanization = "The Urbanization"
+	address.city = "The City"
+	address.subentity = "Provincia"
+	address.district = "St. District of Provincia"
+
 	taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
+	taxpayer.setAddress(address)
 
 	try {
 		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
