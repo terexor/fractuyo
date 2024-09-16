@@ -161,8 +161,6 @@ var Item = function(_description) {
 	this.getExemptionReasonCode = function() {
 		return exemptionReasonCode
 	}
-
-	this.setDescription(_description)
 }
 
 export default Item;
