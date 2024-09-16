@@ -2,7 +2,7 @@ import Receipt from "./Receipt.js"
 
 class Invoice extends Receipt {
 	constructor(taxpayer, customer) {
-		super(taxpayer, customer, "Invoice", "Invoice")
+		super(taxpayer, customer, "Invoice")
 	}
 
 	#items = Array()
