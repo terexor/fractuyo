@@ -1,6 +1,7 @@
 import XAdES from "xadesjs"
 import writtenNumber from "written-number"
 import JSZip from "jszip"
+import { DOMImplementation } from "@xmldom/xmldom"
 
 class Receipt {
 	#taxpayer
@@ -23,10 +24,11 @@ class Receipt {
 		this.#ublVersion = ublVersion
 	}
 
-	constructor(taxpayer, customer) {
+	constructor(taxpayer, customer, name) {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
-		this.xmlDocument
+
+		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${name}-2`, name)
 	}
 
 	setCustomer(customer) {

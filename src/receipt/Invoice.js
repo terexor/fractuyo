@@ -1,11 +1,8 @@
 import Receipt from "./Receipt.js"
-import { DOMImplementation } from '@xmldom/xmldom'
 
 class Invoice extends Receipt {
 	constructor(taxpayer, customer) {
-		super(taxpayer, customer)
-
-		this.xmlDocument = (new DOMImplementation()).createDocument("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2", "Invoice")
+		super(taxpayer, customer, "Invoice", "Invoice")
 	}
 
 	#items = Array()
