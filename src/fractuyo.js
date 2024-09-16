@@ -6,6 +6,7 @@ import Charge from "./receipt/Charge.js";
 import Person from "./person/Person.js";
 import Taxpayer from "./person/Taxpayer.js";
 import Identification from "./person/Identification.js";
+import Address from "./person/Address.js";
 
 export {
 	Invoice,
@@ -14,5 +15,6 @@ export {
 	Charge,
 	Person,
 	Taxpayer,
-	Identification
+	Identification,
+	Address
 }

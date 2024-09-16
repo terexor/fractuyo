@@ -340,44 +340,42 @@ class Invoice extends Receipt {
 				const cacRegistrationAddress = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:RegistrationAddress")
 				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 				{
-					const metaAddress = this.getTaxpayer().getMetaAddress()
-
 					const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-					//~ cbcId.textContent = metaAddress[1]
+					cbcId.textContent = this.getTaxpayer().getAddress().ubigeo
 					cacRegistrationAddress.appendChild(cbcId)
 
 					const cbcAddressTypeCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:AddressTypeCode")
-					//~ cbcAddressTypeCode.textContent = metaAddress[2]
+					cbcAddressTypeCode.textContent = this.getTaxpayer().getAddress().typeCode
 					cacRegistrationAddress.appendChild(cbcAddressTypeCode)
 
 					const cbcCitySubdivisionName = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CitySubdivisionName")
-					//~ cbcCitySubdivisionName.textContent = metaAddress[3]
+					cbcCitySubdivisionName.textContent = this.getTaxpayer().getAddress().urbanization
 					cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
 
 					const cbcCityName = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CityName")
-					//~ cbcCityName.textContent = metaAddress[4]
+					cbcCityName.textContent = this.getTaxpayer().getAddress().city
 					cacRegistrationAddress.appendChild(cbcCityName)
 
 					const cbcCountrySubentity = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CountrySubentity")
-					//~ cbcCountrySubentity.textContent = metaAddress[5]
+					cbcCountrySubentity.textContent = this.getTaxpayer().getAddress().subentity
 					cacRegistrationAddress.appendChild(cbcCountrySubentity)
 
 					const cbcDistrict = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:District")
-					//~ cbcDistrict.textContent = metaAddress[6]
+					cbcDistrict.textContent = this.getTaxpayer().getAddress().district
 					cacRegistrationAddress.appendChild(cbcDistrict)
 
 					const cacAddressLine = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
 					cacRegistrationAddress.appendChild(cacAddressLine)
 
 					const cbcLine = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
-					cbcLine.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getAddress()) )
+					cbcLine.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getAddress().line) )
 					cacAddressLine.appendChild(cbcLine)
 
 					const cacCountry = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Country")
 					cacRegistrationAddress.appendChild(cacCountry)
 
 					const cbcIdentificationCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IdentificationCode")
-					//~ cbcIdentificationCode.textContent = metaAddress[0]
+					cbcIdentificationCode.textContent = this.getTaxpayer().getAddress().country
 					cacCountry.appendChild(cbcIdentificationCode)
 				}
 			}

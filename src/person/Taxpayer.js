@@ -21,28 +21,6 @@ class Taxpayer extends Person {
 
 	#tradeName
 
-	/**
-	 * Vector holding address metadata.
-	 */
-	#metaAddress
-
-	setMetaAddress(country, ubigeo, typecode, urbanization, city, subentity, district) {
-		if(this.#metaAddress == undefined) {
-			this.#metaAddress = Array(7)
-		}
-		this.#metaAddress[0] = country
-		this.#metaAddress[1] = ubigeo
-		this.#metaAddress[2] = typecode
-		this.#metaAddress[3] = urbanization
-		this.#metaAddress[4] = city
-		this.#metaAddress[5] = subentity
-		this.#metaAddress[6] = district
-	}
-
-	getMetaAddress() {
-		return this.#metaAddress
-	}
-
 	createPaillierPublicKey(n, g) {
 		this.#paillierPublicKey = new PublicKey(n, g)
 	}

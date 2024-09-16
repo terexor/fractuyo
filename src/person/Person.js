@@ -22,9 +22,7 @@ class Person {
 	}
 
 	setAddress(a) {
-		if( ( typeof a === "string" || a instanceof String ) && a.length > 0 ) {
-			this.#address = a
-		}
+		this.#address = a
 	}
 
 	getAddress() {
