@@ -34,6 +34,7 @@ test("creating persons", tester => {
 
 	taxpayer = new Taxpayer()
 	taxpayer.setName("Efectibit SAC")
+	taxpayer.setTradeName("Efectibit")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
 	taxpayer.setAddress(address)
 
