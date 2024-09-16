@@ -1,5 +1,6 @@
 import XAdES from "xadesjs"
 import writtenNumber from "written-number"
+import JSZip from "jszip"
 
 class Receipt {
 	#taxpayer
@@ -183,6 +184,19 @@ class Receipt {
 				console.error(e)
 				return false
 			})
+	}
+
+	/**
+	 * @param type according JSZip API.
+	 * @return A ZIP file containing XML.
+	 */
+	async createZip(type = "base64") {
+		const zip = new JSZip()
+		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId()}.xml`, this.xmlDocument.toString())
+
+		return zip.generateAsync({type: type}).then(zipb64 => {
+			return zipb64
+		})
 	}
 
 	static namespaces = Object.freeze(
