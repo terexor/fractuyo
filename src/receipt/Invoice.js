@@ -5,21 +5,9 @@ class Invoice extends Receipt {
 		super(taxpayer, customer, "Invoice")
 	}
 
-	#items = Array()
 	#orderReference
 	#orderReferenceText
 	#dueDate
-
-	/*
-	 * Global totals
-	 */
-	#lineExtensionAmount = 0
-	#taxTotalAmount = 0
-	#taxInclusiveAmount = 0
-	#igvAmount = 0
-	#iscAmount = 0
-	#icbpAmount = 0
-	#operationAmounts = [0, 0, 0]
 
 	#shares = Array()
 	#sharesAmount = 0
@@ -49,28 +37,6 @@ class Invoice extends Receipt {
 		}
 	}
 
-	addItem(item) {
-		this.#items.push(item)
-
-		this.#lineExtensionAmount += item.getLineExtensionAmount()
-		this.#taxTotalAmount += item.getTaxTotalAmount()
-		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
-
-		this.#igvAmount += item.getIgvAmount()
-
-		//Assign data according taxability
-		switch(true) {
-			case (item.getExemptionReasonCode() < 20):
-				this.#operationAmounts[0] += item.getLineExtensionAmount();break
-			case (item.getExemptionReasonCode() < 30):
-				this.#operationAmounts[1] += item.getLineExtensionAmount();break
-			case (item.getExemptionReasonCode() < 40):
-				this.#operationAmounts[2] += item.getLineExtensionAmount();break
-			default:
-				this.#operationAmounts[3] += item.getLineExtensionAmount()
-		}
-	}
-
 	setOrderReference(reference) {
 		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
 			if( /\s/g.test(reference) ) {
@@ -92,47 +58,23 @@ class Invoice extends Receipt {
 		}
 	}
 
-	getLineExtensionAmount(withFormat = false) {
-		return withFormat ? this.#lineExtensionAmount.toFixed(2) : this.#lineExtensionAmount
-	}
-
-	getEncryptedOperationAmounts(index) {
-		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#operationAmounts[index] * 100 ) / 100 * 100 ) )
-	}
-
-	getEncryptedIgvAmount() {
-		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#igvAmount * 100 ) / 100 * 100 ) )
-	}
-
-	getEncryptedIscAmount() {
-		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#iscAmount * 100 ) / 100 * 100 ) )
-	}
-
-	getEncryptedIcbpAmount() {
-		return this.getTaxpayer().getPaillierPublicKey().encrypt( parseInt( Math.round( this.#icbpAmount * 100 ) / 100 * 100 ) )
-	}
-
-	getEncryptedDiscountAmount() {
-		return this.getTaxpayer().getPaillierPublicKey().encrypt(!this.#discount ? 0 : parseInt( Math.round( this.#discount.amount * 100 ) / 100 * 100 ) )
-	}
-
 	setDiscount(discountAmount) {
 		if(discountAmount > 0) {
 			this.#discount = new Charge(false)
 			this.#discount.setTypeCode("02")
-			this.#discount.setFactor(discountAmount / this.#taxInclusiveAmount, this.#lineExtensionAmount)
+			this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
 
 			//Recalc amounts
 			const factorInverse = 1 - this.#discount.factor
-			this.#igvAmount *= factorInverse
-			this.#iscAmount *= factorInverse
-			this.#taxTotalAmount *= factorInverse
-			this.#taxInclusiveAmount *= factorInverse
-			this.#lineExtensionAmount *= factorInverse
-			this.#operationAmounts[0] *= factorInverse
-			this.#operationAmounts[1] *= factorInverse
-			this.#operationAmounts[2] *= factorInverse
-			this.#operationAmounts[3] *= factorInverse
+			this.igvAmount *= factorInverse
+			this.iscAmount *= factorInverse
+			this.taxTotalAmount *= factorInverse
+			this.taxInclusiveAmount *= factorInverse
+			this.lineExtensionAmount *= factorInverse
+			this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
+			this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
+			this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
+			this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
 		}
 	}
 
@@ -143,8 +85,8 @@ class Invoice extends Receipt {
 	getDataQr() {
 		return this.getTaxpayer().getIdentification().getNumber()
 			+ '|' + this.getId(true).replaceAll('-', '|')
-			+ '|' + this.#igvAmount.toFixed(2)
-			+ '|' + this.#taxInclusiveAmount.toFixed(2)
+			+ '|' + this.igvAmount.toFixed(2)
+			+ '|' + this.taxInclusiveAmount.toFixed(2)
 			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
 			+ '|' + this.getCustomer().getIdentification().getType()
 			+ '|' + this.getCustomer().getIdentification().getNumber()
@@ -166,19 +108,19 @@ class Invoice extends Receipt {
 			this.setIssueDate()
 		}
 
-		if(this.#taxInclusiveAmount >= 700) {
+		if(this.taxInclusiveAmount >= 700) {
 			if(this.#detractionPercentage > 0) {
-				this.#detractionAmount = this.#taxInclusiveAmount * this.#detractionPercentage / 100
+				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
 			}
 		}
 
 		if(this.#sharesAmount) {
 			if(this.#detractionAmount) {
-				if(this.#sharesAmount.toFixed(2) != (this.#taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
+				if(this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
 					throw new Error("La suma de las cuotas difiere del total menos detracción.")
 				}
 			}
-			else if(this.#sharesAmount.toFixed(2) != this.#taxInclusiveAmount.toFixed(2)) {
+			else if(this.#sharesAmount.toFixed(2) != this.taxInclusiveAmount.toFixed(2)) {
 				throw new Error("La suma de las cuotas difiere del total.")
 			}
 		}
@@ -233,7 +175,7 @@ class Invoice extends Receipt {
 
 		const cbcNote = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( this.xmlDocument.createCDATASection(Receipt.amountToWords(this.#taxInclusiveAmount, "con", this.getCurrencyId())) )
+		cbcNote.appendChild( this.xmlDocument.createCDATASection(Receipt.amountToWords(this.taxInclusiveAmount, "con", this.getCurrencyId())) )
 		this.xmlDocument.documentElement.appendChild(cbcNote)
 
 		if(this.#detractionAmount) {
@@ -511,10 +453,10 @@ class Invoice extends Receipt {
 				const cbcAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
 				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
 				if(this.#detractionAmount) {
-					cbcAmount.textContent = (this.#taxInclusiveAmount - (this.#detractionAmount)).toFixed(2)
+					cbcAmount.textContent = (this.taxInclusiveAmount - (this.#detractionAmount)).toFixed(2)
 				}
 				else {
-					cbcAmount.textContent = this.#taxInclusiveAmount.toFixed(2)
+					cbcAmount.textContent = this.taxInclusiveAmount.toFixed(2)
 				}
 				cacPaymentTerms.appendChild(cbcAmount)
 			}
@@ -578,7 +520,7 @@ class Invoice extends Receipt {
 			{
 				const cbcTaxAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 				cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcTaxAmount.textContent = this.#taxTotalAmount.toFixed(2)
+				cbcTaxAmount.textContent = this.taxTotalAmount.toFixed(2)
 				cacTaxTotal.appendChild(cbcTaxAmount)
 
 				const cacTaxSubtotal = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
@@ -586,12 +528,12 @@ class Invoice extends Receipt {
 				{
 					const cbcTaxableAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxableAmount.textContent = this.#operationAmounts[0].toFixed(2)
+					cbcTaxableAmount.textContent = this.getOperationAmount(0).toFixed(2)
 					cacTaxSubtotal.appendChild( cbcTaxableAmount )
 
 					const cbcTaxAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxAmount.textContent = this.#igvAmount.toFixed(2)
+					cbcTaxAmount.textContent = this.igvAmount.toFixed(2)
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 					const cacTaxCategory = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
@@ -626,39 +568,40 @@ class Invoice extends Receipt {
 			{
 				const cbcLineExtensionAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
 				cbcLineExtensionAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcLineExtensionAmount.textContent = this.#lineExtensionAmount.toFixed(2)
+				cbcLineExtensionAmount.textContent = this.lineExtensionAmount.toFixed(2)
 				cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
 
 				const cbcTaxInclusiveAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxInclusiveAmount")
 				cbcTaxInclusiveAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcTaxInclusiveAmount.textContent = this.#taxInclusiveAmount.toFixed(2)
+				cbcTaxInclusiveAmount.textContent = this.taxInclusiveAmount.toFixed(2)
 				cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
 
 				const cbcPayableAmount  = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PayableAmount")
 				cbcPayableAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPayableAmount.textContent = this.#taxInclusiveAmount.toFixed(2)
+				cbcPayableAmount.textContent = this.taxInclusiveAmount.toFixed(2)
 				cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
 			}
 		}
 
-		for(const item in this.#items) { //Items
+		let itemIndex = 0 // for ID
+		for(const item of this.items) { //Items
 			const cacInvoiceLine = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:InvoiceLine")
 			this.xmlDocument.documentElement.appendChild(cacInvoiceLine)
 
 			const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-			cbcID.textContent = parseInt(item) + 1
+			cbcID.textContent = ++itemIndex
 			cacInvoiceLine.appendChild(cbcID)
 
 			const cbcInvoicedQuantity = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoicedQuantity")
-			cbcInvoicedQuantity.setAttribute("unitCode", this.#items[item].getUnitCode())
+			cbcInvoicedQuantity.setAttribute("unitCode", item.getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
-			cbcInvoicedQuantity.textContent = this.#items[item].getQuantity(true, 10)
+			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
 			const cbcLineExtensionAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
 			cbcLineExtensionAmount.setAttribute("currencyID", this.getCurrencyId())
-			cbcLineExtensionAmount.textContent = this.#items[item].getLineExtensionAmount(true)
+			cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
 			cacInvoiceLine.appendChild(cbcLineExtensionAmount)
 
 			{ //PricingReference
@@ -670,7 +613,7 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.textContent = this.#items[item].getPricingReferenceAmount(true, 10)
+				cbcPriceAmount.textContent = item.getPricingReferenceAmount(true, 10)
 				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
 				const cbcPriceTypeCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceTypeCode")
@@ -684,28 +627,28 @@ class Invoice extends Receipt {
 
 				const cbcTaxAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 				cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcTaxAmount.textContent = this.#items[item].getTaxTotalAmount(true)
+				cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
 				cacTaxTotal.appendChild(cbcTaxAmount)
 
-				if( this.#items[item].getIscAmount() > 0 ) { //ISC
+				if (item.getIscAmount() > 0) { //ISC
 					const cacTaxSubtotal = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
 					cacTaxTotal.appendChild(cacTaxSubtotal)
 
 					const cbcTaxableAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxableAmount.textContent = this.#items[item].getLineExtensionAmount(true)
+					cbcTaxableAmount.textContent = item.getLineExtensionAmount(true)
 					cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
 					const cbcTaxAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxAmount.textContent = this.#items[item].getIscAmount(true)
+					cbcTaxAmount.textContent = item.getIscAmount(true)
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 					const cacTaxCategory = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
 					cacTaxSubtotal.appendChild(cacTaxCategory)
 					{
 						const cbcPercent = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
-						cbcPercent.textContent = this.#items[item].getIscPercentage()
+						cbcPercent.textContent = item.getIscPercentage()
 						cacTaxCategory.appendChild(cbcPercent)
 
 						const cbcTierRange = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TierRange")
@@ -729,29 +672,29 @@ class Invoice extends Receipt {
 						}
 					}
 				}
-				if( this.#items[item].getIgvAmount() > 0 ) { //IGV
+				if( item.getIgvAmount() > 0 ) { //IGV
 					const cacTaxSubtotal = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
 					cacTaxTotal.appendChild(cacTaxSubtotal)
 
 					const cbcTaxableAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
 					cbcTaxableAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxableAmount.textContent = this.#items[item].getTaxableIgvAmount(true)
+					cbcTaxableAmount.textContent = item.getTaxableIgvAmount(true)
 					cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
 					const cbcTaxAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcTaxAmount.textContent = this.#items[item].getIgvAmount(true)
+					cbcTaxAmount.textContent = item.getIgvAmount(true)
 					cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 					const cacTaxCategory = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
 					cacTaxSubtotal.appendChild(cacTaxCategory)
 					{
 						const cbcPercent = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
-						cbcPercent.textContent = this.#items[item].getIgvPercentage()
+						cbcPercent.textContent = item.getIgvPercentage()
 						cacTaxCategory.appendChild(cbcPercent)
 
 						const cbcTaxExemptionReasonCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxExemptionReasonCode")
-						cbcTaxExemptionReasonCode.textContent = this.#items[item].getExemptionReasonCode()
+						cbcTaxExemptionReasonCode.textContent = item.getExemptionReasonCode()
 						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
 
 						const cacTaxScheme = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
@@ -778,15 +721,15 @@ class Invoice extends Receipt {
 				cacInvoiceLine.appendChild(cacItem)
 
 				const cbcDescription = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Description")
-				cbcDescription.appendChild( this.xmlDocument.createCDATASection(this.#items[item].getDescription()) )
+				cbcDescription.appendChild( this.xmlDocument.createCDATASection(item.getDescription()) )
 				cacItem.appendChild(cbcDescription)
 
-				if(this.#items[item].getCode()) {
+				if(item.getCode()) {
 					const cacSellersItemIdentification = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:SellersItemIdentification")
 					cacItem.appendChild(cacSellersItemIdentification)
 
 					const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-					cbcID.textContent = this.#items[item].getCode()
+					cbcID.textContent = item.getCode()
 					cacSellersItemIdentification.appendChild(cbcID)
 				}
 
@@ -797,7 +740,7 @@ class Invoice extends Receipt {
 				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
 				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
 				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-				cbcItemClassificationCode.textContent = this.#items[item].getClassificationCode()
+				cbcItemClassificationCode.textContent = item.getClassificationCode()
 				cacCommodityClassification.appendChild(cbcItemClassificationCode)
 			}
 
@@ -807,7 +750,7 @@ class Invoice extends Receipt {
 
 				const cbcPriceAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
 				cbcPriceAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPriceAmount.textContent = this.#items[item].getUnitValue(true, 10)
+				cbcPriceAmount.textContent = item.getUnitValue(true, 10)
 				cacPrice.appendChild(cbcPriceAmount)
 			}
 		}

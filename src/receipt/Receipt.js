@@ -20,6 +20,19 @@ class Receipt {
 
 	#hash
 
+	#items = Array()
+
+	/*
+	 * Global totals
+	 */
+	#lineExtensionAmount = 0
+	#taxTotalAmount = 0
+	#taxInclusiveAmount = 0
+	#igvAmount = 0
+	#iscAmount = 0
+	#icbpAmount = 0
+	#operationAmounts = [0, 0, 0]
+
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
 	}
@@ -128,6 +141,32 @@ class Receipt {
 		return this.#hash
 	}
 
+	addItem(item) {
+		this.#items.push(item)
+
+		this.#lineExtensionAmount += item.getLineExtensionAmount()
+		this.#taxTotalAmount += item.getTaxTotalAmount()
+		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
+
+		this.#igvAmount += item.getIgvAmount()
+
+		//Assign data according taxability
+		switch(true) {
+			case (item.getExemptionReasonCode() < 20):
+				this.#operationAmounts[0] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 30):
+				this.#operationAmounts[1] += item.getLineExtensionAmount();break
+			case (item.getExemptionReasonCode() < 40):
+				this.#operationAmounts[2] += item.getLineExtensionAmount();break
+			default:
+				this.#operationAmounts[3] += item.getLineExtensionAmount()
+		}
+	}
+
+	get items() {
+		return this.#items
+	}
+
 	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
@@ -186,6 +225,58 @@ class Receipt {
 				console.error(e)
 				return false
 			})
+	}
+
+	get lineExtensionAmount() {
+		return this.#lineExtensionAmount
+	}
+
+	get taxTotalAmount() {
+		return this.#taxTotalAmount
+	}
+
+	set taxTotalAmount(amount) {
+		this.#taxTotalAmount = amount
+	}
+
+	get taxInclusiveAmount() {
+		return this.#taxInclusiveAmount
+	}
+
+	set taxInclusiveAmount(amount) {
+		this.#taxInclusiveAmount = amount
+	}
+
+	get igvAmount() {
+		return this.#igvAmount
+	}
+
+	set igvAmount(amount) {
+		this.#igvAmount = amount
+	}
+
+	get iscAmount() {
+		return this.#iscAmount
+	}
+
+	set iscAmount(amount) {
+		this.#iscAmount = amount
+	}
+
+	get icbpAmount() {
+		return this.#icbpAmount
+	}
+
+	set icbpAmount(amount) {
+		this.#icbpAmount = amount
+	}
+
+	getOperationAmount(index) {
+		return this.#operationAmounts[index]
+	}
+
+	setOperationAmount(index, amount) {
+		this.#operationAmounts[index] = amount
 	}
 
 	/**
