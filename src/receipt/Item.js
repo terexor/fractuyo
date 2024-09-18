@@ -161,6 +161,8 @@ var Item = function(_description) {
 	this.getExemptionReasonCode = function() {
 		return exemptionReasonCode
 	}
+
+	this.setDescription(_description) // Assigning description in constructor
 }
 
 export default Item;
