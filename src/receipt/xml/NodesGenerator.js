@@ -11,6 +11,107 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateSupplier(invoice) { //Supplier (current taxpayer)
+		const cacAccountingSupplierParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingSupplierParty")
+		invoice.xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
+
+		const cacParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Party")
+		cacAccountingSupplierParty.appendChild(cacParty)
+
+		const cacPartyIdentification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+		cacParty.appendChild(cacPartyIdentification)
+
+		const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+		cbcId.setAttribute("schemeID", invoice.getTaxpayer().getIdentification().getType())
+		cbcId.setAttribute("schemeName", "Documento de Identidad")
+		cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
+		cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+		cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+		cacPartyIdentification.appendChild(cbcId)
+
+		const cacPartyName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyName")
+		cacParty.appendChild(cacPartyName)
+
+		const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+		cbcName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getTradeName()) )
+		cacPartyName.appendChild(cbcName)
+
+		const cacPartyLegalEntity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
+		cacParty.appendChild(cacPartyLegalEntity)
+		{
+			const cbcRegistrationName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
+			cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getName()) )
+			cacPartyLegalEntity.appendChild(cbcRegistrationName)
+
+			const cacRegistrationAddress = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:RegistrationAddress")
+			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+			{
+				const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcId.textContent = invoice.getTaxpayer().getAddress().ubigeo
+				cacRegistrationAddress.appendChild(cbcId)
+
+				const cbcAddressTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:AddressTypeCode")
+				cbcAddressTypeCode.textContent = invoice.getTaxpayer().getAddress().typecode
+				cacRegistrationAddress.appendChild(cbcAddressTypeCode)
+
+				const cbcCitySubdivisionName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CitySubdivisionName")
+				cbcCitySubdivisionName.textContent = invoice.getTaxpayer().getAddress().urbanization
+				cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
+
+				const cbcCityName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CityName")
+				cbcCityName.textContent = invoice.getTaxpayer().getAddress().city
+				cacRegistrationAddress.appendChild(cbcCityName)
+
+				const cbcCountrySubentity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CountrySubentity")
+				cbcCountrySubentity.textContent = invoice.getTaxpayer().getAddress().subentity
+				cacRegistrationAddress.appendChild(cbcCountrySubentity)
+
+				const cbcDistrict = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:District")
+				cbcDistrict.textContent = invoice.getTaxpayer().getAddress().district
+				cacRegistrationAddress.appendChild(cbcDistrict)
+
+				const cacAddressLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
+				cacRegistrationAddress.appendChild(cacAddressLine)
+
+				const cbcLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
+				cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getAddress().line) )
+				cacAddressLine.appendChild(cbcLine)
+
+				const cacCountry = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Country")
+				cacRegistrationAddress.appendChild(cacCountry)
+
+				const cbcIdentificationCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IdentificationCode")
+				cbcIdentificationCode.textContent = invoice.getTaxpayer().getAddress().country
+				cacCountry.appendChild(cbcIdentificationCode)
+			}
+		}
+
+		if ( invoice.getTaxpayer().getWeb() || invoice.getTaxpayer().getEmail() || invoice.getTaxpayer().getTelephone() ) {
+			//Contact or marketing
+			const cacContact = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Contact")
+			cacParty.appendChild(cacContact)
+			{
+				if (invoice.getTaxpayer().getTelephone()) {
+					const cbcTelephone = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Telephone")
+					cbcTelephone.textContent = invoice.getTaxpayer().getTelephone()
+					cacContact.appendChild(cbcTelephone)
+				}
+
+				if (invoice.getTaxpayer().getEmail()) {
+					const cbcElectronicMail = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ElectronicMail")
+					cbcElectronicMail.textContent = invoice.getTaxpayer().getEmail()
+					cacContact.appendChild(cbcElectronicMail)
+				}
+
+				if (invoice.getTaxpayer().getWeb()) {
+					const cbcNote = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
+					cbcNote.textContent = invoice.getTaxpayer().getWeb()
+					cacContact.appendChild(cbcNote)
+				}
+			}
+		}
+	}
+
 	static generateCustomer(invoice) {
 		const cacAccountingCustomerParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingCustomerParty")
 		invoice.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
