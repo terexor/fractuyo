@@ -47,7 +47,7 @@ class NodesGenerator {
 		cbcNote.appendChild( invoice.xmlDocument.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
 		invoice.xmlDocument.documentElement.appendChild(cbcNote)
 
-		if (invoice.getDetractionAmount()) {
+		if ((invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) && invoice.getDetractionAmount()) {
 			const cbcNote = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
 			cbcNote.setAttribute("languageLocaleID", "2006")
 			cbcNote.appendChild( invoice.xmlDocument.createCDATASection("Operación sujeta a detracción") )
@@ -666,7 +666,7 @@ class NodesGenerator {
 		note.xmlDocument.documentElement.appendChild(cacDiscrepancyResponse)
 		{
 			const cbcReferenceID = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ReferenceID")
-			cbcReferenceID.textContent = note.getReferenceId()
+			cbcReferenceID.textContent = note.getDocumentReference()
 			cacDiscrepancyResponse.appendChild(cbcReferenceID)
 
 			const cbcResponseCode = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ResponseCode")
