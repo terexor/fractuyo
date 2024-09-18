@@ -543,26 +543,7 @@ class Invoice extends Receipt {
 			}
 		}
 
-		{
-			const cacLegalMonetaryTotal = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:LegalMonetaryTotal")
-			this.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
-			{
-				const cbcLineExtensionAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
-				cbcLineExtensionAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcLineExtensionAmount.textContent = this.lineExtensionAmount.toFixed(2)
-				cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
-
-				const cbcTaxInclusiveAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxInclusiveAmount")
-				cbcTaxInclusiveAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcTaxInclusiveAmount.textContent = this.taxInclusiveAmount.toFixed(2)
-				cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
-
-				const cbcPayableAmount  = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PayableAmount")
-				cbcPayableAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcPayableAmount.textContent = this.taxInclusiveAmount.toFixed(2)
-				cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
-			}
-		}
+		NodesGenerator.generateTotal(this)
 
 		NodesGenerator.generateLines(this)
 	}

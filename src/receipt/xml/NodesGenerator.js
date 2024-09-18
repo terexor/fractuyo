@@ -11,6 +11,27 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateTotal(invoice) {
+		const cacLegalMonetaryTotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:LegalMonetaryTotal")
+		invoice.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
+		{
+			const cbcLineExtensionAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
+			cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			cbcLineExtensionAmount.textContent = invoice.lineExtensionAmount.toFixed(2)
+			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
+
+			const cbcTaxInclusiveAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxInclusiveAmount")
+			cbcTaxInclusiveAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			cbcTaxInclusiveAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
+
+			const cbcPayableAmount  = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PayableAmount")
+			cbcPayableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+			cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
+		}
+	}
+
 	static generateLines(invoice) {
 		let itemIndex = 0 // for ID
 		for(const item of invoice.items) { //Items
