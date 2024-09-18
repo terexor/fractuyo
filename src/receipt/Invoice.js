@@ -1,4 +1,5 @@
 import Receipt from "./Receipt.js"
+import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Invoice extends Receipt {
 	constructor(taxpayer, customer) {
@@ -127,13 +128,7 @@ class Invoice extends Receipt {
 	}
 
 	toXml() {
-		const cbcUblVersionId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:UBLVersionID")
-		cbcUblVersionId.textContent = this.getUblVersion()
-		this.xmlDocument.documentElement.appendChild(cbcUblVersionId)
-
-		const cbcCustomizationId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CustomizationID")
-		cbcCustomizationId.textContent = this.getCustomizationId()
-		this.xmlDocument.documentElement.appendChild(cbcCustomizationId)
+		NodesGenerator.generateHeader(this)
 
 		const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
 		cbcId.textContent = this.getId()
