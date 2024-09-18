@@ -148,17 +148,7 @@ class Invoice extends Receipt {
 
 		NodesGenerator.generateTypeCode(this)
 
-		const cbcNote = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
-		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( this.xmlDocument.createCDATASection(Receipt.amountToWords(this.taxInclusiveAmount, "con", this.getCurrencyId())) )
-		this.xmlDocument.documentElement.appendChild(cbcNote)
-
-		if(this.#detractionAmount) {
-			const cbcNote = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
-			cbcNote.setAttribute("languageLocaleID", "2006")
-			cbcNote.appendChild( this.xmlDocument.createCDATASection("Operación sujeta a detracción") )
-			this.xmlDocument.documentElement.appendChild(cbcNote)
-		}
+		NodesGenerator.generateNotes(this)
 
 		const cbcDocumentCurrencyCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DocumentCurrencyCode")
 		cbcDocumentCurrencyCode.textContent = this.getCurrencyId()

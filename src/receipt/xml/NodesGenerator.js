@@ -41,6 +41,20 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 	}
 
+	static generateNotes(invoice) {
+		const cbcNote = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
+		cbcNote.setAttribute("languageLocaleID", "1000")
+		cbcNote.appendChild( invoice.xmlDocument.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
+		invoice.xmlDocument.documentElement.appendChild(cbcNote)
+
+		if (invoice.getDetractionAmount()) {
+			const cbcNote = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
+			cbcNote.setAttribute("languageLocaleID", "2006")
+			cbcNote.appendChild( invoice.xmlDocument.createCDATASection("Operación sujeta a detracción") )
+			invoice.xmlDocument.documentElement.appendChild(cbcNote)
+		}
+	}
+
 	static generateSignature(invoice) {
 		const cacSignature = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Signature")
 		invoice.xmlDocument.documentElement.appendChild(cacSignature)
