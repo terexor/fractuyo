@@ -6,6 +6,7 @@ class Note extends Receipt {
 
 	constructor(taxpayer, customer, isCredit) {
 		super(taxpayer, customer, isCredit ? "CreditNote" : "DebitNote")
+		this.setTypeCode(isCredit ? 7 : 8)
 	}
 
 	setDescription(description) {
