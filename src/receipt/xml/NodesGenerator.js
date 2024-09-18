@@ -11,6 +11,54 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateTaxes(invoice) {
+		const cacTaxTotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxTotal")
+		invoice.xmlDocument.documentElement.appendChild(cacTaxTotal)
+		{
+			const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
+			cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			cbcTaxAmount.textContent = invoice.taxTotalAmount.toFixed(2)
+			cacTaxTotal.appendChild(cbcTaxAmount)
+
+			const cacTaxSubtotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
+			cacTaxTotal.appendChild(cacTaxSubtotal)
+			{
+				const cbcTaxableAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
+				cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcTaxableAmount.textContent = invoice.getOperationAmount(0).toFixed(2)
+				cacTaxSubtotal.appendChild( cbcTaxableAmount )
+
+				const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
+				cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcTaxAmount.textContent = invoice.igvAmount.toFixed(2)
+				cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+				const cacTaxCategory = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
+				cacTaxSubtotal.appendChild(cacTaxCategory)
+				{
+					const cacTaxScheme = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
+					cacTaxCategory.appendChild(cacTaxScheme)
+					{
+						const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.setAttribute("schemeName", "Codigo de tributos")
+						cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+						cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
+						cbcID.textContent = "1000"
+						cacTaxScheme.appendChild(cbcID)
+
+						const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+						cbcName.textContent = "IGV"
+						cacTaxScheme.appendChild(cbcName)
+
+						const cbcTaxTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxTypeCode")
+						cbcTaxTypeCode.textContent = "VAT"
+						cacTaxScheme.appendChild(cbcTaxTypeCode)
+					}
+				}
+			}
+		}
+	}
+
 	static generateTotal(invoice) {
 		const cacLegalMonetaryTotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:LegalMonetaryTotal")
 		invoice.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
