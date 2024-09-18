@@ -1,4 +1,5 @@
 import Receipt from "./Receipt.js"
+import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Note extends Receipt {
 	#description
