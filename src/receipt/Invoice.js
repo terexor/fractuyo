@@ -325,43 +325,8 @@ class Invoice extends Receipt {
 				}
 			}
 		}
-		{ //Customer
-			const cacAccountingCustomerParty = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingCustomerParty")
-			this.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
 
-			const cacParty = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Party")
-			cacAccountingCustomerParty.appendChild(cacParty)
-
-			const cacPartyIdentification = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
-			cacParty.appendChild(cacPartyIdentification)
-
-			const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-			cbcId.setAttribute("schemeID", this.getCustomer().getIdentification().getType())
-			cbcId.setAttribute("schemeName", "Documento de Identidad")
-			cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
-			cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-			cbcId.textContent = this.getCustomer().getIdentification().getNumber()
-			cacPartyIdentification.appendChild(cbcId)
-
-			const cacPartyLegalEntity = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
-			cacParty.appendChild(cacPartyLegalEntity)
-
-			const cbcRegistrationName = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
-			cbcRegistrationName.appendChild( this.xmlDocument.createCDATASection(this.getCustomer().getName()) )
-			cacPartyLegalEntity.appendChild(cbcRegistrationName)
-
-			if(this.getCustomer().getAddress()) {
-				const cacRegistrationAddress = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:RegistrationAddress")
-				cacPartyLegalEntity.appendChild(cacRegistrationAddress)
-
-				const cacAddressLine = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
-				cacRegistrationAddress.appendChild(cacAddressLine)
-
-				const cbcLine = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
-				cbcLine.appendChild( this.xmlDocument.createCDATASection(this.getCustomer().getAddress()) )
-				cacAddressLine.appendChild(cbcLine)
-			}
-		}
+		NodesGenerator.generateCustomer(this)
 
 		if(this.#detractionAmount) {
 			const cacPaymentMeans = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentMeans")

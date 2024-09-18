@@ -11,6 +11,44 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateCustomer(invoice) {
+		const cacAccountingCustomerParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingCustomerParty")
+		invoice.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
+
+		const cacParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Party")
+		cacAccountingCustomerParty.appendChild(cacParty)
+
+		const cacPartyIdentification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+		cacParty.appendChild(cacPartyIdentification)
+
+		const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+		cbcId.setAttribute("schemeID", invoice.getCustomer().getIdentification().getType())
+		cbcId.setAttribute("schemeName", "Documento de Identidad")
+		cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
+		cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+		cbcId.textContent = invoice.getCustomer().getIdentification().getNumber()
+		cacPartyIdentification.appendChild(cbcId)
+
+		const cacPartyLegalEntity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
+		cacParty.appendChild(cacPartyLegalEntity)
+
+		const cbcRegistrationName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
+		cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getName()) )
+		cacPartyLegalEntity.appendChild(cbcRegistrationName)
+
+		if(invoice.getCustomer().getAddress()) {
+			const cacRegistrationAddress = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:RegistrationAddress")
+			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
+
+			const cacAddressLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
+			cacRegistrationAddress.appendChild(cacAddressLine)
+
+			const cbcLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
+			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress()) )
+			cacAddressLine.appendChild(cbcLine)
+		}
+	}
+
 	static generateCharge(invoice) {
 		if (invoice.getDiscount()) {
 			const cacAllowanceCharge = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AllowanceCharge")
