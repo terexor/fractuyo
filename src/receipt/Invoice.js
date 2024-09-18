@@ -26,6 +26,10 @@ class Invoice extends Receipt {
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
+	getDetractionAmount() {
+		return this.#detractionAmount
+	}
+
 	getShares() {
 		return this.#shares
 	}
@@ -234,66 +238,7 @@ class Invoice extends Receipt {
 			}
 		}
 
-		if(this.#shares.length == 0) { //Cash Payment
-			const cacPaymentTerms = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
-			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-				cbcID.textContent = "FormaPago"
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
-				cbcPaymentMeansID.textContent = "Contado"
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-			}
-		}
-		else { //Credit payment
-			const cacPaymentTerms = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
-			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = this.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
-				cbcID.textContent = "FormaPago"
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
-				cbcPaymentMeansID.textContent = "Credito"
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-				const cbcAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
-				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				if(this.#detractionAmount) {
-					cbcAmount.textContent = (this.taxInclusiveAmount - (this.#detractionAmount)).toFixed(2)
-				}
-				else {
-					cbcAmount.textContent = this.taxInclusiveAmount.toFixed(2)
-				}
-				cacPaymentTerms.appendChild(cbcAmount)
-			}
-
-			let c = 0
-			for(const share of this.#shares) {
-				const cacPaymentTerms = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
-				this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
-				{
-					const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-					cbcID.textContent = "FormaPago"
-					cacPaymentTerms.appendChild(cbcID)
-
-					const cbcPaymentMeansID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
-					cbcPaymentMeansID.textContent = "Cuota" + String(++c).padStart(3, '0')
-					cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-					const cbcAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
-					cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-					cbcAmount.textContent = share.getAmount(true)
-					cacPaymentTerms.appendChild(cbcAmount)
-
-					const cbcPaymentDueDate = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentDueDate")
-					cbcPaymentDueDate.textContent = share.getDueDate()
-					cacPaymentTerms.appendChild(cbcPaymentDueDate)
-				}
-			}
-		}
+		NodesGenerator.generatePaymentTerms(this)
 
 		NodesGenerator.generateCharge(this)
 

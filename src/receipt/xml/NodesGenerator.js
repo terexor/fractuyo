@@ -207,6 +207,71 @@ class NodesGenerator {
 		}
 	}
 
+	static generatePaymentTerms(invoice) {
+		if (invoice.getShares().length == 0) { //Cash Payment
+			const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
+			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcID.textContent = "FormaPago"
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.textContent = "Contado"
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+			}
+
+			return
+		}
+
+		//Credit payment
+		const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
+		invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+		{
+			const cbcID = invoice.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			cbcID.textContent = "FormaPago"
+			cacPaymentTerms.appendChild(cbcID)
+
+			const cbcPaymentMeansID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
+			cbcPaymentMeansID.textContent = "Credito"
+			cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+			const cbcAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
+			cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			if (invoice.getDetractionAmount()) {
+				cbcAmount.textContent = (invoice.taxInclusiveAmount - (invoice.getDetractionAmount())).toFixed(2)
+			}
+			else {
+				cbcAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+			}
+			cacPaymentTerms.appendChild(cbcAmount)
+		}
+
+		let c = 0
+		for (const share of invoice.getShares()) {
+			const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
+			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcID.textContent = "FormaPago"
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.textContent = "Cuota" + String(++c).padStart(3, '0')
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcAmount.textContent = share.getAmount(true)
+				cacPaymentTerms.appendChild(cbcAmount)
+
+				const cbcPaymentDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentDueDate")
+				cbcPaymentDueDate.textContent = share.getDueDate()
+				cacPaymentTerms.appendChild(cbcPaymentDueDate)
+			}
+		}
+	}
+
 	static generateCharge(invoice) {
 		if (invoice.getDiscount()) {
 			const cacAllowanceCharge = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AllowanceCharge")
