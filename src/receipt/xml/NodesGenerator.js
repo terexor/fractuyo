@@ -29,6 +29,18 @@ class NodesGenerator {
 		}
 	}
 
+	static generateTypeCode(invoice) {
+		const cbcInvoiceTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoiceTypeCode")
+		if (invoice.getDetractionAmount()) {
+			cbcInvoiceTypeCode.setAttribute("listID", "1001")
+		}
+		else {
+			cbcInvoiceTypeCode.setAttribute("listID", "0101")
+		}
+		cbcInvoiceTypeCode.textContent = invoice.getTypeCode()
+		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+	}
+
 	static generateSignature(invoice) {
 		const cacSignature = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Signature")
 		invoice.xmlDocument.documentElement.appendChild(cacSignature)

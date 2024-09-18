@@ -146,15 +146,7 @@ class Invoice extends Receipt {
 
 		NodesGenerator.generateDates(this)
 
-		const cbcInvoiceTypeCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoiceTypeCode")
-		if(this.#detractionAmount) {
-			cbcInvoiceTypeCode.setAttribute("listID", "1001")
-		}
-		else {
-			cbcInvoiceTypeCode.setAttribute("listID", "0101")
-		}
-		cbcInvoiceTypeCode.textContent = this.getTypeCode()
-		this.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+		NodesGenerator.generateTypeCode(this)
 
 		const cbcNote = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
 		cbcNote.setAttribute("languageLocaleID", "1000")
