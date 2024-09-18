@@ -4,6 +4,8 @@ import JSZip from "jszip"
 import { DOMImplementation } from "@xmldom/xmldom"
 
 class Receipt {
+	#name
+
 	#taxpayer
 	#customer
 
@@ -40,6 +42,7 @@ class Receipt {
 	constructor(taxpayer, customer, name) {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
+		this.#name = name
 
 		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${name}-2`, name)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
@@ -56,6 +59,10 @@ class Receipt {
 
 		const extExtensionContent = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:ExtensionContent")
 		extUblExtension.appendChild(extExtensionContent)
+	}
+
+	get name() {
+		return this.#name
 	}
 
 	setCustomer(customer) {
