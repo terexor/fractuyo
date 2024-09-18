@@ -470,7 +470,7 @@ class NodesGenerator {
 	static generateLines(invoice) {
 		let itemIndex = 0 // for ID
 		for(const item of invoice.items) { //Items
-			const cacInvoiceLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:InvoiceLine")
+			const cacInvoiceLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, `cac:${invoice.name}Line`)
 			invoice.xmlDocument.documentElement.appendChild(cacInvoiceLine)
 
 			const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
