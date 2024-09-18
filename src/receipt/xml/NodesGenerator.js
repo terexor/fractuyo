@@ -11,6 +11,12 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateIdentity(invoice) {
+		const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+		cbcId.textContent = invoice.getId()
+		invoice.xmlDocument.documentElement.appendChild(cbcId)
+	}
+
 	static generateDates(invoice) {
 		const cbcIssueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueDate")
 		cbcIssueDate.textContent = invoice.getIssueDate().toISOString().substr(0, 10)

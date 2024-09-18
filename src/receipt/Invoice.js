@@ -138,9 +138,7 @@ class Invoice extends Receipt {
 	toXml() {
 		NodesGenerator.generateHeader(this)
 
-		const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-		cbcId.textContent = this.getId()
-		this.xmlDocument.documentElement.appendChild(cbcId)
+		NodesGenerator.generateIdentity(this)
 
 		NodesGenerator.generateDates(this)
 
