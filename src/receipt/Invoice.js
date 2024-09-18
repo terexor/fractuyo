@@ -103,16 +103,6 @@ class Invoice extends Receipt {
 		return this.#discount
 	}
 
-	getDataQr() {
-		return this.getTaxpayer().getIdentification().getNumber()
-			+ '|' + this.getId(true).replaceAll('-', '|')
-			+ '|' + this.igvAmount.toFixed(2)
-			+ '|' + this.taxInclusiveAmount.toFixed(2)
-			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
-			+ '|' + this.getCustomer().getIdentification().getType()
-			+ '|' + this.getCustomer().getIdentification().getNumber()
-	}
-
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations

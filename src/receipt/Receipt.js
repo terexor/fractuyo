@@ -188,6 +188,16 @@ class Receipt {
 		return this.#items
 	}
 
+	getQrData() {
+		return this.getTaxpayer().getIdentification().getNumber()
+			+ '|' + this.getId(true).replaceAll('-', '|')
+			+ '|' + this.igvAmount.toFixed(2)
+			+ '|' + this.taxInclusiveAmount.toFixed(2)
+			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
+			+ '|' + this.getCustomer().getIdentification().getType()
+			+ '|' + this.getCustomer().getIdentification().getNumber()
+	}
+
 	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
