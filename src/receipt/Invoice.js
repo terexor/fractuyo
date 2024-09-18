@@ -187,44 +187,7 @@ class Invoice extends Receipt {
 			}
 		}
 
-		{ //Signer data
-			const cacSignature = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Signature")
-			this.xmlDocument.documentElement.appendChild(cacSignature)
-
-			const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-			cbcId.textContent = this.getTaxpayer().getIdentification().getNumber()
-			cacSignature.appendChild(cbcId)
-
-			{
-				const cacSignatoreParty = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:SignatoryParty")
-				cacSignature.appendChild(cacSignatoreParty)
-
-				const cacPartyIdentification = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
-				cacSignatoreParty.appendChild(cacPartyIdentification)
-
-				const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-				cbcId.textContent = this.getTaxpayer().getIdentification().getNumber()
-				cacPartyIdentification.appendChild(cbcId)
-
-				const cacPartyName = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyName")
-				cacSignatoreParty.appendChild(cacPartyName)
-
-				const cbcName = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
-				cbcName.appendChild( this.xmlDocument.createCDATASection(this.getTaxpayer().getName()) )
-				cacPartyName.appendChild(cbcName)
-			}
-			{
-				const cacDigitalSignatureAttachment = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DigitalSignatureAttachment")
-				cacSignature.appendChild(cacDigitalSignatureAttachment)
-
-				const cacExternalReference = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ExternalReference")
-				cacDigitalSignatureAttachment.appendChild(cacExternalReference)
-
-				const cbcUri = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:URI")
-				cbcUri.textContent = "#teroxoris"
-				cacExternalReference.appendChild(cbcUri)
-			}
-		}
+		NodesGenerator.generateSignature(this)
 
 		NodesGenerator.generateSupplier(this)
 

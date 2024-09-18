@@ -11,6 +11,45 @@ class NodesGenerator {
 		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
 	}
 
+	static generateSignature(invoice) {
+		const cacSignature = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Signature")
+		invoice.xmlDocument.documentElement.appendChild(cacSignature)
+
+		const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+		cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+		cacSignature.appendChild(cbcId)
+
+		{
+			const cacSignatoreParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:SignatoryParty")
+			cacSignature.appendChild(cacSignatoreParty)
+
+			const cacPartyIdentification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+			cacSignatoreParty.appendChild(cacPartyIdentification)
+
+			const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+			cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+			cacPartyIdentification.appendChild(cbcId)
+
+			const cacPartyName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyName")
+			cacSignatoreParty.appendChild(cacPartyName)
+
+			const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+			cbcName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getName()) )
+			cacPartyName.appendChild(cbcName)
+		}
+		{
+			const cacDigitalSignatureAttachment = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DigitalSignatureAttachment")
+			cacSignature.appendChild(cacDigitalSignatureAttachment)
+
+			const cacExternalReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ExternalReference")
+			cacDigitalSignatureAttachment.appendChild(cacExternalReference)
+
+			const cbcUri = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:URI")
+			cbcUri.textContent = "#teroxoris"
+			cacExternalReference.appendChild(cbcUri)
+		}
+	}
+
 	static generateSupplier(invoice) { //Supplier (current taxpayer)
 		const cacAccountingSupplierParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingSupplierParty")
 		invoice.xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
