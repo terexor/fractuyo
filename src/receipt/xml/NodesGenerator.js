@@ -55,6 +55,31 @@ class NodesGenerator {
 		}
 	}
 
+	static generateCurrencyCode(invoice) {
+		const cbcDocumentCurrencyCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DocumentCurrencyCode")
+		cbcDocumentCurrencyCode.textContent = invoice.getCurrencyId()
+		invoice.xmlDocument.documentElement.appendChild(cbcDocumentCurrencyCode)
+	}
+
+	static generateReference(invoice) {
+		if (invoice.getOrderReference()) {
+			const cacOrderReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:OrderReference")
+			invoice.xmlDocument.documentElement.appendChild(cacOrderReference)
+
+			{
+				const cbcId = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcId.textContent = invoice.getOrderReference()
+				cacOrderReference.appendChild(cbcId)
+			}
+
+			if (invoice.getOrderReferenceText()) {
+				const cbcCustomerReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CustomerReference")
+				cbcCustomerReference.appendChild( invoice.xmlDocument.createCDATASection(invoice.getOrderReferenceText()) )
+				cacOrderReference.appendChild(cbcCustomerReference)
+			}
+		}
+	}
+
 	static generateSignature(invoice) {
 		const cacSignature = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Signature")
 		invoice.xmlDocument.documentElement.appendChild(cacSignature)

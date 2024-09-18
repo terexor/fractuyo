@@ -62,6 +62,10 @@ class Invoice extends Receipt {
 		}
 	}
 
+	getOrderReference() {
+		return this.#orderReference
+	}
+
 	setOrderReferenceText(referenceText) {
 		if(!this.#orderReference) {
 			throw new Error("Asignar previamente la identidad de referencia.")
@@ -69,6 +73,10 @@ class Invoice extends Receipt {
 		if( ( typeof referenceText === "string" || referenceText instanceof String ) && referenceText.length > 0 ) {
 			this.#orderReferenceText = referenceText
 		}
+	}
+
+	getOrderReferenceText() {
+		return this.#orderReferenceText
 	}
 
 	setDiscount(discountAmount) {
@@ -150,26 +158,9 @@ class Invoice extends Receipt {
 
 		NodesGenerator.generateNotes(this)
 
-		const cbcDocumentCurrencyCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DocumentCurrencyCode")
-		cbcDocumentCurrencyCode.textContent = this.getCurrencyId()
-		this.xmlDocument.documentElement.appendChild(cbcDocumentCurrencyCode)
+		NodesGenerator.generateCurrencyCode(this)
 
-		if(this.#orderReference) {
-			const cacOrderReference = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:OrderReference")
-			this.xmlDocument.documentElement.appendChild(cacOrderReference)
-
-			{
-				const cbcId = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-				cbcId.textContent = this.#orderReference
-				cacOrderReference.appendChild(cbcId)
-			}
-
-			if(this.#orderReferenceText) {
-				const cbcCustomerReference = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CustomerReference")
-				cbcCustomerReference.appendChild( this.xmlDocument.createCDATASection(this.#orderReferenceText) )
-				cacOrderReference.appendChild(cbcCustomerReference)
-			}
-		}
+		NodesGenerator.generateReference(this)
 
 		NodesGenerator.generateSignature(this)
 
