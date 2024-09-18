@@ -22,7 +22,7 @@ class NodesGenerator {
 		cbcIssueDate.textContent = invoice.getIssueDate().toISOString().substr(0, 10)
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
-		if (invoice.getDueDate() && invoice.getShares().length == 0) {
+		if (invoice.getTypeCode() == 1 && invoice.getDueDate() && invoice.getShares().length == 0) {
 			const cbcDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DueDate")
 			cbcDueDate.textContent = invoice.getDueDate()
 			invoice.xmlDocument.documentElement.appendChild(cbcDueDate)
