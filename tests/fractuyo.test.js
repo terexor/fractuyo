@@ -3,11 +3,12 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import XAdES from "xadesjs"
 
-import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Invoice, Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
 let invoice
+let creditNote
 
 test.before(async t => {
 	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
@@ -78,6 +79,27 @@ test("creating invoice", (tester) => {
 	tester.is(invoice.getId(true), "01-F000-19970601")
 })
 
+test("creating note", tester => {
+	creditNote = new Note(taxpayer, customer, true)
+	creditNote.setIssueDate(new Date("18-Sep-2024 UTC"))
+	creditNote.setCurrencyId("PE")
+	creditNote.setSerie("F000")
+	creditNote.setNumeration(18)
+	creditNote.setDescription("Refurbished items are not working")
+
+	const product = new Item("This is description for item and looks familiar")
+	product.setUnitCode("NIU")
+	product.setClassificationCode("82101500")
+	product.setIscPercentage(0)
+	product.setIgvPercentage(18)
+	product.setQuantity(1)
+	product.setUnitValue(100.00)
+	product.calcMounts()
+
+	creditNote.addItem(product)
+
+	tester.is(creditNote.getId(true), "07-F000-00000018")
+})
 test("showing metadata", (tester) => {
 	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
 })
@@ -87,6 +109,15 @@ test("signing invoice", async tester => {
 
 	const { subtle } = globalThis.crypto // from Node API
 	const isSigned = await invoice.sign(subtle)
+
+	tester.true(isSigned)
+})
+
+test("signing note", async tester => {
+	creditNote.toXml()
+
+	const { subtle } = globalThis.crypto // from Node API
+	const isSigned = await creditNote.sign(subtle)
 
 	tester.true(isSigned)
 })
