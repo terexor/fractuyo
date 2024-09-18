@@ -467,33 +467,7 @@ class Invoice extends Receipt {
 			}
 		}
 
-		if(this.#discount) {
-			const cacAllowanceCharge = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AllowanceCharge")
-			this.xmlDocument.documentElement.appendChild(cacAllowanceCharge)
-			{
-				const cbcChargeIndicator = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ChargeIndicator")
-				cbcChargeIndicator.textContent = this.#discount.indicator
-				cacAllowanceCharge.appendChild(cbcChargeIndicator)
-
-				const cbcAllowanceChargeReasonCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:AllowanceChargeReasonCode")
-				cbcAllowanceChargeReasonCode.textContent = this.#discount.getTypeCode()
-				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
-
-				const cbcMultiplierFactorNumeric = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:MultiplierFactorNumeric")
-				cbcMultiplierFactorNumeric.textContent = this.#discount.factor.toFixed(5)
-				cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
-
-				const cbcAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
-				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcAmount.textContent = this.#discount.amount.toFixed(2)
-				cacAllowanceCharge.appendChild(cbcAmount)
-
-				const cbcBaseAmount = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:BaseAmount")
-				cbcBaseAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcBaseAmount.textContent = this.#discount.baseAmount.toFixed(2)
-				cacAllowanceCharge.appendChild(cbcBaseAmount)
-			}
-		}
+		NodesGenerator.generateCharge(this)
 
 		NodesGenerator.generateTaxes(this)
 
