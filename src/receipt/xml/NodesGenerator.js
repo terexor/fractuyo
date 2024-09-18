@@ -62,7 +62,7 @@ class NodesGenerator {
 	}
 
 	static generateReference(invoice) {
-		if (invoice.getOrderReference()) {
+		if ((invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) && invoice.getOrderReference()) { // for invoice
 			const cacOrderReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:OrderReference")
 			invoice.xmlDocument.documentElement.appendChild(cacOrderReference)
 
@@ -76,6 +76,26 @@ class NodesGenerator {
 				const cbcCustomerReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:CustomerReference")
 				cbcCustomerReference.appendChild( invoice.xmlDocument.createCDATASection(invoice.getOrderReferenceText()) )
 				cacOrderReference.appendChild(cbcCustomerReference)
+			}
+
+			return
+		}
+
+		if ((invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8)) { // for note
+			const cacBillingReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:BillingReference")
+			invoice.xmlDocument.documentElement.appendChild(cacBillingReference)
+			{
+				const cacInvoiceDocumentReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:InvoiceDocumentReference")
+				cacBillingReference.appendChild(cacInvoiceDocumentReference)
+				{
+					const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+					cbcID.textContent = invoice.getDocumentReference()
+					cacInvoiceDocumentReference.appendChild(cbcID)
+
+					const cbcDocumentTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DocumentTypeCode")
+					cbcDocumentTypeCode.textContent = invoice.getDocumentReferenceTypeCode()
+					cacInvoiceDocumentReference.appendChild(cbcDocumentTypeCode)
+				}
 			}
 		}
 	}
@@ -638,6 +658,24 @@ class NodesGenerator {
 				cbcPriceAmount.textContent = item.getUnitValue(true, 10)
 				cacPrice.appendChild(cbcPriceAmount)
 			}
+		}
+	}
+
+	static generateDiscrepancy(note) {
+		const cacDiscrepancyResponse = note.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DiscrepancyResponse")
+		note.xmlDocument.documentElement.appendChild(cacDiscrepancyResponse)
+		{
+			const cbcReferenceID = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ReferenceID")
+			cbcReferenceID.textContent = note.getReferenceId()
+			cacDiscrepancyResponse.appendChild(cbcReferenceID)
+
+			const cbcResponseCode = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ResponseCode")
+			cbcResponseCode.textContent = note.getResponseCode()
+			cacDiscrepancyResponse.appendChild(cbcResponseCode)
+
+			const cbcDescription = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Description")
+			cbcDescription.textContent = note.getDescription()
+			cacDiscrepancyResponse.appendChild(cbcDescription)
 		}
 	}
 }
