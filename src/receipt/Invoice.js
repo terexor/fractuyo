@@ -26,10 +26,18 @@ class Invoice extends Receipt {
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
+	getShares() {
+		return this.#shares
+	}
+
 	addShare(share) {
 		this.#shares.push(share)
 
 		this.#sharesAmount += share.getAmount()
+	}
+
+	getDueDate() {
+		return this.#dueDate
 	}
 
 	setDueDate(dd) {
@@ -134,15 +142,7 @@ class Invoice extends Receipt {
 		cbcId.textContent = this.getId()
 		this.xmlDocument.documentElement.appendChild(cbcId)
 
-		const cbcIssueDate = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.textContent = this.getIssueDate().toISOString().substr(0, 10)
-		this.xmlDocument.documentElement.appendChild(cbcIssueDate)
-
-		if(this.#dueDate && this.#shares.length == 0) {
-			const cbcDueDate = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DueDate")
-			cbcDueDate.textContent = this.#dueDate
-			this.xmlDocument.documentElement.appendChild(cbcDueDate)
-		}
+		NodesGenerator.generateDates(this)
 
 		const cbcInvoiceTypeCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoiceTypeCode")
 		if(this.#detractionAmount) {
