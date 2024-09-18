@@ -1,4 +1,5 @@
 import Invoice from "./receipt/Invoice.js";
+import Note from "./receipt/Note.js";
 import Item from "./receipt/Item.js";
 import Share from "./receipt/Share.js";
 import Charge from "./receipt/Charge.js";
@@ -10,6 +11,7 @@ import Address from "./person/Address.js";
 
 export {
 	Invoice,
+	Note,
 	Item,
 	Share,
 	Charge,
