@@ -195,48 +195,7 @@ class Invoice extends Receipt {
 
 		NodesGenerator.generateCustomer(this)
 
-		if(this.#detractionAmount) {
-			const cacPaymentMeans = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentMeans")
-			this.xmlDocument.documentElement.appendChild(cacPaymentMeans)
-			{
-				const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-				cbcID.textContent = "Detraccion"
-				cacPaymentMeans.appendChild(cbcID)
-
-				const cbcPaymentMeansCode = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansCode")
-				cbcPaymentMeansCode.textContent = "003"
-				cacPaymentMeans.appendChild(cbcPaymentMeansCode)
-
-				const cacPayeeFinancialAccount = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PayeeFinancialAccount")
-				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
-				{
-					const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-					cbcID.textContent = "00-099-025344" //Must be variable
-					cacPayeeFinancialAccount.appendChild(cbcID)
-				}
-			}
-
-			const cacPaymentTerms = this.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
-			this.xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-				cbcID.textContent = "Detraccion"
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
-				cbcPaymentMeansID.textContent = "037"
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-				const cbcPaymentPercent = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentPercent")
-				cbcPaymentPercent.textContent = "12" //Must be variable
-				cacPaymentTerms.appendChild(cbcPaymentPercent)
-
-				const cbcAmount  = this.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
-				cbcAmount.setAttribute("currencyID", this.getCurrencyId())
-				cbcAmount.textContent = this.#detractionAmount.toFixed(2) //Must be variable
-				cacPaymentTerms.appendChild(cbcAmount)
-			}
-		}
+		NodesGenerator.generatePaymentMeans(this)
 
 		NodesGenerator.generatePaymentTerms(this)
 

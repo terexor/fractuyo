@@ -207,6 +207,51 @@ class NodesGenerator {
 		}
 	}
 
+	static generatePaymentMeans(invoice) {
+		if (invoice.getDetractionAmount()) {
+			const cacPaymentMeans = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentMeans")
+			invoice.xmlDocument.documentElement.appendChild(cacPaymentMeans)
+			{
+				const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcID.textContent = "Detraccion"
+				cacPaymentMeans.appendChild(cbcID)
+
+				const cbcPaymentMeansCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansCode")
+				cbcPaymentMeansCode.textContent = "003"
+				cacPaymentMeans.appendChild(cbcPaymentMeansCode)
+
+				const cacPayeeFinancialAccount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PayeeFinancialAccount")
+				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
+				{
+					const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+					cbcID.textContent = "00-099-025344" //Must be variable
+					cacPayeeFinancialAccount.appendChild(cbcID)
+				}
+			}
+
+			const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
+			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+			{
+				const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+				cbcID.textContent = "Detraccion"
+				cacPaymentTerms.appendChild(cbcID)
+
+				const cbcPaymentMeansID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentMeansID")
+				cbcPaymentMeansID.textContent = "037"
+				cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+				const cbcPaymentPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentPercent")
+				cbcPaymentPercent.textContent = "12" //Must be variable
+				cacPaymentTerms.appendChild(cbcPaymentPercent)
+
+				const cbcAmount  = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
+				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcAmount.textContent = invoice.getDetractionAmount().toFixed(2) //Must be variable
+				cacPaymentTerms.appendChild(cbcAmount)
+			}
+		}
+	}
+
 	static generatePaymentTerms(invoice) {
 		if (invoice.getShares().length == 0) { //Cash Payment
 			const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
