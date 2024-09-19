@@ -68,6 +68,7 @@ test("creating invoice", (tester) => {
 	product.setClassificationCode("82101500")
 	product.setIscPercentage(0)
 	product.setIgvPercentage(18)
+	product.setExemptionReasonCode(10)
 	product.setQuantity(1)
 	product.setUnitValue(100.00)
 	product.calcMounts()
