@@ -316,7 +316,7 @@ class Receipt {
 	 */
 	async createZip(type = "base64") {
 		const zip = new JSZip()
-		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId()}.xml`, this.xmlDocument.toString())
+		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, this.xmlDocument.toString())
 
 		return zip.generateAsync({type: type}).then(zipb64 => {
 			return zipb64
@@ -327,7 +327,7 @@ class Receipt {
 		const zip = new JSZip()
 
 		return zip.loadAsync(zipStream, {base64: isBase64}).then(async (zip) => {
-			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId()}.xml`).async("string").then(async (data) => {
+			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`).async("string").then(async (data) => {
 				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
 				// Go directly to node <cbc:ResponseCode>
@@ -341,6 +341,44 @@ class Receipt {
 				}
 			})
 		})
+	}
+
+	async declare(zipStream) {
+		// Determine endpoint
+		const soapUrl = "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
+
+		// Simple XML structure for body
+		const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://service.sunat.gob.pe" xmlns:ns2="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<SOAP-ENV:Header>
+					<ns2:Security>
+						<ns2:UsernameToken>
+							<ns2:Username>${this.#taxpayer.getIdentification().getNumber()}${this.#taxpayer.getSolUser()}</ns2:Username>
+							<ns2:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${this.#taxpayer.getSolPass()}</ns2:Password>
+						</ns2:UsernameToken>
+					</ns2:Security>
+				</SOAP-ENV:Header>
+				<SOAP-ENV:Body>
+					<ns1:sendBill>
+						<fileName>${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.zip</fileName>
+						<contentFile>${zipStream}</contentFile>
+					</ns1:sendBill>
+				</SOAP-ENV:Body>
+			</SOAP-ENV:Envelope>`
+
+		try {
+			const response = await fetch(soapUrl, {
+				method: "POST",
+				headers: {"Content-Type": "text/xml;charset=UTF-8"},
+				body: soapBody
+			})
+			const responseText = await response.text()
+
+			console.log(responseText)
+		}
+		catch (error) {
+			console.error('Error en la solicitud:', error)
+		}
 	}
 
 	static namespaces = Object.freeze(
