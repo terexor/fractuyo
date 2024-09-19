@@ -1,0 +1,36 @@
+{
+	"name": "fractuyo",
+	"version": "0.1.0",
+	"description": "Invoice generator.",
+	"main": "src/fractuyo.js",
+	"type": "module",
+	"scripts": {
+		"test": "ava --verbose ./tests"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/terexor/fractuyo.git"
+	},
+	"keywords": [
+		"invoice",
+		"receipt",
+		"taxpayer",
+		"sunat"
+	],
+	"author": "Terexor",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/terexor/fractuyo/issues"
+	},
+	"homepage": "https://github.com/terexor/fractuyo#readme",
+	"dependencies": {
+		"asn1js": "^3.0.5",
+		"jszip": "^3.10.1",
+		"written-number": "^0.11.1",
+		"xadesjs": "^2.4.4"
+	},
+	"devDependencies": {
+		"ava": "^6.1.3",
+		"jsdom": "^25.0.0"
+	}
+}

@@ -1,9 +1,14 @@
 # FracTuyo
-Como jugando, quizá se convierte en los ingresos fijos que tanto anhelamos.
-
-## Hitos simpáticos
-### Plantilla PDF
-Se puede sobreescribir la plantilla predeterminada adjuntado un archivo a la raíz del directorio de trabajo con el nombre _visor.html_ que incluya una etiqueta _style_ con atributo _id_ = _ftp-style_.
-
-### Control inicial de formulario
-En un archivo en la raíz con formato JSON se establecen valores que hará que el formulario inicie con otros parámetros.
+Now it's a library for generating electronic invoices with JavaScript. This library follows 🇵🇪 Sunat's regulations on invoices.
+When items are added, receipt amounts are calculated.
+It doesn't contain anything visual so it doesn't generate a PDF file for printing either.
+## Demonstration of power
+Since it is written entirely in JavaScript, [it can be run in web browsers](https://fractuyo.terexor.com/) just after setting required data.
+## What do you need?
+To generate a document you only need the data.
+To sign the document you will need a digital certificate and the private key.
+## What documents can you generate?
+### Invoice
+This is the main document. Two types can be represented: _factura_ and _boleta de venta_.
+### Note
+Two types can be generated: _credit note_ and _debit note_.
