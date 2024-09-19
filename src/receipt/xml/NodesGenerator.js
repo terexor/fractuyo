@@ -37,7 +37,7 @@ class NodesGenerator {
 		else {
 			cbcInvoiceTypeCode.setAttribute("listID", "0101")
 		}
-		cbcInvoiceTypeCode.textContent = invoice.getTypeCode()
+		cbcInvoiceTypeCode.textContent = invoice.getTypeCode(true)
 		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 	}
 
