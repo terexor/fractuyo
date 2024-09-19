@@ -328,8 +328,7 @@ class Receipt {
 
 		return zip.loadAsync(zipStream, {base64: isBase64}).then(async (zip) => {
 			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId()}.xml`).async("string").then(async (data) => {
-				const parser = new DOMParser()
-				const xmlDoc = parser.parseFromString(data, "application/xml")
+				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
 				// Go directly to node <cbc:ResponseCode>
 				const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
