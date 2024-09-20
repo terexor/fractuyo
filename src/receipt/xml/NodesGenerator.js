@@ -93,7 +93,7 @@ class NodesGenerator {
 					cacInvoiceDocumentReference.appendChild(cbcID)
 
 					const cbcDocumentTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DocumentTypeCode")
-					cbcDocumentTypeCode.textContent = invoice.getDocumentReferenceTypeCode()
+					cbcDocumentTypeCode.textContent = invoice.getDocumentReferenceTypeCode(true)
 					cacInvoiceDocumentReference.appendChild(cbcDocumentTypeCode)
 				}
 			}
@@ -670,7 +670,7 @@ class NodesGenerator {
 			cacDiscrepancyResponse.appendChild(cbcReferenceID)
 
 			const cbcResponseCode = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ResponseCode")
-			cbcResponseCode.textContent = note.getResponseCode()
+			cbcResponseCode.textContent = note.getResponseCode(true)
 			cacDiscrepancyResponse.appendChild(cbcResponseCode)
 
 			const cbcDescription = note.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Description")

@@ -30,7 +30,10 @@ class Note extends Receipt {
 		this.#responseCode = code
 	}
 
-	getResponseCode() {
+	getResponseCode(withFormat = false) {
+		if (withFormat) {
+			return String(this.#responseCode).padStart(2, '0')
+		}
 		return this.#responseCode
 	}
 
@@ -46,7 +49,10 @@ class Note extends Receipt {
 		this.#documentReferenceTypeCode = code
 	}
 
-	getDocumentReferenceTypeCode() {
+	getDocumentReferenceTypeCode(withFormat = false) {
+		if (withFormat) {
+			return String(this.#documentReferenceTypeCode).padStart(2, '0')
+		}
 		return this.#documentReferenceTypeCode
 	}
 
