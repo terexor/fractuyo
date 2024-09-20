@@ -497,7 +497,13 @@ class NodesGenerator {
 			cbcID.textContent = ++itemIndex
 			cacInvoiceLine.appendChild(cbcID)
 
-			const cbcInvoicedQuantity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoicedQuantity")
+			// Dynamic name for that node
+			const quantityNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) ? "cbc:InvoicedQuantity" :
+				invoice.getTypeCode() == 7 ? "cbc:CreditedQuantity" :
+				invoice.getTypeCode() == 8 ? "cbc:CreditedQuantity" :
+				"cbc:Quantity" // it's error
+
+			const cbcInvoicedQuantity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, quantityNodeName)
 			cbcInvoicedQuantity.setAttribute("unitCode", item.getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
