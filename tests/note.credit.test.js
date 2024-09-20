@@ -3,11 +3,10 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import XAdES from "xadesjs"
 
-import { Invoice, Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
-let invoice
 let creditNote
 
 test.before(async t => {
@@ -18,7 +17,7 @@ test.before(async t => {
 	XAdES.Application.setEngine("NodeJS", globalThis.crypto)
 })
 
-test("creating persons", tester => {
+test.serial("creating persons", tester => {
 	customer = new Person()
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
@@ -53,15 +52,16 @@ test("creating persons", tester => {
 	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
 })
 
-test("creating invoice", (tester) => {
-	invoice = new Invoice(taxpayer, customer)
-	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
-	invoice.setCurrencyId("USD")
-	invoice.setTypeCode(1)
-	invoice.setSerie("F000")
-	invoice.setNumeration(19970601)
-	invoice.setOrderReference("test-002")
-	invoice.setOrderReferenceText("Testing library to generate invoice")
+test.serial("creating note", tester => {
+	creditNote = new Note(taxpayer, customer, true)
+	creditNote.setIssueDate(new Date("20-Sep-2024 UTC"))
+	creditNote.setCurrencyId("USD")
+	creditNote.setSerie("F000")
+	creditNote.setNumeration(97)
+	creditNote.setResponseCode(1)
+	creditNote.setDocumentReference("F000-19970601")
+	creditNote.setDocumentReferenceTypeCode(1)
+	creditNote.setDescription("Testing library to eliminate invoice")
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
@@ -73,52 +73,31 @@ test("creating invoice", (tester) => {
 	product.setUnitValue(100.00)
 	product.calcMounts()
 
-	invoice.addItem(product)
+	creditNote.addItem(product)
 
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
-	tester.is(invoice.getId(true), "01-F000-19970601")
+	tester.is(creditNote.getId(true), "07-F000-00000097")
+	tester.is(creditNote.getQrData(), "20606829265|07|F000|00000097|18.00|118.00|2024-09-20|6|20545314437")
 })
 
-test("creating note", tester => {
-	creditNote = new Note(taxpayer, customer, true)
-	creditNote.setIssueDate(new Date("18-Sep-2024 UTC"))
-	creditNote.setCurrencyId("PE")
-	creditNote.setSerie("F000")
-	creditNote.setNumeration(18)
-	creditNote.setDescription("Refurbished items are not working")
-
-	const product = new Item("This is description for item and looks familiar")
-	product.setUnitCode("NIU")
-	product.setClassificationCode("82101500")
-	product.setIscPercentage(0)
-	product.setIgvPercentage(18)
-	product.setQuantity(1)
-	product.setUnitValue(100.00)
-	product.calcMounts()
-
-	creditNote.addItem(product)
-
-	tester.is(creditNote.getId(true), "07-F000-00000018")
-})
-test("showing metadata", (tester) => {
-	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
-})
-
-test("signing invoice", async tester => {
-	invoice.toXml()
-
-	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await invoice.sign(subtle)
-
-	tester.true(isSigned)
-})
-
-test("signing note", async tester => {
+test.serial("signing note", async tester => {
 	creditNote.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
 	const isSigned = await creditNote.sign(subtle)
 
 	tester.true(isSigned)
+
+	try {
+		const zipStream = await creditNote.createZip()
+		const serverZipStream = await creditNote.declare(zipStream)
+		const serverCode = await creditNote.handleProof(serverZipStream)
+
+		tester.is(serverCode, 0)
+	}
+	catch (e) {
+		console.error(e)
+		tester.fail()
+	}
 })

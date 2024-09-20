@@ -337,7 +337,7 @@ class Receipt {
 				const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
 
 				if (codes.length > 0) {
-					return codes[0].textContent // 0 when everthing is really OK
+					return parseInt(codes[0].textContent) // 0 when everthing is really OK
 				}
 				else { // error
 					return -1 // we have problems
