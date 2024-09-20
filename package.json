@@ -5,7 +5,9 @@
 	"main": "src/fractuyo.js",
 	"type": "module",
 	"scripts": {
-		"test": "ava --verbose ./tests"
+		"test": "ava --serial",
+		"test:invoice": "ava ./tests/invoice.*",
+		"test:note": "ava ./tests/note.*"
 	},
 	"repository": {
 		"type": "git",

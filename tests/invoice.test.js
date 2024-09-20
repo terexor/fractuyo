@@ -17,7 +17,7 @@ test.before(async t => {
 	XAdES.Application.setEngine("NodeJS", globalThis.crypto)
 })
 
-test("creating persons", tester => {
+test.serial("creating persons", tester => {
 	customer = new Person()
 	customer.setName("Lugar Expresivo SAC")
 	customer.setIdentification(new Identification(6, "20545314437"))
@@ -52,7 +52,7 @@ test("creating persons", tester => {
 	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
 })
 
-test("creating invoice", (tester) => {
+test.serial("creating invoice", (tester) => {
 	invoice = new Invoice(taxpayer, customer)
 	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
 	invoice.setCurrencyId("USD")
@@ -80,7 +80,7 @@ test("creating invoice", (tester) => {
 	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
 })
 
-test("signing invoice", async tester => {
+test.serial("signing invoice", async tester => {
 	invoice.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
@@ -97,5 +97,6 @@ test("signing invoice", async tester => {
 	}
 	catch (e) {
 		console.error(e)
+		tester.fail()
 	}
 })
