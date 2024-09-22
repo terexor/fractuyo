@@ -3,6 +3,7 @@ import writtenNumber from "written-number"
 import JSZip from "jszip"
 import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
 import SoapEnvelope from "./xml/SoapEnvelope.js"
+import Endpoint from "../webservice/Endpoint.js"
 
 class Receipt {
 	#name
@@ -354,12 +355,7 @@ class Receipt {
 		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
 		try {
-			const response = await fetch(soapUrl, {
-				method: "POST",
-				headers: {"Content-Type": "text/xml;charset=UTF-8"},
-				body: soapXmlDocument.toString()
-			})
-			const responseText = await response.text()
+			const responseText = await Endpoint.fetch(1, soapXmlDocument.toString())
 
 			const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
 
