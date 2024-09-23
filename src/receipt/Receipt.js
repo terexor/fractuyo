@@ -349,9 +349,6 @@ class Receipt {
 	}
 
 	async declare(zipStream) {
-		// Determine endpoint
-		const soapUrl = "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
-
 		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
 		const responseText = await Endpoint.fetch(Endpoint.INDEX_INVOICE, soapXmlDocument.toString())
