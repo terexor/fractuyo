@@ -2,40 +2,45 @@ class Endpoint {
 	// true for deployment; false for test
 	static #mode = false
 
-	static #invoice = {
-		deploy: "https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService",
-		test: "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
+	static INDEX_INVOICE = 0
+	static INDEX_RETENTION = 1
+	static INDEX_DESPATCH = 2
+
+	static setMode(mode) {
+		Endpoint.#mode = mode
 	}
 
-	static #retention = {
-		deploy: "https://e-factura.sunat.gob.pe/ol-ti-itemision-otroscpe-gem/billService",
-		test: "https://e-beta.sunat.gob.pe/ol-ti-itemision-otroscpe-gem-beta/billService"
+	static setUrl(service, url, deploymentMode = false) {
+		if (service < 0 || service > 3) {
+			throw new Error("Servicio no existente.")
+		}
+
+		if (productionMode) {
+			Endpoint.#urls[service].deploy = url
+			return
+		}
+
+		Endpoint.#urls[service].test = url
+		return
 	}
 
-	static #despatch = {
-		deploy: "https://e-guiaremision.sunat.gob.pe/ol-ti-itemision-guia-gem/billService",
-		test: "https://e-beta.sunat.gob.pe/ol-ti-itemision-guia-gem-beta/billService"
-	}
+	static #urls = [
+		{ // invoice
+			deploy: "https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService",
+			test: "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
+		},
+		{ // retention
+			deploy: "https://e-factura.sunat.gob.pe/ol-ti-itemision-otroscpe-gem/billService",
+			test: "https://e-beta.sunat.gob.pe/ol-ti-itemision-otroscpe-gem-beta/billService"
+		},
+		{ // despatch
+			deploy: "https://e-guiaremision.sunat.gob.pe/ol-ti-itemision-guia-gem/billService",
+			test: "https://e-beta.sunat.gob.pe/ol-ti-itemision-guia-gem-beta/billService"
+		}
+	]
 
 	static async fetch(service, body) {
-		let url
-
-		switch(service) {
-			case 1: {
-				url = Endpoint.#mode ? Endpoint.#invoice.deploy : Endpoint.#invoice.test
-				break
-			}
-			case 2: {
-				url = Endpoint.#mode ? Endpoint.#retention.deploy : Endpoint.#retention.test
-				break
-			}
-			case 3: {
-				url = Endpoint.#mode ? Endpoint.#despatch.deploy : Endpoint.#despatch.test
-				break
-			}
-			default:
-				throw new Error("Servicio incorrecto.")
-		}
+		const url = Endpoint.#mode ? Endpoint.#urls[service].deploy : Endpoint.#urls[service].test
 
 		const response = await fetch(url, {
 			method: "POST",

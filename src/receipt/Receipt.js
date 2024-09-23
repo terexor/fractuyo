@@ -355,7 +355,7 @@ class Receipt {
 		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
 		try {
-			const responseText = await Endpoint.fetch(1, soapXmlDocument.toString())
+			const responseText = await Endpoint.fetch(Endpoint.INDEX_INVOICE, soapXmlDocument.toString())
 
 			const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
 
