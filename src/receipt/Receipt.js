@@ -389,10 +389,6 @@ class Receipt {
 		}
 	)
 
-	static nsResolver(prefix) {
-		return Receipt.namespaces[prefix] || "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-	}
-
 	static removeCdataTag(cdata) {
 		return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
 	}
