@@ -295,7 +295,7 @@ class NodesGenerator {
 				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
 				{
 					const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-					cbcID.textContent = "00-099-025344" //Must be variable
+					cbcID.textContent = invoice.getTaxpayer().getDeductionsAccount()
 					cacPayeeFinancialAccount.appendChild(cbcID)
 				}
 			}
