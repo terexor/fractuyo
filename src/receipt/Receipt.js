@@ -2,6 +2,8 @@ import XAdES from "xadesjs"
 import writtenNumber from "written-number"
 import JSZip from "jszip"
 import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
+import SoapEnvelope from "./xml/SoapEnvelope.js"
+import Endpoint from "../webservice/Endpoint.js"
 
 class Receipt {
 	#name
@@ -350,56 +352,29 @@ class Receipt {
 		// Determine endpoint
 		const soapUrl = "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
 
-		// Simple XML structure for body
-		const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://service.sunat.gob.pe" xmlns:ns2="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-				<SOAP-ENV:Header>
-					<ns2:Security>
-						<ns2:UsernameToken>
-							<ns2:Username>${this.#taxpayer.getIdentification().getNumber()}${this.#taxpayer.getSolUser()}</ns2:Username>
-							<ns2:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${this.#taxpayer.getSolPass()}</ns2:Password>
-						</ns2:UsernameToken>
-					</ns2:Security>
-				</SOAP-ENV:Header>
-				<SOAP-ENV:Body>
-					<ns1:sendBill>
-						<fileName>${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.zip</fileName>
-						<contentFile>${zipStream}</contentFile>
-					</ns1:sendBill>
-				</SOAP-ENV:Body>
-			</SOAP-ENV:Envelope>`
+		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
-		try {
-			const response = await fetch(soapUrl, {
-				method: "POST",
-				headers: {"Content-Type": "text/xml;charset=UTF-8"},
-				body: soapBody
-			})
-			const responseText = await response.text()
+		const responseText = await Endpoint.fetch(Endpoint.INDEX_INVOICE, soapXmlDocument.toString())
 
-			const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
+		const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
 
-			// check if fault node exists
-			const faultNode = xmlDoc.getElementsByTagName("soap-env:Fault")[0]
+		// check if fault node exists
+		const faultNode = xmlDoc.getElementsByTagName("soap-env:Fault")[0]
 
-			if (faultNode) {
-				throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
+		if (faultNode) {
+			throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
+		}
+		else {
+			// Maybe it is a successful answer
+			const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
+
+			if (responseNode) {
+				const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
+				return applicationResponse
 			}
 			else {
-				// Maybe it is a successful answer
-				const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
-
-				if (responseNode) {
-					const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
-					return applicationResponse
-				}
-				else {
-					throw new Error("Respuesta inesperada.")
-				}
+				throw new Error("Respuesta inesperada.")
 			}
-		}
-		catch (error) {
-			console.error('Error en la solicitud:', error)
 		}
 	}
 
