@@ -354,32 +354,27 @@ class Receipt {
 
 		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
-		try {
-			const responseText = await Endpoint.fetch(Endpoint.INDEX_INVOICE, soapXmlDocument.toString())
+		const responseText = await Endpoint.fetch(Endpoint.INDEX_INVOICE, soapXmlDocument.toString())
 
-			const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
+		const xmlDoc = new DOMParser().parseFromString(responseText, "text/xml")
 
-			// check if fault node exists
-			const faultNode = xmlDoc.getElementsByTagName("soap-env:Fault")[0]
+		// check if fault node exists
+		const faultNode = xmlDoc.getElementsByTagName("soap-env:Fault")[0]
 
-			if (faultNode) {
-				throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
+		if (faultNode) {
+			throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
+		}
+		else {
+			// Maybe it is a successful answer
+			const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
+
+			if (responseNode) {
+				const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
+				return applicationResponse
 			}
 			else {
-				// Maybe it is a successful answer
-				const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
-
-				if (responseNode) {
-					const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
-					return applicationResponse
-				}
-				else {
-					throw new Error("Respuesta inesperada.")
-				}
+				throw new Error("Respuesta inesperada.")
 			}
-		}
-		catch (error) {
-			console.error('Error en la solicitud:', error)
 		}
 	}
 
