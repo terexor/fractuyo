@@ -1,6 +1,8 @@
 import Receipt from "./Receipt.js"
 
 class Sale extends Receipt {
+	#currencyId
+
 	/*
 	 * Global totals
 	 */
@@ -66,6 +68,14 @@ class Sale extends Receipt {
 
 	setOperationAmount(index, amount) {
 		this.#operationAmounts[index] = amount
+	}
+
+	setCurrencyId(cid) {
+		this.#currencyId = cid
+	}
+
+	getCurrencyId() {
+		return this.#currencyId
 	}
 
 	addItem(item) {

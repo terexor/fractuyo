@@ -17,8 +17,6 @@ class Receipt {
 
 	#issueDate
 
-	#currencyId
-
 	#ublVersion = "2.1"
 	#customizationId = "2.0"
 
@@ -109,14 +107,6 @@ class Receipt {
 			return String(this.#typeCode).padStart(2, '0')
 		}
 		return this.#typeCode
-	}
-
-	setCurrencyId(cid) {
-		this.#currencyId = cid
-	}
-
-	getCurrencyId() {
-		return this.#currencyId
 	}
 
 	setIssueDate(date) {
