@@ -500,7 +500,7 @@ class NodesGenerator {
 			// Dynamic name for that node
 			const quantityNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) ? "cbc:InvoicedQuantity" :
 				invoice.getTypeCode() == 7 ? "cbc:CreditedQuantity" :
-				invoice.getTypeCode() == 8 ? "cbc:CreditedQuantity" :
+				invoice.getTypeCode() == 8 ? "cbc:DeditedQuantity" :
 				"cbc:Quantity" // it's error
 
 			const cbcInvoicedQuantity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, quantityNodeName)
