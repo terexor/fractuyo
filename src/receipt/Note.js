@@ -1,7 +1,7 @@
-import Receipt from "./Receipt.js"
+import Sale from "./Sale.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
-class Note extends Receipt {
+class Note extends Sale {
 	#description
 	#responseCode // type for this note
 

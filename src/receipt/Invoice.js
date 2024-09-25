@@ -1,7 +1,7 @@
-import Receipt from "./Receipt.js"
+import Sale from "./Sale.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
-class Invoice extends Receipt {
+class Invoice extends Sale {
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "Invoice")
 	}
