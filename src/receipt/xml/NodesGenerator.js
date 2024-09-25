@@ -30,15 +30,20 @@ class NodesGenerator {
 	}
 
 	static generateTypeCode(invoice) {
-		const cbcInvoiceTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:InvoiceTypeCode")
+		const cbcInvoiceTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, `cac:${invoice.name}TypeCode`)
+		cbcInvoiceTypeCode.textContent = invoice.getTypeCode(true)
+		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+
+		if (invoice.getTypeCode() != 1) {
+			return
+		}
+
 		if (invoice.getDetractionAmount()) {
 			cbcInvoiceTypeCode.setAttribute("listID", "1001")
 		}
 		else {
 			cbcInvoiceTypeCode.setAttribute("listID", "0101")
 		}
-		cbcInvoiceTypeCode.textContent = invoice.getTypeCode(true)
-		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 	}
 
 	static generateNotes(invoice) {
