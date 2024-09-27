@@ -48,6 +48,17 @@ class NodesGenerator {
 
 	static generateNotes(invoice) {
 		const cbcNote = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Note")
+
+		if (invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) {
+			if (!invoice.getNote()) { // if empty
+				return
+			}
+
+			cbcNote.appendChild( invoice.xmlDocument.createCDATASection(invoice.getNote()) )
+			invoice.xmlDocument.documentElement.appendChild(cbcNote)
+			return
+		}
+
 		cbcNote.setAttribute("languageLocaleID", "1000")
 		cbcNote.appendChild( invoice.xmlDocument.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
 		invoice.xmlDocument.documentElement.appendChild(cbcNote)
