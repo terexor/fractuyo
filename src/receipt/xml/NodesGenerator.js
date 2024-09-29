@@ -628,7 +628,7 @@ class NodesGenerator {
 			// Dynamic name for that node
 			const quantityNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) ? "cbc:InvoicedQuantity" :
 				invoice.getTypeCode() == 7 ? "cbc:CreditedQuantity" :
-				invoice.getTypeCode() == 8 ? "cbc:CreditedQuantity" :
+				invoice.getTypeCode() == 8 ? "cbc:DebitedQuantity" :
 				invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31 ? "cbc:DeliveredQuantity" :
 				"cbc:Quantity" // it's error
 
