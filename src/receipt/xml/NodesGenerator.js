@@ -156,7 +156,12 @@ class NodesGenerator {
 	}
 
 	static generateSupplier(invoice) { //Supplier (current taxpayer)
-		const cacAccountingSupplierParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingSupplierParty")
+		// Dynamic name for that node
+		const supplierNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3 || invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8) ? "cac:AccountingSupplierParty" :
+			(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) ? "cac:DespatchSupplierParty" :
+			"cac:SupplierParty" // it's error
+
+		const cacAccountingSupplierParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, supplierNodeName)
 		invoice.xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
 
 		const cacParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Party")

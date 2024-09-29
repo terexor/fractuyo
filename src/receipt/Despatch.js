@@ -33,6 +33,8 @@ class Despatch extends Receipt {
 		NodesGenerator.generateNotes(this)
 
 		NodesGenerator.generateSignature(this)
+
+		NodesGenerator.generateSupplier(this)
 	}
 }
 
