@@ -96,6 +96,8 @@ class Despatch extends Receipt {
 		NodesGenerator.generateCustomer(this)
 
 		NodesGenerator.generateShipment(this)
+
+		NodesGenerator.generateLines(this)
 	}
 }
 

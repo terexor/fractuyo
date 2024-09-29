@@ -618,7 +618,7 @@ class NodesGenerator {
 	static generateLines(invoice) {
 		let itemIndex = 0 // for ID
 		for(const item of invoice.items) { //Items
-			const cacInvoiceLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, `cac:${invoice.name}Line`)
+			const cacInvoiceLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31 ? "cac:DespatchLine" : `cac:${invoice.name}Line`)
 			invoice.xmlDocument.documentElement.appendChild(cacInvoiceLine)
 
 			const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
@@ -629,6 +629,7 @@ class NodesGenerator {
 			const quantityNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) ? "cbc:InvoicedQuantity" :
 				invoice.getTypeCode() == 7 ? "cbc:CreditedQuantity" :
 				invoice.getTypeCode() == 8 ? "cbc:CreditedQuantity" :
+				invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31 ? "cbc:DeliveredQuantity" :
 				"cbc:Quantity" // it's error
 
 			const cbcInvoicedQuantity = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, quantityNodeName)
@@ -638,118 +639,120 @@ class NodesGenerator {
 			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
-			const cbcLineExtensionAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
-			cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
-			cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
-			cacInvoiceLine.appendChild(cbcLineExtensionAmount)
+			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+				const cbcLineExtensionAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
+				cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
+				cacInvoiceLine.appendChild(cbcLineExtensionAmount)
 
-			{ //PricingReference
-				const cacPricingReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PricingReference")
-				cacInvoiceLine.appendChild(cacPricingReference)
+				{ //PricingReference
+					const cacPricingReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PricingReference")
+					cacInvoiceLine.appendChild(cacPricingReference)
 
-				const cacAlternativeConditionPrice = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AlternativeConditionPrice")
-				cacPricingReference.appendChild(cacAlternativeConditionPrice)
+					const cacAlternativeConditionPrice = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AlternativeConditionPrice")
+					cacPricingReference.appendChild(cacAlternativeConditionPrice)
 
-				const cbcPriceAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
-				cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcPriceAmount.textContent = item.getPricingReferenceAmount(true, 10)
-				cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
+					const cbcPriceAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
+					cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcPriceAmount.textContent = item.getPricingReferenceAmount(true, 10)
+					cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 
-				const cbcPriceTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceTypeCode")
-				cbcPriceTypeCode.textContent = "01"
-				cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
-			}
+					const cbcPriceTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceTypeCode")
+					cbcPriceTypeCode.textContent = "01"
+					cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
+				}
 
-			{ //TaxTotal
-				const cacTaxTotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxTotal")
-				cacInvoiceLine.appendChild(cacTaxTotal)
-
-				const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
-				cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
-				cacTaxTotal.appendChild(cbcTaxAmount)
-
-				if (item.getIscAmount() > 0) { //ISC
-					const cacTaxSubtotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
-					cacTaxTotal.appendChild(cacTaxSubtotal)
-
-					const cbcTaxableAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxableAmount.textContent = item.getLineExtensionAmount(true)
-					cacTaxSubtotal.appendChild(cbcTaxableAmount)
+				{ //TaxTotal
+					const cacTaxTotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxTotal")
+					cacInvoiceLine.appendChild(cacTaxTotal)
 
 					const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxAmount.textContent = item.getIscAmount(true)
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
+					cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
+					cacTaxTotal.appendChild(cbcTaxAmount)
 
-					const cacTaxCategory = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cbcPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
-						cbcPercent.textContent = item.getIscPercentage()
-						cacTaxCategory.appendChild(cbcPercent)
+					if (item.getIscAmount() > 0) { //ISC
+						const cacTaxSubtotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
+						cacTaxTotal.appendChild(cacTaxSubtotal)
 
-						const cbcTierRange = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TierRange")
-						cbcTierRange.textContent = "01"
-						cacTaxCategory.appendChild(cbcTierRange)
+						const cbcTaxableAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
+						cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						cbcTaxableAmount.textContent = item.getLineExtensionAmount(true)
+						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-						const cacTaxScheme = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
+						const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
+						cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						cbcTaxAmount.textContent = item.getIscAmount(true)
+						cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+						const cacTaxCategory = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
+						cacTaxSubtotal.appendChild(cacTaxCategory)
 						{
-							const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-							cbcID.textContent = "2000"
-							cacTaxScheme.appendChild(cbcID)
+							const cbcPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
+							cbcPercent.textContent = item.getIscPercentage()
+							cacTaxCategory.appendChild(cbcPercent)
 
-							const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
-							cbcName.textContent = "ISC"
-							cacTaxScheme.appendChild(cbcName)
+							const cbcTierRange = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TierRange")
+							cbcTierRange.textContent = "01"
+							cacTaxCategory.appendChild(cbcTierRange)
 
-							const cbcTaxTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxTypeCode")
-							cbcTaxTypeCode.textContent = "EXC"
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
+							const cacTaxScheme = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
+							cacTaxCategory.appendChild(cacTaxScheme)
+							{
+								const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.textContent = "2000"
+								cacTaxScheme.appendChild(cbcID)
+
+								const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+								cbcName.textContent = "ISC"
+								cacTaxScheme.appendChild(cbcName)
+
+								const cbcTaxTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxTypeCode")
+								cbcTaxTypeCode.textContent = "EXC"
+								cacTaxScheme.appendChild(cbcTaxTypeCode)
+							}
 						}
 					}
-				}
-				if( item.getIgvAmount() > 0 ) { //IGV
-					const cacTaxSubtotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
-					cacTaxTotal.appendChild(cacTaxSubtotal)
+					if( item.getIgvAmount() > 0 ) { //IGV
+						const cacTaxSubtotal = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxSubtotal")
+						cacTaxTotal.appendChild(cacTaxSubtotal)
 
-					const cbcTaxableAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxableAmount.textContent = item.getTaxableIgvAmount(true)
-					cacTaxSubtotal.appendChild(cbcTaxableAmount)
+						const cbcTaxableAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxableAmount")
+						cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						cbcTaxableAmount.textContent = item.getTaxableIgvAmount(true)
+						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-					const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxAmount.textContent = item.getIgvAmount(true)
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
+						const cbcTaxAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxAmount")
+						cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						cbcTaxAmount.textContent = item.getIgvAmount(true)
+						cacTaxSubtotal.appendChild(cbcTaxAmount)
 
-					const cacTaxCategory = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cbcPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
-						cbcPercent.textContent = item.getIgvPercentage()
-						cacTaxCategory.appendChild(cbcPercent)
-
-						const cbcTaxExemptionReasonCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxExemptionReasonCode")
-						cbcTaxExemptionReasonCode.textContent = item.getExemptionReasonCode()
-						cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
-
-						const cacTaxScheme = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
+						const cacTaxCategory = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxCategory")
+						cacTaxSubtotal.appendChild(cacTaxCategory)
 						{
-							const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-							cbcID.textContent = "1000"
-							cacTaxScheme.appendChild(cbcID)
+							const cbcPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Percent")
+							cbcPercent.textContent = item.getIgvPercentage()
+							cacTaxCategory.appendChild(cbcPercent)
 
-							const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
-							cbcName.textContent = "IGV"
-							cacTaxScheme.appendChild(cbcName)
+							const cbcTaxExemptionReasonCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxExemptionReasonCode")
+							cbcTaxExemptionReasonCode.textContent = item.getExemptionReasonCode()
+							cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
 
-							const cbcTaxTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxTypeCode")
-							cbcTaxTypeCode.textContent = "VAT"
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
+							const cacTaxScheme = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TaxScheme")
+							cacTaxCategory.appendChild(cacTaxScheme)
+							{
+								const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.textContent = "1000"
+								cacTaxScheme.appendChild(cbcID)
+
+								const cbcName = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+								cbcName.textContent = "IGV"
+								cacTaxScheme.appendChild(cbcName)
+
+								const cbcTaxTypeCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TaxTypeCode")
+								cbcTaxTypeCode.textContent = "VAT"
+								cacTaxScheme.appendChild(cbcTaxTypeCode)
+							}
 						}
 					}
 				}
@@ -783,14 +786,16 @@ class NodesGenerator {
 				cacCommodityClassification.appendChild(cbcItemClassificationCode)
 			}
 
-			{ //Price
-				const cacPrice = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Price")
-				cacInvoiceLine.appendChild(cacPrice)
+			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+				{ //Price
+					const cacPrice = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Price")
+					cacInvoiceLine.appendChild(cacPrice)
 
-				const cbcPriceAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
-				cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcPriceAmount.textContent = item.getUnitValue(true, 10)
-				cacPrice.appendChild(cbcPriceAmount)
+					const cbcPriceAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PriceAmount")
+					cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcPriceAmount.textContent = item.getUnitValue(true, 10)
+					cacPrice.appendChild(cbcPriceAmount)
+				}
 			}
 		}
 	}
