@@ -262,7 +262,12 @@ class NodesGenerator {
 	}
 
 	static generateCustomer(invoice) {
-		const cacAccountingCustomerParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AccountingCustomerParty")
+		// Dynamic name for that node
+		const customerNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3 || invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8) ? "cac:AccountingCustomerParty" :
+		(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) ? "cac:DeliveryCustomerParty" :
+		"cac:CustomerParty" // it's error
+
+		const cacAccountingCustomerParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, customerNodeName)
 		invoice.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
 
 		const cacParty = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Party")
