@@ -58,16 +58,20 @@ test.serial("creating despatch", (tester) => {
 	despatch.setTypeCode(9)
 	despatch.setSerie("T000")
 	despatch.setNumeration(2)
+	despatch.setNote("Sending on time")
+	despatch.setStartDate(new Date("29-Sep-2024 UTC"))
+	despatch.setUnitCode("KGM")
+	despatch.setWeight(4)
+
+	const deliveryAddress = new Address()
+	deliveryAddress.line = "An address in Peru"
+	deliveryAddress.ubigeo = "150101"
+	despatch.setDeliveryAddress(deliveryAddress)
 
 	const product = new Item("This is description for moving item")
 	product.setUnitCode("NIU")
 	product.setClassificationCode("82101500")
-	product.setIscPercentage(0)
-	product.setIgvPercentage(18)
-	product.setExemptionReasonCode(10)
 	product.setQuantity(1)
-	product.setUnitValue(100.00)
-	product.calcMounts()
 
 	despatch.addItem(product)
 
