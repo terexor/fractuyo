@@ -304,6 +304,108 @@ class NodesGenerator {
 		}
 	}
 
+	static generateShipment(despatch) {
+		const cacShipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Shipment")
+		despatch.xmlDocument.documentElement.appendChild(cacShipment)
+		{
+			const cbcHandlingCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:HandlingCode")
+			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
+			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
+			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
+			cbcHandlingCode.textNode = "01" // Must be variable
+			cacShipment.appendChild(cbcHandlingCode)
+
+			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")
+			cbcGrossWeightMeasure.setAttribute("unitCode", despatch.getUnitCode())
+			cbcGrossWeightMeasure.textNode = despatch.getWeight()
+			cacShipment.appendChild(cbcGrossWeightMeasure)
+
+			const cacShipmentStage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentStage")
+			cacShipment.appendChild(cacShipmentStage)
+			{
+				const cbcTransportModeCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TransportModeCode")
+				cbcTransportModeCode.setAttribute("listName", "Modalidad de traslado")
+				cbcTransportModeCode.setAttribute("listAgencyName", "PE:SUNAT")
+				cbcTransportModeCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18")
+				cbcTransportModeCode.textContent = "01" // must be variable
+				cacShipmentStage.appendChild(cbcTransportModeCode)
+
+				const cacTransitPeriod = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransitPeriod")
+				cacShipmentStage.appendChild(cacTransitPeriod)
+				{
+					const cbcStartDate = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:StartDate")
+					cbcStartDate.textContent = despatch.getStartDate().toISOString().substr(0, 10)
+					cacTransitPeriod.appendChild(cbcStartDate)
+				}
+
+				const cacCarrierParty = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CarrierParty")
+				cacShipmentStage.appendChild(cacCarrierParty)
+				{
+					const cacPartyIdentification = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+					cacCarrierParty.appendChild(cacPartyIdentification)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.setAttribute("schemeID", "6")
+						cbcID.textContent = despatch.getTaxpayer().getIdentification().getNumber()
+						cacPartyIdentification.appendChild(cbcID)
+					}
+
+					const cacPartyLegalEntity = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
+					cacCarrierParty.appendChild(cacPartyLegalEntity)
+					{
+						const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
+						cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getTaxpayer().getName()) )
+						cacPartyLegalEntity.appendChild(cbcRegistrationName)
+					}
+				}
+			}
+
+			const cacDelivery = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Delivery")
+			cacShipment.appendChild(cacDelivery)
+			{
+				const cacDeliveryAddress = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DeliveryAddress")
+				cacDelivery.appendChild(cacDeliveryAddress)
+				{
+					const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+					cbcID.setAttribute("schemeAgencyName", "PE:INEI")
+					cbcID.setAttribute("schemeName", "Ubigeos")
+					cbcID.textContent = despatch.getDeliveryAddress().ubigeo
+					cacDeliveryAddress.appendChild(cbcID)
+
+					const cacAddressLine = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
+					cacDeliveryAddress.appendChild(cacAddressLine)
+					{
+						const cbcLine = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
+						cbcLine.textContent = despatch.getDeliveryAddress().line
+						cacAddressLine.appendChild(cbcLine)
+					}
+				}
+
+				const cacDespatch = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Despatch")
+				cacDelivery.appendChild(cacDespatch)
+				{
+					const cacDespatchAddress = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DespatchAddress")
+					cacDespatch.appendChild(cacDespatchAddress)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.setAttribute("schemeAgencyName", "PE:INEI")
+						cbcID.setAttribute("schemeName", "Ubigeos")
+						cbcID.textContent = despatch.getDespatchAddress().ubigeo
+						cacDespatchAddress.appendChild(cbcID)
+
+						const cacAddressLine = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AddressLine")
+						cacDespatchAddress.appendChild(cacAddressLine)
+						{
+							const cbcLine = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
+							cbcLine.textContent = despatch.getDespatchAddress().line
+							cacAddressLine.appendChild(cbcLine)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	static generatePaymentMeans(invoice) {
 		if (invoice.getDetractionAmount()) {
 			const cacPaymentMeans = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentMeans")
