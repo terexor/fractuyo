@@ -10,6 +10,8 @@ import Taxpayer from "./person/Taxpayer.js";
 import Identification from "./person/Identification.js";
 import Address from "./person/Address.js";
 
+import Endpoint from "./webservice/Endpoint.js";
+
 export {
 	Invoice,
 	Note,
@@ -20,5 +22,6 @@ export {
 	Person,
 	Taxpayer,
 	Identification,
-	Address
+	Address,
+	Endpoint
 }
