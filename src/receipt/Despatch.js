@@ -1,4 +1,6 @@
 import Receipt from "./Receipt.js"
+import Endpoint from "../webservice/Endpoint.js"
+import Rest from "../webservice/Rest.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Despatch extends Receipt {
@@ -98,6 +100,12 @@ class Despatch extends Receipt {
 		NodesGenerator.generateShipment(this)
 
 		NodesGenerator.generateLines(this)
+	}
+
+	async declare(zipStream) {
+		const jsonBody = Rest.generateSend(this, zipStream)
+		const responseText = await Endpoint.fetchSend(JSON.stringify(jsonBody), this)
+		return responseText
 	}
 }
 
