@@ -154,6 +154,10 @@ class Receipt {
 		return this.#items
 	}
 
+	get taxpayer() {
+		return this.#taxpayer
+	}
+
 	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
