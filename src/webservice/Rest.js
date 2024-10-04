@@ -1,3 +1,5 @@
+import XAdES from "xadesjs"
+
 class Rest {
 	/**
 	 * @returns URLSearchParams
@@ -16,7 +18,7 @@ class Rest {
 	/**
 	 * @returns JSON
 	 */
-	static generateSend(receipt, zipStream) {
+	static async generateSend(receipt, zipStream) {
 		let zipBuffer
 		if (typeof Buffer !== 'undefined') {
 			// for Node.js, use Buffer.from
@@ -38,13 +40,20 @@ class Rest {
 			throw new Error('El entorno no es compatible con esta función.')
 		}
 
-		let hash = "ab12=" // test
+		const hash = await XAdES.Application.crypto.subtle.digest("SHA-256", zipBuffer)
+
+		const bytes = new Uint8Array(hash)
+		const hexChars = new Array(bytes.length)
+
+		for (let i = 0; i < bytes.length; ++i) {
+			hexChars[i] = bytes[i].toString(16).padStart(2, '0')
+		}
 
 		return {
 			"archivo" : {
 				"nomArchivo": `${receipt.taxpayer.getIdentification().getNumber()}-${receipt.getId(true)}.zip`,
-				"arcGreZip": zipStream,
-				"hashZip": hash
+				"hashZip": hexChars.join(''), // in documentation looks like base64 but documentation is bad
+				"arcGreZip": zipStream
 			}
 		}
 	}

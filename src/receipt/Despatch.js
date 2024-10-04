@@ -103,7 +103,7 @@ class Despatch extends Receipt {
 	}
 
 	async declare(zipStream) {
-		const jsonBody = Rest.generateSend(this, zipStream)
+		const jsonBody = await Rest.generateSend(this, zipStream)
 		const responseText = await Endpoint.fetchSend(JSON.stringify(jsonBody), this)
 		return responseText
 	}
