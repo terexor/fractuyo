@@ -93,6 +93,18 @@ class Endpoint {
 		return responseText
 	}
 
+	static async fetchStatus(ticket) {
+		const url = Endpoint.getUrl(Endpoint.INDEX_STATUS).concat(ticket)
+
+		const response = await fetch(url, {
+			method: "GET",
+			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token}
+		})
+		const responseJson = await response.json()
+
+		return responseJson
+	}
+
 	static async fetchSend(body, receipt) {
 		const url = Endpoint.getUrl(Endpoint.INDEX_SEND).concat(`${receipt.taxpayer.getIdentification().getNumber()}-${receipt.getId(true)}`)
 

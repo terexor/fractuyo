@@ -107,6 +107,11 @@ class Despatch extends Receipt {
 		const responseText = await Endpoint.fetchSend(JSON.stringify(jsonBody), this)
 		return responseText
 	}
+
+	async handleProof(ticketNumber) {
+		const responseText = await Endpoint.fetchStatus(ticketNumber)
+		return responseText
+	}
 }
 
 export default Despatch
