@@ -308,6 +308,10 @@ class NodesGenerator {
 		const cacShipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Shipment")
 		despatch.xmlDocument.documentElement.appendChild(cacShipment)
 		{
+			const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+			cbcID.textContent = "SUNAT_Envio"
+			cacShipment.appendChild(cbcID)
+
 			const cbcHandlingCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:HandlingCode")
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
