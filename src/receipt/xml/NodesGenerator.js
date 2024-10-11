@@ -316,12 +316,12 @@ class NodesGenerator {
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
-			cbcHandlingCode.textNode = "01" // Must be variable
+			cbcHandlingCode.textContent = "01" // Must be variable
 			cacShipment.appendChild(cbcHandlingCode)
 
 			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")
 			cbcGrossWeightMeasure.setAttribute("unitCode", despatch.getUnitCode())
-			cbcGrossWeightMeasure.textNode = despatch.getWeight()
+			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
 			const cacShipmentStage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentStage")
