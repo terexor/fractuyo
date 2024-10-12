@@ -643,7 +643,15 @@ class NodesGenerator {
 			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
-			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+			if ( (invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+				const cacOrderLineReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:OrderLineReference")
+				cacInvoiceLine.appendChild(cacOrderLineReference)
+
+				const cbcLineID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineID")
+				cbcLineID.textContent = itemIndex // TODO: check if is incoming this data for using that value
+				cacOrderLineReference.appendChild(cbcLineID)
+			}
+			else {
 				const cbcLineExtensionAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
 				cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
 				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
