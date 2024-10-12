@@ -1,4 +1,4 @@
-import XAdES from "xadesjs"
+import XmlDSigJs from "xmldsigjs"
 import writtenNumber from "written-number"
 import JSZip from "jszip"
 import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
@@ -177,11 +177,11 @@ class Receipt {
 
 		const transforms = ["enveloped", canonMethod]
 
-		this.xmlDocument = XAdES.Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
+		this.xmlDocument = XmlDSigJs.Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
 
 		return Promise.resolve()
 			.then(() => {
-				const signature = new XAdES.SignedXml()
+				const signature = new XmlDSigJs.SignedXml()
 
 				return signature.Sign(
 					alg,        // algorithm
