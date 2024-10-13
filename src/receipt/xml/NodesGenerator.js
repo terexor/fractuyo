@@ -354,7 +354,7 @@ class NodesGenerator {
 					{
 						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
 						cbcID.setAttribute("schemeID", "6")
-						cbcID.textContent = despatch.getTaxpayer().getIdentification().getNumber()
+						cbcID.textContent = despatch.getCarrier().getIdentification().getNumber()
 						cacPartyIdentification.appendChild(cbcID)
 					}
 
@@ -362,7 +362,7 @@ class NodesGenerator {
 					cacCarrierParty.appendChild(cacPartyLegalEntity)
 					{
 						const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
-						cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getTaxpayer().getName()) )
+						cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
 						cacPartyLegalEntity.appendChild(cbcRegistrationName)
 					}
 				}

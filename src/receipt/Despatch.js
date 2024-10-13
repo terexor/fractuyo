@@ -14,6 +14,8 @@ class Despatch extends Receipt {
 	#deliveryAddress
 	#despatchAddress
 
+	#carrier // transportist
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -78,6 +80,14 @@ class Despatch extends Receipt {
 		}
 
 		return this.getTaxpayer().getAddress()
+	}
+
+	setCarrier(carrier) {
+		this.#carrier = carrier
+	}
+
+	getCarrier() {
+		return this.#carrier
 	}
 
 	toXml() {
