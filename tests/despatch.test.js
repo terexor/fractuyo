@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import XmlDSigJs from "xmldsigjs"
 
-import { Despatch, Item, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Endpoint, Despatch, Item, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
@@ -33,6 +33,10 @@ test.serial("creating persons", tester => {
 	address.district = "St. District of Provincia"
 
 	taxpayer = new Taxpayer()
+	taxpayer.setSolId("test-85e5b0ae-255c-4891-a595-0b98c65c9854")
+	taxpayer.setSolSecret("test-Hty/M6QshYvPgItX2P0+Kw==")
+	taxpayer.setSolUser("MODDATOS")
+	taxpayer.setSolPass("MODDATOS")
 	taxpayer.setName("Efectibit SAC")
 	taxpayer.setTradeName("Efectibit")
 	taxpayer.setIdentification(new Identification(6, "20606829265"))
@@ -89,9 +93,13 @@ test.serial("signing despatch", async tester => {
 	tester.true(isSigned)
 
 	try {
+		if (!Endpoint.token) {
+			const tokenData = await Endpoint.fetchToken(taxpayer)
+		}
+
 		const zipStream = await despatch.createZip()
 		const serverZipStream = await despatch.declare(zipStream)
-		const serverCode = await despatch.handleProof(serverZipStream)
+		const serverCode = await despatch.handleProof(serverZipStream.numTicket)
 
 		tester.is(serverCode, 0)
 	}
