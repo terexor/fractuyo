@@ -1,4 +1,4 @@
-import XAdES from "xadesjs"
+import XmlDSigJs from "xmldsigjs"
 
 class Rest {
 	/**
@@ -40,7 +40,7 @@ class Rest {
 			throw new Error('El entorno no es compatible con esta función.')
 		}
 
-		const hash = await XAdES.Application.crypto.subtle.digest("SHA-256", zipBuffer)
+		const hash = await XmlDSigJs.Application.crypto.subtle.digest("SHA-256", zipBuffer)
 
 		const bytes = new Uint8Array(hash)
 		const hexChars = new Array(bytes.length)
