@@ -335,7 +335,7 @@ class NodesGenerator {
 				cbcTransportModeCode.setAttribute("listName", "Modalidad de traslado")
 				cbcTransportModeCode.setAttribute("listAgencyName", "PE:SUNAT")
 				cbcTransportModeCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18")
-				cbcTransportModeCode.textContent = "01" // must be variable
+				cbcTransportModeCode.textContent = !despatch.getCarrier() ? "02" : "01"
 				cacShipmentStage.appendChild(cbcTransportModeCode)
 
 				const cacTransitPeriod = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransitPeriod")
@@ -346,24 +346,26 @@ class NodesGenerator {
 					cacTransitPeriod.appendChild(cbcStartDate)
 				}
 
-				const cacCarrierParty = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CarrierParty")
-				cacShipmentStage.appendChild(cacCarrierParty)
-				{
-					const cacPartyIdentification = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
-					cacCarrierParty.appendChild(cacPartyIdentification)
+				if (despatch.getCarrier()) {
+					const cacCarrierParty = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CarrierParty")
+					cacShipmentStage.appendChild(cacCarrierParty)
 					{
-						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-						cbcID.setAttribute("schemeID", "6")
-						cbcID.textContent = despatch.getCarrier().getIdentification().getNumber()
-						cacPartyIdentification.appendChild(cbcID)
-					}
+						const cacPartyIdentification = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+						cacCarrierParty.appendChild(cacPartyIdentification)
+						{
+							const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+							cbcID.setAttribute("schemeID", "6")
+							cbcID.textContent = despatch.getCarrier().getIdentification().getNumber()
+							cacPartyIdentification.appendChild(cbcID)
+						}
 
-					const cacPartyLegalEntity = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
-					cacCarrierParty.appendChild(cacPartyLegalEntity)
-					{
-						const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
-						cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
-						cacPartyLegalEntity.appendChild(cbcRegistrationName)
+						const cacPartyLegalEntity = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
+						cacCarrierParty.appendChild(cacPartyLegalEntity)
+						{
+							const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
+							cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
+							cacPartyLegalEntity.appendChild(cbcRegistrationName)
+						}
 					}
 				}
 			}
