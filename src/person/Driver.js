@@ -3,6 +3,8 @@ import Person from "./Person.js"
 class Driver extends Person {
 	#license
 
+	#familyName // surname
+
 	constructor(license) {
 		super()
 		this.setLicense(license)
@@ -14,6 +16,14 @@ class Driver extends Person {
 
 	getLicense() {
 		return this.#license
+	}
+
+	setFamilyName(name) {
+		this.#familyName = name
+	}
+
+	getFamilyName() {
+		return this.#familyName
 	}
 }
 
