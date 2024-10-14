@@ -18,6 +18,8 @@ class Despatch extends Receipt {
 
 	#inLightVehicle
 
+	#vehicles = Array()
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -98,6 +100,14 @@ class Despatch extends Receipt {
 
 	usingLightVehicle(using) {
 		this.#inLightVehicle = using
+	}
+
+	addVehicle(vehicle) {
+		this.#vehicles.push(vehicle)
+	}
+
+	getVehicles() {
+		return this.#vehicles
 	}
 
 	toXml() {

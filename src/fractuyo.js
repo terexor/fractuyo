@@ -10,6 +10,8 @@ import Taxpayer from "./person/Taxpayer.js";
 import Identification from "./person/Identification.js";
 import Address from "./person/Address.js";
 
+import Vehicle from "./shipment/Vehicle.js"
+
 import Endpoint from "./webservice/Endpoint.js";
 
 export {
@@ -23,5 +25,6 @@ export {
 	Taxpayer,
 	Identification,
 	Address,
+	Vehicle,
 	Endpoint
 }
