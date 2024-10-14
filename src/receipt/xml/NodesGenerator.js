@@ -22,6 +22,10 @@ class NodesGenerator {
 		cbcIssueDate.textContent = invoice.getIssueDate().toISOString().substr(0, 10)
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
+		const cbcIssueTime = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueTime")
+		cbcIssueTime.textContent = invoice.getIssueDate().toISOString().substr(11, 8)
+		invoice.xmlDocument.documentElement.appendChild(cbcIssueTime)
+
 		if (invoice.getTypeCode() == 1 && invoice.getDueDate() && invoice.getShares().length == 0) {
 			const cbcDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DueDate")
 			cbcDueDate.textContent = invoice.getDueDate()
@@ -308,16 +312,20 @@ class NodesGenerator {
 		const cacShipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Shipment")
 		despatch.xmlDocument.documentElement.appendChild(cacShipment)
 		{
+			const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+			cbcID.textContent = "SUNAT_Envio"
+			cacShipment.appendChild(cbcID)
+
 			const cbcHandlingCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:HandlingCode")
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
-			cbcHandlingCode.textNode = "01" // Must be variable
+			cbcHandlingCode.textContent = "01" // Must be variable
 			cacShipment.appendChild(cbcHandlingCode)
 
 			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")
 			cbcGrossWeightMeasure.setAttribute("unitCode", despatch.getUnitCode())
-			cbcGrossWeightMeasure.textNode = despatch.getWeight()
+			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
 			const cacShipmentStage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentStage")
@@ -327,7 +335,7 @@ class NodesGenerator {
 				cbcTransportModeCode.setAttribute("listName", "Modalidad de traslado")
 				cbcTransportModeCode.setAttribute("listAgencyName", "PE:SUNAT")
 				cbcTransportModeCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18")
-				cbcTransportModeCode.textContent = "01" // must be variable
+				cbcTransportModeCode.textContent = !despatch.getCarrier() ? "02" : "01"
 				cacShipmentStage.appendChild(cbcTransportModeCode)
 
 				const cacTransitPeriod = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransitPeriod")
@@ -338,24 +346,26 @@ class NodesGenerator {
 					cacTransitPeriod.appendChild(cbcStartDate)
 				}
 
-				const cacCarrierParty = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CarrierParty")
-				cacShipmentStage.appendChild(cacCarrierParty)
-				{
-					const cacPartyIdentification = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
-					cacCarrierParty.appendChild(cacPartyIdentification)
+				if (despatch.getCarrier()) {
+					const cacCarrierParty = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CarrierParty")
+					cacShipmentStage.appendChild(cacCarrierParty)
 					{
-						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
-						cbcID.setAttribute("schemeID", "6")
-						cbcID.textContent = despatch.getTaxpayer().getIdentification().getNumber()
-						cacPartyIdentification.appendChild(cbcID)
-					}
+						const cacPartyIdentification = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyIdentification")
+						cacCarrierParty.appendChild(cacPartyIdentification)
+						{
+							const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+							cbcID.setAttribute("schemeID", "6")
+							cbcID.textContent = despatch.getCarrier().getIdentification().getNumber()
+							cacPartyIdentification.appendChild(cbcID)
+						}
 
-					const cacPartyLegalEntity = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
-					cacCarrierParty.appendChild(cacPartyLegalEntity)
-					{
-						const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
-						cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getTaxpayer().getName()) )
-						cacPartyLegalEntity.appendChild(cbcRegistrationName)
+						const cacPartyLegalEntity = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PartyLegalEntity")
+						cacCarrierParty.appendChild(cacPartyLegalEntity)
+						{
+							const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
+							cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
+							cacPartyLegalEntity.appendChild(cbcRegistrationName)
+						}
 					}
 				}
 			}
@@ -639,7 +649,15 @@ class NodesGenerator {
 			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
-			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+			if ( (invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+				const cacOrderLineReference = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:OrderLineReference")
+				cacInvoiceLine.appendChild(cacOrderLineReference)
+
+				const cbcLineID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineID")
+				cbcLineID.textContent = itemIndex // TODO: check if is incoming this data for using that value
+				cacOrderLineReference.appendChild(cbcLineID)
+			}
+			else {
 				const cbcLineExtensionAmount = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LineExtensionAmount")
 				cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
 				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)

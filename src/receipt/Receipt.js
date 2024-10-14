@@ -1,4 +1,4 @@
-import XAdES from "xadesjs"
+import XmlDSigJs from "xmldsigjs"
 import writtenNumber from "written-number"
 import JSZip from "jszip"
 import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
@@ -154,6 +154,10 @@ class Receipt {
 		return this.#items
 	}
 
+	get taxpayer() {
+		return this.#taxpayer
+	}
+
 	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
 		if(this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
@@ -177,11 +181,11 @@ class Receipt {
 
 		const transforms = ["enveloped", canonMethod]
 
-		this.xmlDocument = XAdES.Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
+		this.xmlDocument = XmlDSigJs.Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
 
 		return Promise.resolve()
 			.then(() => {
-				const signature = new XAdES.SignedXml()
+				const signature = new XmlDSigJs.SignedXml()
 
 				return signature.Sign(
 					alg,        // algorithm
@@ -220,7 +224,8 @@ class Receipt {
 	 */
 	async createZip(type = "base64") {
 		const zip = new JSZip()
-		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, this.xmlDocument.toString())
+		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + this.xmlDocument.toString()
+		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
 		return zip.generateAsync({type: type}).then(zipb64 => {
 			return zipb64

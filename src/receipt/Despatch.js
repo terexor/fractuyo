@@ -1,4 +1,6 @@
 import Receipt from "./Receipt.js"
+import Endpoint from "../webservice/Endpoint.js"
+import Rest from "../webservice/Rest.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Despatch extends Receipt {
@@ -11,6 +13,8 @@ class Despatch extends Receipt {
 
 	#deliveryAddress
 	#despatchAddress
+
+	#carrier // transportist
 
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
@@ -78,6 +82,14 @@ class Despatch extends Receipt {
 		return this.getTaxpayer().getAddress()
 	}
 
+	setCarrier(carrier) {
+		this.#carrier = carrier
+	}
+
+	getCarrier() {
+		return this.#carrier
+	}
+
 	toXml() {
 		NodesGenerator.generateHeader(this)
 
@@ -98,6 +110,17 @@ class Despatch extends Receipt {
 		NodesGenerator.generateShipment(this)
 
 		NodesGenerator.generateLines(this)
+	}
+
+	async declare(zipStream) {
+		const jsonBody = await Rest.generateSend(this, zipStream)
+		const responseText = await Endpoint.fetchSend(JSON.stringify(jsonBody), this)
+		return responseText
+	}
+
+	async handleProof(ticketNumber) {
+		const responseText = await Endpoint.fetchStatus(ticketNumber)
+		return responseText
 	}
 }
 

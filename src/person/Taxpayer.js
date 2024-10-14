@@ -13,6 +13,9 @@ class Taxpayer extends Person {
 	#solUser
 	#solPass
 
+	#solId
+	#solSecret
+
 	#deductionsAccount
 
 	#web
@@ -145,6 +148,22 @@ class Taxpayer extends Person {
 		return this.#solPass
 	}
 
+	setSolId(id) {
+		this.#solId = id
+	}
+
+	getSolId() {
+		return this.#solId
+	}
+
+	setSolSecret(secret) {
+		this.#solSecret = secret
+	}
+
+	getSolSecret() {
+		return this.#solSecret
+	}
+
 	setDeductionsAccount(da) {
 		if(da.length > 0) {
 			this.#deductionsAccount = da
@@ -194,7 +213,7 @@ class Taxpayer extends Person {
 	}
 
 	clearData() {
-		this.#certPem = this.#certDer = this.#keyDer = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
+		this.#certPem = this.#certDer = this.#keyDer = this.#solId = this.#solSecret = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
 	}
 }
 
