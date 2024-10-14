@@ -20,6 +20,8 @@ class Despatch extends Receipt {
 
 	#vehicles = Array()
 
+	#drivers = Array()
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -108,6 +110,14 @@ class Despatch extends Receipt {
 
 	getVehicles() {
 		return this.#vehicles
+	}
+
+	addDriver(driver) {
+		this.#drivers.push(driver)
+	}
+
+	getDrivers() {
+		return this.#drivers
 	}
 
 	toXml() {

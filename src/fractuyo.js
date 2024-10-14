@@ -6,6 +6,7 @@ import Share from "./receipt/Share.js";
 import Charge from "./receipt/Charge.js";
 
 import Person from "./person/Person.js";
+import Driver from "./person/Driver.js";
 import Taxpayer from "./person/Taxpayer.js";
 import Identification from "./person/Identification.js";
 import Address from "./person/Address.js";
@@ -22,6 +23,7 @@ export {
 	Share,
 	Charge,
 	Person,
+	Driver,
 	Taxpayer,
 	Identification,
 	Address,
