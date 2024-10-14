@@ -16,6 +16,8 @@ class Despatch extends Receipt {
 
 	#carrier // transportist
 
+	#inLightVehicle
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -88,6 +90,14 @@ class Despatch extends Receipt {
 
 	getCarrier() {
 		return this.#carrier
+	}
+
+	inLightVehicle() {
+		return this.#inLightVehicle
+	}
+
+	usingLightVehicle(using) {
+		this.#inLightVehicle = using
 	}
 
 	toXml() {

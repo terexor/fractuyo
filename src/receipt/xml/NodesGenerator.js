@@ -328,6 +328,12 @@ class NodesGenerator {
 			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
+			if (!despatch.getCarrier() && despatch.inLightVehicle()) { // we are sending in own light vehicle
+				const cbcSpecialInstructions = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:SpecialInstructions")
+				cbcSpecialInstructions.textContent = "SUNAT_Envio_IndicadorTrasladoVehiculoM1L"
+				cacShipment.appendChild(cbcSpecialInstructions)
+			}
+
 			const cacShipmentStage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentStage")
 			cacShipment.appendChild(cacShipmentStage)
 			{
