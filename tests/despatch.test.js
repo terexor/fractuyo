@@ -67,6 +67,11 @@ test.serial("creating despatch", (tester) => {
 	despatch.setUnitCode("KGM")
 	despatch.setWeight(4)
 
+	const carrier = new Person()
+	carrier.setName("Transportists SA")
+	carrier.setIdentification(new Identification(6, "20000000001"))
+	despatch.setCarrier(carrier)
+
 	const deliveryAddress = new Address()
 	deliveryAddress.line = "An address in Peru"
 	deliveryAddress.ubigeo = "150101"
@@ -101,7 +106,7 @@ test.serial("signing despatch", async tester => {
 		const serverZipStream = await despatch.declare(zipStream)
 		const serverCode = await despatch.handleProof(serverZipStream.numTicket)
 
-		tester.is(serverCode, 0)
+		tester.is(serverCode.codRespuesta, '0')
 	}
 	catch (e) {
 		console.error(e)
