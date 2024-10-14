@@ -374,6 +374,43 @@ class NodesGenerator {
 						}
 					}
 				}
+
+				if (despatch.getDrivers().length > 0) {
+					let driverIndex = 0
+					for (const driver of despatch.getDrivers()) {
+						const cacDriverPerson = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DriverPerson")
+						cacShipmentStage.appendChild(cacDriverPerson)
+						{
+							const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+							cbcID.setAttribute("schemeID", driver.getIdentification().getType())
+							cbcID.setAttribute("schemeName", "Documento de Identidad")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+							cbcID.textContent = driver.getIdentification().getNumber()
+							cacDriverPerson.appendChild(cbcID)
+
+							const cbcFirstName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:FirstName")
+							cbcFirstName.textContent = driver.getName()
+							cacDriverPerson.appendChild(cbcFirstName)
+
+							const cbcFamilyName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:FamilyName")
+							cbcFamilyName.textContent = driver.getFamilyName()
+							cacDriverPerson.appendChild(cbcFamilyName)
+
+							const cbcJobTitle = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:JobTitle")
+							cbcJobTitle.textContent = driverIndex++ == 0 ? "Principal" : "Secundario"
+							cacDriverPerson.appendChild(cbcJobTitle)
+
+							const cacIdentityDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cbc:IdentityDocumentReference")
+							cacDriverPerson.appendChild(cacIdentityDocumentReference)
+							{
+								const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.textContent = driver.getLicense()
+								cacIdentityDocumentReference.appendChild(cbcID)
+							}
+						}
+					}
+				}
 			}
 
 			const cacDelivery = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Delivery")
@@ -416,6 +453,20 @@ class NodesGenerator {
 							cbcLine.textContent = despatch.getDespatchAddress().line
 							cacAddressLine.appendChild(cbcLine)
 						}
+					}
+				}
+			}
+
+			if (despatch.getVehicles().length > 0) {
+				const cacTransportHandlingUnit = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportHandlingUnit")
+				cacShipment.appendChild(cacTransportHandlingUnit)
+				{
+					const cacTransportEquipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportEquipment")
+					cacTransportHandlingUnit.appendChild(cacTransportEquipment)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.textContent = despatch.getVehicles()[0].identity
+						cacTransportEquipment.appendChild(cbcID)
 					}
 				}
 			}
