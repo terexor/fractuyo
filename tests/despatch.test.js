@@ -58,12 +58,12 @@ test.serial("creating persons", tester => {
 
 test.serial("creating despatch", (tester) => {
 	despatch = new Despatch(taxpayer, customer)
-	despatch.setIssueDate(new Date("13-Sep-2024 UTC"))
+	despatch.setIssueDate(new Date())
 	despatch.setTypeCode(9)
 	despatch.setSerie("T000")
 	despatch.setNumeration(2)
 	despatch.setNote("Sending on time")
-	despatch.setStartDate(new Date("29-Sep-2024 UTC"))
+	despatch.setStartDate(new Date())
 	despatch.setUnitCode("KGM")
 	despatch.setWeight(4)
 
