@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import XmlDSigJs from "xmldsigjs"
 
-import { Endpoint, Despatch, Item, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Vehicle, Package, Port, Endpoint, Despatch, Item, Person, Driver, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
@@ -66,7 +66,9 @@ test.serial("creating despatch", (tester) => {
 	despatch.setStartDate(new Date())
 	despatch.setUnitCode("KGM")
 	despatch.setWeight(4)
+	despatch.usingLightVehicle(false)
 
+	// When is "transportista"
 	const carrier = new Person()
 	carrier.setName("Transportists SA")
 	carrier.setIdentification(new Identification(6, "20000000001"))
@@ -76,6 +78,30 @@ test.serial("creating despatch", (tester) => {
 	deliveryAddress.line = "An address in Peru"
 	deliveryAddress.ubigeo = "150101"
 	despatch.setDeliveryAddress(deliveryAddress)
+
+	const mainVehicle = new Vehicle("ABC999")
+	mainVehicle.setRegistrationIdentity("12345")
+	despatch.addVehicle(mainVehicle)
+
+	const secondVehicle = new Vehicle("ABC000")
+	secondVehicle.setRegistrationIdentity("12345")
+	despatch.addVehicle(secondVehicle)
+
+	const mainDriver = new Driver("71936980X")
+	mainDriver.setName("George")
+	mainDriver.setFamilyName("Garro")
+	mainDriver.setIdentification(new Identification(1, "71936980"))
+	despatch.addDriver(mainDriver)
+
+	const anotherDriver = new Driver("74166745Q")
+	anotherDriver.setName("Walter")
+	anotherDriver.setFamilyName("Felipe")
+	anotherDriver.setIdentification(new Identification(1, "74166745"))
+	despatch.addDriver(anotherDriver)
+
+	const airport = new Port(false, "LIM")
+	airport.setName("Internacional Jorge Chavez")
+	despatch.setPort(airport)
 
 	const product = new Item("This is description for moving item")
 	product.setUnitCode("NIU")
