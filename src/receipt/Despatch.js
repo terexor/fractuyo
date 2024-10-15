@@ -22,6 +22,7 @@ class Despatch extends Receipt {
 
 	#drivers = Array()
 
+	// A 'package' is reserved word :(
 	#packages = Array()
 
 	constructor(taxpayer, customer) {
@@ -120,6 +121,14 @@ class Despatch extends Receipt {
 
 	getDrivers() {
 		return this.#drivers
+	}
+
+	addPackage(p) {
+		this.#packages.push(p)
+	}
+
+	getPackages() {
+		return this.#packages
 	}
 
 	toXml() {

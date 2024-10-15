@@ -457,6 +457,25 @@ class NodesGenerator {
 				}
 			}
 
+			let containerIndex = 0
+			for (const container of despatch.getPackages()) {
+				const cacTransportHandlingUnit = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportHandlingUnit")
+				cacShipment.appendChild(cacTransportHandlingUnit)
+				{
+					const cacPackage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Package")
+					cacTransportHandlingUnit.appendChild(cacPackage)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.textContent = ++packageIndex
+						cacPackage.appendChild(cbcID)
+
+						const cbcTraceID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TraceID")
+						cbcTraceID.textContent = container.traceIdentity
+						cacPackage.appendChild(cbcTraceID)
+					}
+				}
+			}
+
 			if (despatch.getVehicles().length > 0) {
 				const cacTransportHandlingUnit = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportHandlingUnit")
 				cacShipment.appendChild(cacTransportHandlingUnit)
