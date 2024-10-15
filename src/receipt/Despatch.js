@@ -25,6 +25,8 @@ class Despatch extends Receipt {
 	// A 'package' is reserved word :(
 	#packages = Array()
 
+	#port
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -129,6 +131,14 @@ class Despatch extends Receipt {
 
 	getPackages() {
 		return this.#packages
+	}
+
+	setPort(port) {
+		this.#port = port
+	}
+
+	getPort() {
+		return this.#port
 	}
 
 	toXml() {

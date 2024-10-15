@@ -13,6 +13,7 @@ import Address from "./person/Address.js";
 
 import Vehicle from "./shipment/Vehicle.js"
 import Package from "./shipment/Package.js"
+import Port from "./shipment/Port.js"
 
 import Endpoint from "./webservice/Endpoint.js";
 
@@ -30,5 +31,6 @@ export {
 	Address,
 	Vehicle,
 	Package,
+	Port,
 	Endpoint
 }
