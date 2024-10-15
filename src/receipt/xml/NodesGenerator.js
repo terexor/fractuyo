@@ -550,6 +550,27 @@ class NodesGenerator {
 					}
 				}
 			}
+
+			if (despatch.getPort()) {
+				const cacFirstArrivalPortLocation = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:FirstArrivalPortLocation")
+				cacShipment.appendChild(cacFirstArrivalPortLocation)
+				{
+					const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+					cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+					cbcID.setAttribute("schemeName", despatch.getPort().type ? "Puertos" : "Aeropuertos")
+					cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo" + (despatch.getPort().type ? "63" : "64"))
+					cbcID.textContent = despatch.getPort().identity
+					cacFirstArrivalPortLocation.appendChild(cbcID)
+
+					const cbcLocationTypeCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LocationTypeCode")
+					cbcLocationTypeCode.textContent = despatch.getPort().name.type ? "1" : "2"
+					cacFirstArrivalPortLocation.appendChild(cbcLocationTypeCode)
+
+					const cbcName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+					cbcName.textContent = despatch.getPort().name
+					cacFirstArrivalPortLocation.appendChild(cbcName)
+				}
+			}
 		}
 	}
 
