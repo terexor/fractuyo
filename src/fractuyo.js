@@ -12,6 +12,7 @@ import Identification from "./person/Identification.js";
 import Address from "./person/Address.js";
 
 import Vehicle from "./shipment/Vehicle.js"
+import Package from "./shipment/Package.js"
 
 import Endpoint from "./webservice/Endpoint.js";
 
@@ -28,5 +29,6 @@ export {
 	Identification,
 	Address,
 	Vehicle,
+	Package,
 	Endpoint
 }

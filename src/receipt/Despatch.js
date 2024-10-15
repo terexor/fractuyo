@@ -22,6 +22,8 @@ class Despatch extends Receipt {
 
 	#drivers = Array()
 
+	#packages = Array()
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
