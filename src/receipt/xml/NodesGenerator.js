@@ -467,6 +467,67 @@ class NodesGenerator {
 						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
 						cbcID.textContent = despatch.getVehicles()[0].identity
 						cacTransportEquipment.appendChild(cbcID)
+
+						if (despatch.getVehicles()[0].registrationIdentity) {
+							const cacApplicableTransportMeans = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ApplicableTransportMeans")
+							cacTransportEquipment.appendChild(cacApplicableTransportMeans)
+							{
+								const cbcRegistrationNationalityID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationNationalityID")
+								cbcRegistrationNationalityID.textContent = despatch.getVehicles()[0].registrationIdentity
+								cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
+							}
+						}
+
+						// More vehicles
+						if (despatch.getVehicles().length > 1) {
+							let index = 0
+							for (const vehicle of despatch.getVehicles()) {
+								if (index == 0) { // We need to iterate secondary vehicles
+									++index
+									continue
+								}
+
+								const cacAttachedTransportEquipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AttachedTransportEquipment")
+								cacTransportEquipment.appendChild(cacAttachedTransportEquipment)
+								{
+									const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+									cbcID.textContent = vehicle.identity
+									cacAttachedTransportEquipment.appendChild(cbcID)
+
+									if (vehicle.registrationIdentity) {
+										const cacApplicableTransportMeans = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ApplicableTransportMeans")
+										cacAttachedTransportEquipment.appendChild(cacApplicableTransportMeans)
+										{
+											const cbcRegistrationNationalityID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationNationalityID")
+											cbcRegistrationNationalityID.textContent = vehicle.registrationIdentity
+											cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
+										}
+									}
+
+									if (vehicle.authorization) {
+										const cacShipmentDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentDocumentReference")
+										cacAttachedTransportEquipment.appendChild(cacShipmentDocumentReference)
+										{
+											const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+											cbcID.setAttribute("schemeID", vehicle.departmentCode)
+											cbcID.textContent = vehicle.authorization
+											cacShipmentDocumentReference.appendChild(cbcID)
+										}
+									}
+								}
+							}
+						}
+
+						if (despatch.getVehicles()[0].authorization) {
+							const cacShipmentDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentDocumentReference")
+							cacTransportEquipment.appendChild(cacShipmentDocumentReference)
+							{
+								const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.setAttribute("schemeID", despatch.getVehicles()[0].departmentCode)
+								cbcID.textContent = despatch.getVehicles()[0].authorization
+								cacShipmentDocumentReference.appendChild(cbcID)
+							}
+						}
 					}
 				}
 			}
