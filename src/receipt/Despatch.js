@@ -16,6 +16,17 @@ class Despatch extends Receipt {
 
 	#carrier // transportist
 
+	#inLightVehicle
+
+	#vehicles = Array()
+
+	#drivers = Array()
+
+	// A 'package' is reserved word :(
+	#packages = Array()
+
+	#port
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -88,6 +99,46 @@ class Despatch extends Receipt {
 
 	getCarrier() {
 		return this.#carrier
+	}
+
+	inLightVehicle() {
+		return this.#inLightVehicle
+	}
+
+	usingLightVehicle(using) {
+		this.#inLightVehicle = using
+	}
+
+	addVehicle(vehicle) {
+		this.#vehicles.push(vehicle)
+	}
+
+	getVehicles() {
+		return this.#vehicles
+	}
+
+	addDriver(driver) {
+		this.#drivers.push(driver)
+	}
+
+	getDrivers() {
+		return this.#drivers
+	}
+
+	addPackage(p) {
+		this.#packages.push(p)
+	}
+
+	getPackages() {
+		return this.#packages
+	}
+
+	setPort(port) {
+		this.#port = port
+	}
+
+	getPort() {
+		return this.#port
 	}
 
 	toXml() {

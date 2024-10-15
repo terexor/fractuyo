@@ -328,6 +328,12 @@ class NodesGenerator {
 			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
+			if (!despatch.getCarrier() && despatch.inLightVehicle()) { // we are sending in own light vehicle
+				const cbcSpecialInstructions = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:SpecialInstructions")
+				cbcSpecialInstructions.textContent = "SUNAT_Envio_IndicadorTrasladoVehiculoM1L"
+				cacShipment.appendChild(cbcSpecialInstructions)
+			}
+
 			const cacShipmentStage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentStage")
 			cacShipment.appendChild(cacShipmentStage)
 			{
@@ -365,6 +371,43 @@ class NodesGenerator {
 							const cbcRegistrationName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationName")
 							cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
 							cacPartyLegalEntity.appendChild(cbcRegistrationName)
+						}
+					}
+				}
+
+				if (despatch.getDrivers().length > 0) {
+					let driverIndex = 0
+					for (const driver of despatch.getDrivers()) {
+						const cacDriverPerson = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:DriverPerson")
+						cacShipmentStage.appendChild(cacDriverPerson)
+						{
+							const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+							cbcID.setAttribute("schemeID", driver.getIdentification().getType())
+							cbcID.setAttribute("schemeName", "Documento de Identidad")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+							cbcID.textContent = driver.getIdentification().getNumber()
+							cacDriverPerson.appendChild(cbcID)
+
+							const cbcFirstName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:FirstName")
+							cbcFirstName.textContent = driver.getName()
+							cacDriverPerson.appendChild(cbcFirstName)
+
+							const cbcFamilyName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:FamilyName")
+							cbcFamilyName.textContent = driver.getFamilyName()
+							cacDriverPerson.appendChild(cbcFamilyName)
+
+							const cbcJobTitle = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:JobTitle")
+							cbcJobTitle.textContent = driverIndex++ == 0 ? "Principal" : "Secundario"
+							cacDriverPerson.appendChild(cbcJobTitle)
+
+							const cacIdentityDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cbc:IdentityDocumentReference")
+							cacDriverPerson.appendChild(cacIdentityDocumentReference)
+							{
+								const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.textContent = driver.getLicense()
+								cacIdentityDocumentReference.appendChild(cbcID)
+							}
 						}
 					}
 				}
@@ -411,6 +454,121 @@ class NodesGenerator {
 							cacAddressLine.appendChild(cbcLine)
 						}
 					}
+				}
+			}
+
+			let containerIndex = 0
+			for (const container of despatch.getPackages()) {
+				const cacTransportHandlingUnit = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportHandlingUnit")
+				cacShipment.appendChild(cacTransportHandlingUnit)
+				{
+					const cacPackage = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:Package")
+					cacTransportHandlingUnit.appendChild(cacPackage)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.textContent = ++packageIndex
+						cacPackage.appendChild(cbcID)
+
+						const cbcTraceID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:TraceID")
+						cbcTraceID.textContent = container.traceIdentity
+						cacPackage.appendChild(cbcTraceID)
+					}
+				}
+			}
+
+			if (despatch.getVehicles().length > 0) {
+				const cacTransportHandlingUnit = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportHandlingUnit")
+				cacShipment.appendChild(cacTransportHandlingUnit)
+				{
+					const cacTransportEquipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:TransportEquipment")
+					cacTransportHandlingUnit.appendChild(cacTransportEquipment)
+					{
+						const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+						cbcID.textContent = despatch.getVehicles()[0].identity
+						cacTransportEquipment.appendChild(cbcID)
+
+						if (despatch.getVehicles()[0].registrationIdentity) {
+							const cacApplicableTransportMeans = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ApplicableTransportMeans")
+							cacTransportEquipment.appendChild(cacApplicableTransportMeans)
+							{
+								const cbcRegistrationNationalityID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationNationalityID")
+								cbcRegistrationNationalityID.textContent = despatch.getVehicles()[0].registrationIdentity
+								cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
+							}
+						}
+
+						// More vehicles
+						if (despatch.getVehicles().length > 1) {
+							let index = 0
+							for (const vehicle of despatch.getVehicles()) {
+								if (index == 0) { // We need to iterate secondary vehicles
+									++index
+									continue
+								}
+
+								const cacAttachedTransportEquipment = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:AttachedTransportEquipment")
+								cacTransportEquipment.appendChild(cacAttachedTransportEquipment)
+								{
+									const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+									cbcID.textContent = vehicle.identity
+									cacAttachedTransportEquipment.appendChild(cbcID)
+
+									if (vehicle.registrationIdentity) {
+										const cacApplicableTransportMeans = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ApplicableTransportMeans")
+										cacAttachedTransportEquipment.appendChild(cacApplicableTransportMeans)
+										{
+											const cbcRegistrationNationalityID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:RegistrationNationalityID")
+											cbcRegistrationNationalityID.textContent = vehicle.registrationIdentity
+											cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
+										}
+									}
+
+									if (vehicle.authorization) {
+										const cacShipmentDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentDocumentReference")
+										cacAttachedTransportEquipment.appendChild(cacShipmentDocumentReference)
+										{
+											const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+											cbcID.setAttribute("schemeID", vehicle.departmentCode)
+											cbcID.textContent = vehicle.authorization
+											cacShipmentDocumentReference.appendChild(cbcID)
+										}
+									}
+								}
+							}
+						}
+
+						if (despatch.getVehicles()[0].authorization) {
+							const cacShipmentDocumentReference = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:ShipmentDocumentReference")
+							cacTransportEquipment.appendChild(cacShipmentDocumentReference)
+							{
+								const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+								cbcID.setAttribute("schemeID", despatch.getVehicles()[0].departmentCode)
+								cbcID.textContent = despatch.getVehicles()[0].authorization
+								cacShipmentDocumentReference.appendChild(cbcID)
+							}
+						}
+					}
+				}
+			}
+
+			if (despatch.getPort()) {
+				const cacFirstArrivalPortLocation = despatch.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:FirstArrivalPortLocation")
+				cacShipment.appendChild(cacFirstArrivalPortLocation)
+				{
+					const cbcID = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
+					cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+					cbcID.setAttribute("schemeName", despatch.getPort().type ? "Puertos" : "Aeropuertos")
+					cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo" + (despatch.getPort().type ? "63" : "64"))
+					cbcID.textContent = despatch.getPort().identity
+					cacFirstArrivalPortLocation.appendChild(cbcID)
+
+					const cbcLocationTypeCode = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:LocationTypeCode")
+					cbcLocationTypeCode.textContent = despatch.getPort().name.type ? "1" : "2"
+					cacFirstArrivalPortLocation.appendChild(cbcLocationTypeCode)
+
+					const cbcName = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Name")
+					cbcName.textContent = despatch.getPort().name
+					cacFirstArrivalPortLocation.appendChild(cbcName)
 				}
 			}
 		}
