@@ -1,7 +1,7 @@
 import test from 'ava'
 import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
-import XmlDSigJs from "xmldsigjs"
+import { Application } from "xmldsigjs"
 
 import { Vehicle, Package, Port, Endpoint, Despatch, Item, Person, Driver, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
@@ -14,7 +14,7 @@ test.before(async t => {
 	global.window = window
 	global.document = window.document
 
-	XmlDSigJs.Application.setEngine("NodeJS", globalThis.crypto)
+	Application.setEngine("NodeJS", globalThis.crypto)
 })
 
 test.serial("creating persons", tester => {

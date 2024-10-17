@@ -1,6 +1,6 @@
 import Person from "./Person.js"
 
-import asn1js from "asn1js"
+import * as asn1js from "asn1js"
 
 class Taxpayer extends Person {
 	#paillierPublicKey
