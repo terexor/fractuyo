@@ -4,6 +4,9 @@
 	"description": "Invoice generator.",
 	"main": "src/fractuyo.js",
 	"type": "module",
+	"exports": {
+		".": "./src/fractuyo.js"
+	},
 	"scripts": {
 		"test": "ava --serial",
 		"test:invoice": "ava ./tests/invoice.*",
