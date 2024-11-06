@@ -150,6 +150,14 @@ class Receipt {
 		this.#items.push(item)
 	}
 
+	/**
+	 * Recreate items array without an item.
+	 * @param index in array.
+	 */
+	removeItem(index) {
+		this.#items = [...this.#items.slice(0, index), ...this.#items.slice(index + 1)]
+	}
+
 	get items() {
 		return this.#items
 	}
