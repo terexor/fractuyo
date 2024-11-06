@@ -100,6 +100,34 @@ class Sale extends Receipt {
 		}
 	}
 
+	/**
+	 * Use it if maybe you are have edited an item or removed.
+	 */
+	recalcMounts() {
+		// Cleaning values
+		this.#lineExtensionAmount = this.#taxTotalAmount = this.#taxInclusiveAmount = this.#igvAmount = 0
+
+		for (const item of this.items) {
+			this.#lineExtensionAmount += item.getLineExtensionAmount()
+			this.#taxTotalAmount += item.getTaxTotalAmount()
+			this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
+
+			this.#igvAmount += item.getIgvAmount()
+
+			//Assign data according taxability
+			switch(true) {
+				case (item.getExemptionReasonCode() < 20):
+					this.#operationAmounts[0] += item.getLineExtensionAmount();break
+				case (item.getExemptionReasonCode() < 30):
+					this.#operationAmounts[1] += item.getLineExtensionAmount();break
+				case (item.getExemptionReasonCode() < 40):
+					this.#operationAmounts[2] += item.getLineExtensionAmount();break
+				default:
+					this.#operationAmounts[3] += item.getLineExtensionAmount()
+			}
+		}
+	}
+
 	getQrData() {
 		return this.getTaxpayer().getIdentification().getNumber()
 			+ '|' + this.getId(true).replaceAll('-', '|')
