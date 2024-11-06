@@ -20,7 +20,6 @@ var Item = function(_description) {
 			description = d
 			return
 		}
-		throw new Error("No hay descripción válida.")
 	}
 
 	this.setCode = function(c) {
