@@ -126,6 +126,13 @@ class Receipt {
 		return this.#taxpayer
 	}
 
+	/**
+	 * Replace the taxpayer.
+	 */
+	setTaxpayer(taxpayer) {
+		this.#taxpayer = taxpayer
+	}
+
 	getCustomer() {
 		return this.#customer
 	}
