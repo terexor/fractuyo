@@ -239,7 +239,7 @@ class Receipt {
 	 */
 	async createZip(type = "base64") {
 		const zip = new JSZip()
-		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + this.xmlDocument.toString()
+		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + (new XMLSerializer().serializeToString(this.xmlDocument))
 		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
 		return zip.generateAsync({type: type}).then(zipb64 => {
