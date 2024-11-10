@@ -126,8 +126,14 @@ var Item = function(_description) {
 		//~ (auxiliar) valorVenta = cantidad * valorUnitario
 		lineExtensionAmount = quantity * unitValue
 
-		let decimalIscPercentage = iscPercentage / 100 // eg: 0.17
-		let decimalIgvPercentage = igvPercentage / 100 // eg: 0.18
+		let decimalIscPercentage = 0
+		let decimalIgvPercentage = 0
+
+		// Only apply when we are including taxes
+		if (exemptionReasonCode < 20) {
+			decimalIscPercentage = iscPercentage / 100 // eg: 0.17
+			decimalIgvPercentage = igvPercentage / 100 // eg: 0.18
+		}
 
 		pricingReferenceAmount = unitValue * (1 + decimalIscPercentage) * (1 + decimalIgvPercentage)
 
