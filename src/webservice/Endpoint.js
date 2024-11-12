@@ -16,6 +16,12 @@ class Endpoint {
 	static INDEX_STATUS = 3 << Endpoint.#offset
 	static #REST_MASK = 0b111 << Endpoint.#offset // despatch is here
 
+	static #fetchFunction = fetch // use the default or standard JavaScript fetch
+
+	static setFetchFunction(customFetch) {
+		Endpoint.#fetchFunction = customFetch
+	}
+
 	static setMode(mode) {
 		Endpoint.#mode = mode
 	}
@@ -83,7 +89,7 @@ class Endpoint {
 	static async fetch(service, body) {
 		const url = Endpoint.getUrl(service)
 
-		const response = await fetch(url, {
+		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
 			headers: {"Content-Type": "text/xml;charset=UTF-8"},
 			body: body
@@ -96,7 +102,7 @@ class Endpoint {
 	static async fetchStatus(ticket) {
 		const url = Endpoint.getUrl(Endpoint.INDEX_STATUS).concat(ticket)
 
-		const response = await fetch(url, {
+		const response = await Endpoint.#fetchFunction(url, {
 			method: "GET",
 			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token}
 		})
@@ -108,7 +114,7 @@ class Endpoint {
 	static async fetchSend(body, receipt) {
 		const url = Endpoint.getUrl(Endpoint.INDEX_SEND).concat(`${receipt.taxpayer.getIdentification().getNumber()}-${receipt.getId(true)}`)
 
-		const response = await fetch(url, {
+		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
 			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token},
 			body: body
@@ -123,7 +129,7 @@ class Endpoint {
 
 		const data = Rest.generateToken(taxpayer)
 
-		const response = await fetch(url, {
+		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
 			headers: {"Content-Type": "application/x-www-form-urlencoded"},
 			body: data
