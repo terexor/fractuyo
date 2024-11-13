@@ -951,15 +951,17 @@ class NodesGenerator {
 					cacSellersItemIdentification.appendChild(cbcID)
 				}
 
-				const cacCommodityClassification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CommodityClassification")
-				cacItem.appendChild(cacCommodityClassification)
+				if (item.getClassificationCode()) {
+					const cacCommodityClassification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CommodityClassification")
+					cacItem.appendChild(cacCommodityClassification)
 
-				const cbcItemClassificationCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ItemClassificationCode")
-				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
-				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
-				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-				cbcItemClassificationCode.textContent = item.getClassificationCode()
-				cacCommodityClassification.appendChild(cbcItemClassificationCode)
+					const cbcItemClassificationCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ItemClassificationCode")
+					cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
+					cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
+					cbcItemClassificationCode.setAttribute("listName", "Item Classification")
+					cbcItemClassificationCode.textContent = item.getClassificationCode()
+					cacCommodityClassification.appendChild(cbcItemClassificationCode)
+				}
 			}
 
 			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
