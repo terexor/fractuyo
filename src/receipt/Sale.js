@@ -1,4 +1,7 @@
 import Receipt from "./Receipt.js"
+import Item from "./Item.js"
+import Person from "../person/Person.js"
+import Identification from "../person/Identification.js"
 
 class Sale extends Receipt {
 	#currencyId
@@ -137,6 +140,56 @@ class Sale extends Receipt {
 			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
 			+ '|' + this.getCustomer().getIdentification().getType()
 			+ '|' + this.getCustomer().getIdentification().getNumber()
+	}
+
+	/**
+	 * Parse xml string for filling attributes.
+	 * If printed taxpayer is different from system current taxpayer then throw error.
+	 */
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
+		const [serie, numeration] = id.split('-')
+		this.setSerie(serie)
+		this.setNumeration(parseInt(numeration))
+
+		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoiceTypeCode")[0]?.textContent || "";
+		this.setTypeCode(typeCode)
+
+		const currencyId = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DocumentCurrencyCode")[0]?.textContent || "";
+		this.setTypeCode(currencyId)
+
+		{
+			const customer = new Person()
+			const accountingCustomerParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AccountingCustomerParty")[0];
+			const id = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
+			const type = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
+			customer.setIdentification(new Identification(parseInt(type), id))
+
+			this.setCustomer(customer)
+		}
+
+		{
+			const orderReference = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0];
+			if (orderReference) {
+				const orderReferenceId = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
+				this.setOrderReference(orderReferenceId)
+				const orderReferenceText = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0]?.textContent || "";
+				this.setOrderReferenceText(orderReferenceText)
+			}
+		}
+
+		// Extraer los items y añadirlos al array de items
+		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "InvoiceLine");
+		for (let i = 0; i < items.length; i++) {
+			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
+			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent || "" )
+			item.setUnitValue( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent || "" )
+			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.getAttribute("unitCode") || "" )
+
+			this.addItem(item)
+		}
 	}
 }
 
