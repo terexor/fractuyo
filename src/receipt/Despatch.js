@@ -185,7 +185,7 @@ class Despatch extends Receipt {
 		this.setNumeration(parseInt(numeration))
 
 		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, `${this.name}TypeCode`)[0]?.textContent || "";
-		this.setTypeCode(typeCode)
+		this.setTypeCode(parseInt(typeCode))
 
 		{
 			const customer = new Person()

@@ -155,10 +155,10 @@ class Sale extends Receipt {
 		this.setNumeration(parseInt(numeration))
 
 		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, `${this.name}TypeCode`)[0]?.textContent || "";
-		this.setTypeCode(typeCode)
+		this.setTypeCode(parseInt(typeCode))
 
 		const currencyId = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DocumentCurrencyCode")[0]?.textContent || "";
-		this.setTypeCode(currencyId)
+		this.setCurrencyId(currencyId)
 
 		{
 			const customer = new Person()
