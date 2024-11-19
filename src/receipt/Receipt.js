@@ -294,6 +294,10 @@ class Receipt {
 		}
 	}
 
+	toString() {
+		return (new XMLSerializer().serializeToString(this.xmlDocument))
+	}
+
 	static namespaces = Object.freeze(
 		{
 			cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
