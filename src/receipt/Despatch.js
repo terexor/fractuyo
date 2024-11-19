@@ -1,4 +1,6 @@
 import Receipt from "./Receipt.js"
+import Person from "../person/Person.js"
+import Identification from "../person/Identification.js"
 import Endpoint from "../webservice/Endpoint.js"
 import Rest from "../webservice/Rest.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
@@ -181,6 +183,19 @@ class Despatch extends Receipt {
 		const [serie, numeration] = id.split('-')
 		this.setSerie(serie)
 		this.setNumeration(parseInt(numeration))
+
+		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, `${this.name}TypeCode`)[0]?.textContent || "";
+		this.setTypeCode(typeCode)
+
+		{
+			const customer = new Person()
+			const accountingCustomerParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "DeliveryCustomerParty")[0];
+			const id = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
+			const type = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
+			customer.setIdentification(new Identification(parseInt(type), id))
+
+			this.setCustomer(customer)
+		}
 	}
 }
 
