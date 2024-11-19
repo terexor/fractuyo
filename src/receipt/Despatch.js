@@ -173,6 +173,15 @@ class Despatch extends Receipt {
 		const responseText = await Endpoint.fetchStatus(ticketNumber)
 		return responseText
 	}
+
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || ""
+		const [serie, numeration] = id.split('-')
+		this.setSerie(serie)
+		this.setNumeration(parseInt(numeration))
+	}
 }
 
 export default Despatch
