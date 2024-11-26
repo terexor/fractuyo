@@ -62,6 +62,18 @@ class Invoice extends Sale {
 		}
 	}
 
+	/**
+	 * Empty reference identity and its description.
+	 */
+	clearOrderReference() {
+		this.#orderReference = null
+		this.#orderReferenceText = null
+	}
+
+	clearOrderReferenceText() {
+		this.#orderReferenceText = null
+	}
+
 	getOrderReference() {
 		return this.#orderReference
 	}
