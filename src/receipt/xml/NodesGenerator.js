@@ -303,7 +303,7 @@ class NodesGenerator {
 			cacRegistrationAddress.appendChild(cacAddressLine)
 
 			const cbcLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
-			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress()) )
+			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress().line) )
 			cacAddressLine.appendChild(cbcLine)
 		}
 	}
