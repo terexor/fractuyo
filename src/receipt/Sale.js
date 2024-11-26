@@ -1,7 +1,9 @@
 import Receipt from "./Receipt.js"
 import Item from "./Item.js"
+import Taxpayer from "../person/Taxpayer.js"
 import Person from "../person/Person.js"
 import Identification from "../person/Identification.js"
+import Address from "../person/Address.js"
 
 class Sale extends Receipt {
 	#currencyId
@@ -160,6 +162,38 @@ class Sale extends Receipt {
 		const currencyId = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DocumentCurrencyCode")[0]?.textContent || "";
 		this.setCurrencyId(currencyId)
 
+		const issueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "IssueDate")[0]?.textContent || "";
+		this.setIssueDate(new Date(issueDate))
+
+		{
+			const taxpayer = new Taxpayer()
+			const accountingSupplierParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AccountingSupplierParty")[0];
+			const id = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
+			const type = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
+			taxpayer.setIdentification(new Identification(parseInt(type), id))
+
+			const tradeName = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0]?.textContent || ""
+			taxpayer.setTradeName(tradeName)
+
+			const name = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0]?.textContent || ""
+			taxpayer.setName(name)
+
+			{
+				const registrationAddress = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
+
+				const address = new Address()
+				address.ubigeo = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || ""
+				address.city = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "CityName")[0]?.textContent || ""
+				address.district = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "District")[0]?.textContent || ""
+				address.subentity = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Subentity")[0]?.textContent || ""
+				address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || ""
+
+				taxpayer.setAddress(address)
+			}
+
+			this.setTaxpayer(taxpayer)
+		}
+
 		{
 			const customer = new Person()
 			const accountingCustomerParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AccountingCustomerParty")[0];
@@ -167,16 +201,33 @@ class Sale extends Receipt {
 			const type = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
 			customer.setIdentification(new Identification(parseInt(type), id))
 
+			// customer address
+			{
+				const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
+
+				if (registrationAddress) {
+					const address = new Address();
+					address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "";
+
+					customer.setAddress(address);
+				}
+			}
+
 			this.setCustomer(customer)
 		}
 
 		{
-			const orderReference = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0];
+			const orderReference = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "OrderReference")[0];
 			if (orderReference) {
-				const orderReferenceId = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
-				this.setOrderReference(orderReferenceId)
-				const orderReferenceText = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0]?.textContent || "";
-				this.setOrderReferenceText(orderReferenceText)
+				const orderReferenceId = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent;
+
+				if (orderReferenceId) {
+					this.setOrderReference(orderReferenceId)
+					const orderReferenceText = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0]?.textContent;
+					if (orderReferenceText) {
+						this.setOrderReferenceText(orderReferenceText)
+					}
+				}
 			}
 		}
 
@@ -185,9 +236,14 @@ class Sale extends Receipt {
 		for (let i = 0; i < items.length; i++) {
 			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
 			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent || "" )
-			item.setUnitValue( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent || "" )
+			item.setUnitValue( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent || "", false )
 			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.getAttribute("unitCode") || "" )
 
+			// Warning because there are many tags with same name
+			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
+			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
+
+			item.calcMounts();
 			this.addItem(item)
 		}
 	}
