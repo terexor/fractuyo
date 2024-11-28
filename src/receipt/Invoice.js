@@ -45,8 +45,11 @@ class Invoice extends Sale {
 	}
 
 	setDueDate(dd) {
-		if(dd.length) {
+		if (dd instanceof Date) {
 			this.#dueDate = dd
+		}
+		else {
+			this.#dueDate = null
 		}
 	}
 
