@@ -4,7 +4,7 @@ var Item = function(_description) {
 	var quantity
 	var unitValue
 	var unitCode, classificationCode
-	var igvPercentage, iscPercentage
+	var igvPercentage = 0, iscPercentage = 0
 	var taxableIgvAmount
 	var igvAmount, iscAmount
 	var taxTotalAmount
