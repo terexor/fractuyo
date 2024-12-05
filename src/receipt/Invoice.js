@@ -39,6 +39,14 @@ class Invoice extends Sale {
 
 		this.#sharesAmount += share.getAmount()
 	}
+	
+	/**
+	 * Recreate shares array without a share.
+	 * @param index in array.
+	 */
+	removeShare(index) {
+		this.#shares = [...this.#shares.slice(0, index), ...this.#shares.slice(index + 1)]
+	}
 
 	getDueDate() {
 		return this.#dueDate
