@@ -317,6 +317,19 @@ class Receipt {
 	}
 
 	/**
+	 * Helper to print a date.
+	 * https://stackoverflow.com/a/41480350
+	 * @return date as string in format yyyy-mm-dd.
+	 */
+	static displayDate(date) {
+		let day = date.getDate()
+		let month = date.getMonth() + 1
+		const year = date.getFullYear()
+
+		return year + "-" + ( (month < 10 ? "0" : "") + month ) + "-" + ( (day < 10 ? "0" : "") + day )
+	}
+
+	/**
 	 * @param amount is a decimal number.
 	 */
 	static amountToWords(amount, junctor, tail) {
