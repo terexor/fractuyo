@@ -13,8 +13,8 @@ class Invoice extends Sale {
 	#shares = Array()
 	#sharesAmount = 0
 
-	#detractionPercentage
-	#detractionAmount
+	#detractionPercentage = 0
+	#detractionAmount = 0
 
 	#discount
 
@@ -26,8 +26,8 @@ class Invoice extends Sale {
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
-	getDetractionAmount() {
-		return this.#detractionAmount
+	getDetractionAmount(withFormat = false) {
+		return withFormat ? this.#detractionAmount.toFixed(2) : this.#detractionAmount
 	}
 
 	getShares() {
@@ -39,7 +39,7 @@ class Invoice extends Sale {
 
 		this.#sharesAmount += share.getAmount()
 	}
-	
+
 	/**
 	 * Recreate shares array without a share.
 	 * @param index in array.
@@ -126,6 +126,14 @@ class Invoice extends Sale {
 		return this.#discount
 	}
 
+	calcDetractionAmount() {
+		if (this.#detractionPercentage > 0) {
+			if (this.taxInclusiveAmount > 700) {
+				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
+			}
+		}
+	}
+
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations
@@ -140,12 +148,6 @@ class Invoice extends Sale {
 
 		if(!this.getIssueDate()) {
 			this.setIssueDate()
-		}
-
-		if(this.taxInclusiveAmount >= 700) {
-			if(this.#detractionPercentage > 0) {
-				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
-			}
 		}
 
 		if(this.#sharesAmount) {
