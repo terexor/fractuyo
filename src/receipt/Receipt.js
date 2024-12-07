@@ -235,11 +235,13 @@ class Receipt {
 
 	/**
 	 * @param type according JSZip API.
+	 * @param xmlString that is raw XML.
 	 * @return A ZIP file containing XML.
 	 */
-	async createZip(type = "base64") {
+	async createZip(type = "base64", xmlString) {
 		const zip = new JSZip()
-		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + (new XMLSerializer().serializeToString(this.xmlDocument))
+		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+			( xmlString ?? (new XMLSerializer().serializeToString(this.xmlDocument)) ) // if there is xmlString then use it
 		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
 		return zip.generateAsync({type: type}).then(zipb64 => {
