@@ -19,7 +19,7 @@ class Invoice extends Sale {
 	#discount
 
 	setDetractionPercentage(dp) {
-		if(dp >= 0 || dp <= 100) {
+		if(dp >= 0 && dp <= 100) {
 			this.#detractionPercentage = dp
 			return
 		}
