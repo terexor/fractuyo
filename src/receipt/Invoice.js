@@ -23,6 +23,7 @@ class Invoice extends Sale {
 			this.#detractionPercentage = dp
 			return
 		}
+		this.#detractionPercentage = 0
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
