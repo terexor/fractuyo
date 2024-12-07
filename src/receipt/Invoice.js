@@ -130,7 +130,12 @@ class Invoice extends Sale {
 		if (this.#detractionPercentage > 0) {
 			if (this.taxInclusiveAmount > 700) {
 				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
+				return // exit this function successfully
 			}
+			this.#detractionAmount = 0.0 // to overwrite when amount decrements
+		}
+		else {
+			this.#detractionAmount = 0.0
 		}
 	}
 
