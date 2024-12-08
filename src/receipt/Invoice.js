@@ -41,6 +41,18 @@ class Invoice extends Sale {
 		this.#sharesAmount += share.getAmount()
 	}
 
+	recalcSharesAmount() {
+		this.#sharesAmount = 0
+
+		for (const share of this.#shares) {
+			this.#sharesAmount += share.getAmount()
+		}
+	}
+
+	getSharesAmount() {
+		return this.#sharesAmount
+	}
+
 	/**
 	 * Recreate shares array without a share.
 	 * @param index in array.
