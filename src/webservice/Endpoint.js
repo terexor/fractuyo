@@ -72,7 +72,7 @@ class Endpoint {
 	static getUrl(service, mode) {
 		// Use what is in current scope
 		if (mode == undefined) {
-			Endpoint.#mode
+			mode = Endpoint.#mode
 		}
 
 		if (service == Endpoint.INDEX_INVOICE || service == Endpoint.INDEX_RETENTION) {
