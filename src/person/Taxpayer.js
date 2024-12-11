@@ -81,7 +81,7 @@ class Taxpayer extends Person {
 
 		const asn1 = asn1js.fromBER(this.#certDer)
 		const notBefore = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
-		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
+		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[1]
 
 		const timeNotBefore = Date.UTC(
 			notBefore.year,
