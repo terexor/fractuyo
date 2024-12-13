@@ -146,6 +146,8 @@ class Despatch extends Receipt {
 	}
 
 	toXml() {
+		this.createXmlWrapper();
+
 		NodesGenerator.generateHeader(this)
 
 		NodesGenerator.generateIdentity(this)

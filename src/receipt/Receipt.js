@@ -32,8 +32,10 @@ class Receipt {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
 		this.#name = name
+	}
 
-		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${name}-2`, name)
+	createXmlWrapper() {
+		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${this.#name}-2`, this.#name)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)

@@ -189,6 +189,8 @@ class Invoice extends Sale {
 	}
 
 	toXml() {
+		this.createXmlWrapper();
+
 		NodesGenerator.generateHeader(this)
 
 		NodesGenerator.generateIdentity(this)
