@@ -237,7 +237,10 @@ class Sale extends Receipt {
 		for (let i = 0; i < items.length; i++) {
 			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
 			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent || "" )
-			item.setUnitValue( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent || "", false )
+			item.setUnitValue(
+				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
+				false
+			)
 			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.getAttribute("unitCode") || "" )
 
 			// Warning because there are many tags with same name
