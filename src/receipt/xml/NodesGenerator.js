@@ -19,16 +19,16 @@ class NodesGenerator {
 
 	static generateDates(invoice) {
 		const cbcIssueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.textContent = invoice.getIssueDate().toISOString().substr(0, 10)
+		cbcIssueDate.textContent = Receipt.displayDate(invoice.getIssueDate())
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		const cbcIssueTime = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueTime")
-		cbcIssueTime.textContent = invoice.getIssueDate().toISOString().substr(11, 8)
+		cbcIssueTime.textContent = Receipt.displayTime(invoice.getIssueDate())
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueTime)
 
 		if (invoice.getTypeCode() == 1 && invoice.getDueDate() && invoice.getShares().length == 0) {
 			const cbcDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DueDate")
-			cbcDueDate.textContent = invoice.getDueDate().toISOString().substr(0, 10)
+			cbcDueDate.textContent = Receipt.displayDate(invoice.getDueDate())
 			invoice.xmlDocument.documentElement.appendChild(cbcDueDate)
 		}
 	}
@@ -348,7 +348,7 @@ class NodesGenerator {
 				cacShipmentStage.appendChild(cacTransitPeriod)
 				{
 					const cbcStartDate = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:StartDate")
-					cbcStartDate.textContent = despatch.getStartDate().toISOString().substr(0, 10)
+					cbcStartDate.textContent = Receipt.displayDate(despatch.getStartDate())
 					cacTransitPeriod.appendChild(cbcStartDate)
 				}
 

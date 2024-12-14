@@ -163,9 +163,13 @@ class Sale extends Receipt {
 		this.setCurrencyId(currencyId)
 
 		const issueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "IssueDate")[0]?.textContent;
-		this.setIssueDate(new Date(issueDate))
+		let dateParts = issueDate.split('-'); // split in year, month and day
+		this.setIssueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
 		const dueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DueDate")[0]?.textContent;
-		this.setDueDate(dueDate ? new Date(dueDate) : null) // Because sometimes there isn't
+		if (dueDate) { // Because sometimes there isn't
+			dateParts = dueDate.split('-'); // split in year, month and day
+			this.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+		}
 
 		{
 			const taxpayer = new Taxpayer()

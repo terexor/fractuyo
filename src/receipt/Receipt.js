@@ -326,11 +326,22 @@ class Receipt {
 	 * @return date as string in format yyyy-mm-dd.
 	 */
 	static displayDate(date) {
-		let day = date.getDate()
-		let month = date.getMonth() + 1
+		const day = date.getDate()
+		const month = date.getMonth() + 1
 		const year = date.getFullYear()
 
 		return year + "-" + ( (month < 10 ? "0" : "") + month ) + "-" + ( (day < 10 ? "0" : "") + day )
+	}
+
+	/**
+	 * @return time as string in format HH:MM:SS
+	 */
+	static displayTime(date) {
+		const hour = date.getHours()
+		const min = date.getMinutes()
+		const sec = date.getSeconds()
+
+		return ( (hour < 10 ? "0" : "") + hour ) + ":" + ( (min < 10 ? "0" : "") + min ) + ":" + ( (sec < 10 ? "0" : "") + sec )
 	}
 
 	/**
