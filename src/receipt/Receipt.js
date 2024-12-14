@@ -334,12 +334,12 @@ class Receipt {
 	/**
 	 * @param amount is a decimal number.
 	 */
-	static amountToWords(amount, junctor, tail) {
+	static amountToWords(amount, junctor, tail, decimals = 2) {
 		if (amount == 0.0) {
 			return `CERO ${junctor} 00/100 ${tail}`
 		}
 
-		return writtenNumber(amount, { lang: "es" }) + ` ${junctor} ${amount.toFixed(2).split('.')[1]}/100 ${tail}`
+		return writtenNumber(amount | 0 /*truncate positive floating point*/, { lang: "es" }) + ` ${junctor} ${amount.toFixed(decimals).split('.')[1]}/100 ${tail}`
 	}
 }
 
