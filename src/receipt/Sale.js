@@ -162,8 +162,10 @@ class Sale extends Receipt {
 		const currencyId = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DocumentCurrencyCode")[0]?.textContent || "";
 		this.setCurrencyId(currencyId)
 
-		const issueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "IssueDate")[0]?.textContent || "";
+		const issueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "IssueDate")[0]?.textContent;
 		this.setIssueDate(new Date(issueDate))
+		const dueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DueDate")[0]?.textContent;
+		this.setDueDate(dueDate ? new Date(dueDate) : null) // Because sometimes there isn't
 
 		{
 			const taxpayer = new Taxpayer()
