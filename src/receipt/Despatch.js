@@ -175,7 +175,7 @@ class Despatch extends Receipt {
 		return responseText
 	}
 
-	async handleProof(ticketNumber) {
+	async handleTicket(ticketNumber) {
 		const responseText = await Endpoint.fetchStatus(ticketNumber)
 		return responseText
 	}
