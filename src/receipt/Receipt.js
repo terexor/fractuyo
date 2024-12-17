@@ -63,14 +63,14 @@ class Receipt {
 	/**
 	 * Format serie and number: F000-00000001
 	 */
-	getId(withType = false) {
+	getId(withType = false, compacted = false) {
 		if(this.#serie == undefined || this.#numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
 		}
 		if(withType) {
-			return String(this.#typeCode).padStart(2, '0') + "-" + this.#serie + "-" + String(this.#numeration).padStart(8, '0')
+			return String(this.#typeCode).padStart(2, '0') + '-' + this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
 		}
-		return this.#serie + '-' + String(this.#numeration).padStart(8, '0')
+		return this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
 	}
 
 	setId(serie, numeration) {
@@ -251,11 +251,11 @@ class Receipt {
 		})
 	}
 
-	async handleProof(zipStream, isBase64 = true) {
+	async handleProof(zipStream, isBase64 = true, compacted = false) {
 		const zip = new JSZip()
 
 		return zip.loadAsync(zipStream, {base64: isBase64}).then(async (zip) => {
-			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`).async("string").then(async (data) => {
+			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true, compacted)}.xml`).async("string").then(async (data) => {
 				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
 				// Go directly to node <cbc:ResponseCode>
