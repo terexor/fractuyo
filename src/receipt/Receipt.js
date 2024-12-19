@@ -34,6 +34,10 @@ class Receipt {
 		this.#name = name
 	}
 
+	setName(name) {
+		this.#name = name
+	}
+
 	createXmlWrapper() {
 		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${this.#name}-2`, this.#name)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
