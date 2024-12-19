@@ -8,9 +8,24 @@ class Note extends Sale {
 	#documentReference
 	#documentReferenceTypeCode
 
+	/**
+	 * @param isCredit must be boolean to choose between credit as true or false for debit.
+	 */
 	constructor(taxpayer, customer, isCredit) {
-		super(taxpayer, customer, isCredit ? "CreditNote" : "DebitNote")
-		this.setTypeCode(isCredit ? 7 : 8)
+		if (isCredit != undefined) {
+			super(taxpayer, customer, isCredit ? "CreditNote" : "DebitNote")
+			this.setTypeCode(isCredit ? 7 : 8)
+		}
+		else {
+			super(taxpayer, customer)
+		}
+	}
+
+	setTypeCode(code) {
+		if (code == 7 || code == 8) {
+			super.setTypeCode(code)
+			this.setName(code == 7 ? "CreditNote" : "DebitNote")
+		}
 	}
 
 	setDescription(description) {
