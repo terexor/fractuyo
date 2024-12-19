@@ -89,8 +89,11 @@ class Despatch extends Receipt {
 		this.#despatchAddress = address
 	}
 
-	getDespatchAddress() {
-		if (this.#despatchAddress) {
+	/**
+	 * @param real in true to force getting what was set instead fiscal address.
+	 */
+	getDespatchAddress(real = false) {
+		if (this.#despatchAddress || real) {
 			return this.#despatchAddress
 		}
 
