@@ -171,6 +171,10 @@ class Receipt {
 		this.#items = [...this.#items.slice(0, index), ...this.#items.slice(index + 1)]
 	}
 
+	clearItems() {
+		this.#items = [];
+	}
+
 	get items() {
 		return this.#items
 	}
