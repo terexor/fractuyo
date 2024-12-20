@@ -247,7 +247,7 @@ class Sale extends Receipt {
 				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
 				false
 			)
-			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.getAttribute("unitCode") || "" )
+			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.getAttribute("unitCode") || "" )
 
 			// Warning because there are many tags with same name
 			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
