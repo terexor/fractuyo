@@ -640,7 +640,7 @@ class NodesGenerator {
 		const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
 		invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
 		{
-			const cbcID = invoice.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
 			cbcID.textContent = "FormaPago"
 			cacPaymentTerms.appendChild(cbcID)
 
