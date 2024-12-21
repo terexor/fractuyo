@@ -256,6 +256,28 @@ class Sale extends Receipt {
 			item.calcMounts();
 			this.addItem(item)
 		}
+
+		{ // about detractions
+			// possible deduction
+			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
+			if (paymentMean) { // exists deduction
+				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
+				if (id == "Detraccion") { // deduction exists
+					// look for more about this deduction
+					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
+					for (const paymentTerm of paymentTerms) {
+						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
+							continue
+						}
+
+						// we found it
+						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
+						this.calcDetractionAmount()
+						break // then nothing else
+					}
+				}
+			}
+		}
 	}
 }
 
