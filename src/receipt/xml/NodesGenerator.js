@@ -678,7 +678,7 @@ class NodesGenerator {
 				cacPaymentTerms.appendChild(cbcAmount)
 
 				const cbcPaymentDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentDueDate")
-				cbcPaymentDueDate.textContent = share.getDueDate()
+				cbcPaymentDueDate.textContent = Receipt.displayDate(share.getDueDate())
 				cacPaymentTerms.appendChild(cbcPaymentDueDate)
 			}
 		}
