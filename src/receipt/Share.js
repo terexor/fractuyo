@@ -1,4 +1,4 @@
-var Share = function(today) {
+var Share = function() {
 	var dueDate, amount
 
 	this.setDueDate = function(dd) {
