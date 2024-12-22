@@ -1,5 +1,6 @@
 import Receipt from "./Receipt.js"
 import Item from "./Item.js"
+import Share from "./Share.js"
 import Taxpayer from "../person/Taxpayer.js"
 import Person from "../person/Person.js"
 import Identification from "../person/Identification.js"
@@ -274,6 +275,31 @@ class Sale extends Receipt {
 						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
 						this.calcDetractionAmount()
 						break // then nothing else
+					}
+				}
+			}
+		}
+
+		{ // check if there are shares
+			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms") // always exists
+			for (let i = 0; i < paymentTerms.length; ++i) {
+				if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent == "FormaPago") {
+					// If there is Credito means that next siblings are amounts
+					if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentMeansID")[0].textContent == "Credito") {
+						++i; // set index to next sibling
+						// iterate posible remaining shares
+						for (; i < paymentTerms.length; ++i) {
+							// if FormaPago is not found, means we don't have any share
+							if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "FormaPago") {
+								break
+							}
+							const share = new Share()
+							// capture date and amount
+							share.setAmount(paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent)
+							const dateParts = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentDueDate")[0].textContent.split('-') // split in year, month and day
+							share.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+							this.addShare(share)
+						}
 					}
 				}
 			}
