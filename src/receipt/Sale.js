@@ -198,6 +198,12 @@ class Sale extends Receipt {
 				taxpayer.setAddress(address)
 			}
 
+			{ // contact info
+				taxpayer.setWeb(accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "Note")[0]?.textContent)
+				taxpayer.setEmail(accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ElectronicMail")[0]?.textContent)
+				taxpayer.setTelephone(accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "Telephone")[0]?.textContent)
+			}
+
 			this.setTaxpayer(taxpayer)
 		}
 
