@@ -304,6 +304,8 @@ class Sale extends Receipt {
 				}
 			}
 		}
+
+		this.setHash(xmlDoc.getElementsByTagNameNS(Receipt.namespaces.ds, "DigestValue")[0].textContent)
 	}
 }
 
