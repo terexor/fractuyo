@@ -175,19 +175,19 @@ class Taxpayer extends Person {
 	}
 
 	setWeb(w) {
-		if(w.length != 0) {
+		if(w && w.length != 0) {
 			this.#web = w
 		}
 	}
 
 	setEmail(em) {
-		if(em.length != 0) {
+		if(em && em.length != 0) {
 			this.#email = em
 		}
 	}
 
 	setTelephone(t) {
-		if(t.length != 0) {
+		if(t && t.length != 0) {
 			this.#telephone = t
 		}
 	}
