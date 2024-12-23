@@ -1,3 +1,5 @@
+import Item from "./Item.js"
+import Receipt from "./Receipt.js"
 import Sale from "./Sale.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
@@ -99,6 +101,37 @@ class Note extends Sale {
 		NodesGenerator.generateTotal(this)
 
 		NodesGenerator.generateLines(this)
+	}
+
+	/**
+	 * @return xmlDoc parsed
+	 */
+	fromXml(xmlContent) {
+		// All about sale
+		const xmlDoc = super.fromXml(xmlContent)
+
+		// Now about note
+		const [ lineNodeName, quantityNodeName ] = this.getTypeCode() == 7 ? [ "CreditNoteLine", "CreditedQuantity" ] : [ "DebitNoteLine", "DebitedQuantity" ]
+
+		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, lineNodeName);
+		for (let i = 0; i < items.length; i++) {
+			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
+			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.textContent || "" )
+			item.setUnitValue(
+				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
+				false
+			)
+			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.getAttribute("unitCode") || "" )
+
+			// Warning because there are many tags with same name
+			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
+			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
+
+			item.calcMounts();
+			this.addItem(item)
+		}
+
+		return xmlDoc
 	}
 }
 

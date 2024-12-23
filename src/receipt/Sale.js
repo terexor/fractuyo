@@ -148,6 +148,7 @@ class Sale extends Receipt {
 	/**
 	 * Parse xml string for filling attributes.
 	 * If printed taxpayer is different from system current taxpayer then throw error.
+	 * @return xmlDoc from parsed document.
 	 */
 	fromXml(xmlContent) {
 		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
@@ -312,6 +313,8 @@ class Sale extends Receipt {
 		}
 
 		this.setHash(xmlDoc.getElementsByTagNameNS(Receipt.namespaces.ds, "DigestValue")[0].textContent)
+
+		return xmlDoc
 	}
 }
 
