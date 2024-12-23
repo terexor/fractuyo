@@ -131,6 +131,16 @@ class Note extends Sale {
 			this.addItem(item)
 		}
 
+		{// related document
+			const billingReference = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "BillingReference")[0]
+			this.setDocumentReference(billingReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent)
+			this.setDocumentReferenceTypeCode(parseInt(billingReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "DocumentTypeCode")[0].textContent))
+
+			const discrepancyResponse = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "DiscrepancyResponse")[0]
+			this.setResponseCode(parseInt(discrepancyResponse.getElementsByTagNameNS(Receipt.namespaces.cbc, "ResponseCode")[0].textContent))
+			this.setDescription(discrepancyResponse.getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0].textContent)
+		}
+
 		return xmlDoc
 	}
 }
