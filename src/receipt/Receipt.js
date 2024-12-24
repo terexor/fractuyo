@@ -310,6 +310,21 @@ class Receipt {
 		return (new XMLSerializer().serializeToString(this.xmlDocument))
 	}
 
+	/**
+	 * Parse receipt header.
+	 * @return xmlDoc parsed.
+	 */
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent // Everybody has identity
+		const [serie, numeration] = id.split('-')
+		this.setSerie(serie)
+		this.setNumeration(parseInt(numeration))
+
+		return xmlDoc
+	}
+
 	static namespaces = Object.freeze(
 		{
 			cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",

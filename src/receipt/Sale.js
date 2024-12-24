@@ -151,12 +151,7 @@ class Sale extends Receipt {
 	 * @return xmlDoc from parsed document.
 	 */
 	fromXml(xmlContent) {
-		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
-
-		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
-		const [serie, numeration] = id.split('-')
-		this.setSerie(serie)
-		this.setNumeration(parseInt(numeration))
+		const xmlDoc = super.fromXml(xmlContent)
 
 		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, `${this.name}TypeCode`)[0]?.textContent || "";
 		this.setTypeCode(parseInt(typeCode))

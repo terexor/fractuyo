@@ -184,7 +184,7 @@ class Despatch extends Receipt {
 	}
 
 	fromXml(xmlContent) {
-		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+		const xmlDoc = super.fromXml(xmlContent)
 
 		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || ""
 		const [serie, numeration] = id.split('-')
