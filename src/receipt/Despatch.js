@@ -1,4 +1,5 @@
 import Receipt from "./Receipt.js"
+import Item from "./Item.js"
 import Taxpayer from "../person/Taxpayer.js"
 import Person from "../person/Person.js"
 import Identification from "../person/Identification.js"
@@ -227,6 +228,15 @@ class Despatch extends Receipt {
 			customer.setName(accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0]?.textContent || "-")
 
 			this.setCustomer(customer)
+		}
+
+		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "DespatchLine");
+		for (let i = 0; i < items.length; i++) {
+			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
+			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.textContent || "" )
+			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.getAttribute("unitCode") || "" )
+
+			this.addItem(item)
 		}
 	}
 }
