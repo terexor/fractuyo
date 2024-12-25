@@ -242,6 +242,7 @@ class Despatch extends Receipt {
 		{ // Shipment
 			const shipment = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "Shipment")[0]
 			this.setWeight(parseFloat(shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "GrossWeightMeasure")[0].textContent))
+			this.setUnitCode(shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "GrossWeightMeasure")[0].getAttribute("unitCode"))
 
 			const startDate = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "StartDate")[0].textContent
 			let dateParts = startDate.split('-'); // split in year, month and day
