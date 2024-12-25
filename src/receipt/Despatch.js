@@ -238,6 +238,31 @@ class Despatch extends Receipt {
 
 			this.addItem(item)
 		}
+
+		{ // Shipment
+			const shipment = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "Shipment")[0]
+			this.setWeight(parseFloat(shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "GrossWeightMeasure")[0].textContent))
+
+			const startDate = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "StartDate")[0].textContent
+			let dateParts = startDate.split('-'); // split in year, month and day
+			this.setStartDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+
+			{ // delivery address
+				const deliveryAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DeliveryAddress")[0]
+				const address = new Address()
+				address.ubigeo = deliveryAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent
+				address.line = deliveryAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0].textContent
+				this.setDeliveryAddress(address)
+			}
+
+			{ // despatch address
+				const despatchAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DespatchAddress")[0]
+				const address = new Address()
+				address.ubigeo = despatchAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent
+				address.line = despatchAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0].textContent
+				this.setDespatchAddress(address)
+			}
+		}
 	}
 }
 
