@@ -226,8 +226,6 @@ class Sale extends Receipt {
 			this.setCustomer(customer)
 		}
 
-		this.setHash(xmlDoc.getElementsByTagNameNS(Receipt.namespaces.ds, "DigestValue")[0].textContent)
-
 		return xmlDoc
 	}
 }

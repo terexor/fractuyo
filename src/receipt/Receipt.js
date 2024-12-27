@@ -323,6 +323,8 @@ class Receipt {
 		this.setSerie(serie)
 		this.setNumeration(parseInt(numeration))
 
+		this.setHash(xmlDoc.getElementsByTagNameNS(Receipt.namespaces.ds, "DigestValue")[0].textContent)
+
 		return xmlDoc
 	}
 
