@@ -270,10 +270,11 @@ class Receipt {
 				const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
 
 				if (codes.length > 0) {
-					return parseInt(codes[0].textContent) // 0 when everthing is really OK
+					const description = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "Description")[0]?.textContent ?? "Sin descripción"
+					return [ parseInt(codes[0].textContent), description ] // 0 when everthing is really OK
 				}
 				else { // error
-					return -1 // we have problems
+					return [ -1, "No se encontró respuesta." ] // we have problems
 				}
 			})
 		})
