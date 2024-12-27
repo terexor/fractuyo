@@ -266,6 +266,12 @@ class Despatch extends Receipt {
 			let dateParts = startDate.split('-'); // split in year, month and day
 			this.setStartDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
 
+			// look for if vehicle is M1 or L
+			const specialInstruction = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "SpecialInstructions")[0]?.textContent
+			if (specialInstruction == "SUNAT_Envio_IndicadorTrasladoVehiculoM1L") {
+				this.#inLightVehicle = true;
+			}
+
 			{ // delivery address
 				const deliveryAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DeliveryAddress")[0]
 				const address = new Address()
