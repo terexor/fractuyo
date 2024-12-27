@@ -233,6 +233,18 @@ class Despatch extends Receipt {
 			customer.setIdentification(new Identification(parseInt(type), id))
 			customer.setName(accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0]?.textContent || "-")
 
+			// customer address
+			{
+				const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
+
+				if (registrationAddress) {
+					const address = new Address();
+					address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent;
+
+					customer.setAddress(address);
+				}
+			}
+
 			this.setCustomer(customer)
 		}
 
