@@ -38,7 +38,7 @@ class NodesGenerator {
 		cbcInvoiceTypeCode.textContent = invoice.getTypeCode(true)
 		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
 
-		if (invoice.getTypeCode() != 1) {
+		if (!(invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3)) {
 			return
 		}
 
