@@ -320,7 +320,7 @@ class NodesGenerator {
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
-			cbcHandlingCode.textContent = "01" // Must be variable
+			cbcHandlingCode.textContent = despatch.getHandlingCode(true) // Must be variable
 			cacShipment.appendChild(cbcHandlingCode)
 
 			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")

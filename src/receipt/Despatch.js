@@ -19,6 +19,8 @@ class Despatch extends Receipt {
 	#deliveryAddress
 	#despatchAddress
 
+	#handlingCode // catalog 20
+
 	#carrier // transportist
 
 	#inLightVehicle
@@ -115,6 +117,14 @@ class Despatch extends Receipt {
 
 	usingLightVehicle(using) {
 		this.#inLightVehicle = using
+	}
+
+	setHandlingCode(code) {
+		this.#handlingCode = code
+	}
+
+	getHandlingCode(withFormat = false) {
+		return withFormat ? String(this.#handlingCode).padStart(2, '0') : this.#handlingCode
 	}
 
 	addVehicle(vehicle) {
