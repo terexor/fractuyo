@@ -282,6 +282,10 @@ class Despatch extends Receipt {
 				this.#inLightVehicle = true;
 			}
 
+			// Handling code according catalog 20
+			const handlingCode = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "HandlingCode")[0].textContent
+			this.setHandlingCode(parseInt(handlingCode))
+
 			const transportMode = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "TransportModeCode")[0].textContent
 			// We will check more data about carrier if is public transport
 			if (transportMode === "01") {
