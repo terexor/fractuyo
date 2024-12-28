@@ -92,7 +92,7 @@ test.serial("signing note", async tester => {
 	try {
 		const zipStream = await creditNote.createZip()
 		const serverZipStream = await creditNote.declare(zipStream)
-		const serverCode = await creditNote.handleProof(serverZipStream)
+		const [ serverCode, serverDescription ] = await creditNote.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}

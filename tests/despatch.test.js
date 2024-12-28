@@ -66,13 +66,16 @@ test.serial("creating despatch", (tester) => {
 	despatch.setStartDate(new Date())
 	despatch.setUnitCode("KGM")
 	despatch.setWeight(4)
+	despatch.setHandlingCode(1)
 	despatch.usingLightVehicle(false)
 
-	// When is "transportista"
-	const carrier = new Person()
-	carrier.setName("Transportists SA")
-	carrier.setIdentification(new Identification(6, "20000000001"))
-	despatch.setCarrier(carrier)
+	// When is "transportista" set as true
+	if (false) {
+		const carrier = new Person()
+		carrier.setName("Transportists SA")
+		carrier.setIdentification(new Identification(6, "20000000001"))
+		despatch.setCarrier(carrier)
+	}
 
 	const deliveryAddress = new Address()
 	deliveryAddress.line = "An address in Peru"
@@ -80,11 +83,9 @@ test.serial("creating despatch", (tester) => {
 	despatch.setDeliveryAddress(deliveryAddress)
 
 	const mainVehicle = new Vehicle("ABC999")
-	mainVehicle.setRegistrationIdentity("12345")
 	despatch.addVehicle(mainVehicle)
 
 	const secondVehicle = new Vehicle("ABC000")
-	secondVehicle.setRegistrationIdentity("12345")
 	despatch.addVehicle(secondVehicle)
 
 	const mainDriver = new Driver("71936980X")
@@ -129,10 +130,11 @@ test.serial("signing despatch", async tester => {
 		}
 
 		const zipStream = await despatch.createZip()
-		const serverZipStream = await despatch.declare(zipStream)
-		const serverCode = await despatch.handleProof(serverZipStream.numTicket)
+		const serverJsonStream = await despatch.declare(zipStream)
+		const serverZipStream = await despatch.handleTicket(serverJsonStream.numTicket);
+		const [ serverCode, serverDescription ] = await despatch.handleProof(serverZipStream.arcCdr, true, true);
 
-		tester.is(serverCode.codRespuesta, '0')
+		tester.is(serverCode, 0)
 	}
 	catch (e) {
 		console.error(e)

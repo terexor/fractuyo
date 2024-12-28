@@ -91,7 +91,7 @@ test.serial("signing invoice", async tester => {
 	try {
 		const zipStream = await invoice.createZip()
 		const serverZipStream = await invoice.declare(zipStream)
-		const serverCode = await invoice.handleProof(serverZipStream)
+		const [ serverCode, serverDescription ] = await invoice.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}
