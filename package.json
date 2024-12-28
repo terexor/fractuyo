@@ -30,6 +30,7 @@
 	},
 	"homepage": "https://github.com/terexor/fractuyo#readme",
 	"dependencies": {
+		"@xmldom/xmldom": "^0.9.5",
 		"asn1js": "^3.0.5",
 		"jszip": "^3.10.1",
 		"written-number": "^0.11.1",

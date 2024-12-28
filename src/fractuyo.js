@@ -1,3 +1,4 @@
+import Receipt from "./receipt/Receipt.js";
 import Invoice from "./receipt/Invoice.js";
 import Note from "./receipt/Note.js";
 import Despatch from "./receipt/Despatch.js";
@@ -18,6 +19,7 @@ import Port from "./shipment/Port.js"
 import Endpoint from "./webservice/Endpoint.js";
 
 export {
+	Receipt,
 	Invoice,
 	Note,
 	Despatch,

@@ -81,7 +81,7 @@ class Taxpayer extends Person {
 
 		const asn1 = asn1js.fromBER(this.#certDer)
 		const notBefore = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
-		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
+		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[1]
 
 		const timeNotBefore = Date.UTC(
 			notBefore.year,
@@ -175,19 +175,19 @@ class Taxpayer extends Person {
 	}
 
 	setWeb(w) {
-		if(w.length != 0) {
+		if(w && w.length != 0) {
 			this.#web = w
 		}
 	}
 
 	setEmail(em) {
-		if(em.length != 0) {
+		if(em && em.length != 0) {
 			this.#email = em
 		}
 	}
 
 	setTelephone(t) {
-		if(t.length != 0) {
+		if(t && t.length != 0) {
 			this.#telephone = t
 		}
 	}

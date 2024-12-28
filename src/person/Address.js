@@ -9,6 +9,10 @@ class Address {
 	#subentity
 	#district
 
+	constructor(line) {
+		this.line = line
+	}
+
 	get line() {
 		return this.#line
 	}

@@ -1,3 +1,6 @@
+import Item from "./Item.js"
+import Receipt from "./Receipt.js"
+import Share from "./Share.js"
 import Sale from "./Sale.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
@@ -13,21 +16,22 @@ class Invoice extends Sale {
 	#shares = Array()
 	#sharesAmount = 0
 
-	#detractionPercentage
-	#detractionAmount
+	#detractionPercentage = 0
+	#detractionAmount = 0
 
 	#discount
 
 	setDetractionPercentage(dp) {
-		if(dp >= 0 || dp <= 100) {
+		if(dp >= 0 && dp <= 100) {
 			this.#detractionPercentage = dp
 			return
 		}
+		this.#detractionPercentage = 0
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
-	getDetractionAmount() {
-		return this.#detractionAmount
+	getDetractionAmount(withFormat = false) {
+		return withFormat ? this.#detractionAmount.toFixed(2) : this.#detractionAmount
 	}
 
 	getShares() {
@@ -40,13 +44,36 @@ class Invoice extends Sale {
 		this.#sharesAmount += share.getAmount()
 	}
 
+	recalcSharesAmount() {
+		this.#sharesAmount = 0
+
+		for (const share of this.#shares) {
+			this.#sharesAmount += share.getAmount()
+		}
+	}
+
+	getSharesAmount() {
+		return this.#sharesAmount
+	}
+
+	/**
+	 * Recreate shares array without a share.
+	 * @param index in array.
+	 */
+	removeShare(index) {
+		this.#shares = [...this.#shares.slice(0, index), ...this.#shares.slice(index + 1)]
+	}
+
 	getDueDate() {
 		return this.#dueDate
 	}
 
 	setDueDate(dd) {
-		if(dd.length) {
+		if (dd instanceof Date) {
 			this.#dueDate = dd
+		}
+		else {
+			this.#dueDate = null
 		}
 	}
 
@@ -60,6 +87,18 @@ class Invoice extends Sale {
 			}
 			this.#orderReference = reference
 		}
+	}
+
+	/**
+	 * Empty reference identity and its description.
+	 */
+	clearOrderReference() {
+		this.#orderReference = null
+		this.#orderReferenceText = null
+	}
+
+	clearOrderReferenceText() {
+		this.#orderReferenceText = null
 	}
 
 	getOrderReference() {
@@ -103,6 +142,27 @@ class Invoice extends Sale {
 		return this.#discount
 	}
 
+	calcDetractionAmount() {
+		if (this.#detractionPercentage > 0) {
+			if (this.taxInclusiveAmount > 700) {
+				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
+				return // exit this function successfully
+			}
+			this.#detractionAmount = 0.0 // to overwrite when amount decrements
+		}
+		else {
+			this.#detractionAmount = 0.0
+		}
+	}
+
+	/**
+	 * Performs substraction taxInclusiveAmount with detractionAmount.
+	 */
+	getShareableAmount(withFormat = false) {
+		const shareableAmount = this.taxInclusiveAmount - this.#detractionAmount
+		return withFormat ? shareableAmount.toFixed(2) : shareableAmount
+	}
+
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations
@@ -119,12 +179,6 @@ class Invoice extends Sale {
 			this.setIssueDate()
 		}
 
-		if(this.taxInclusiveAmount >= 700) {
-			if(this.#detractionPercentage > 0) {
-				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
-			}
-		}
-
 		if(this.#sharesAmount) {
 			if(this.#detractionAmount) {
 				if(this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
@@ -138,6 +192,8 @@ class Invoice extends Sale {
 	}
 
 	toXml() {
+		this.createXmlWrapper();
+
 		NodesGenerator.generateHeader(this)
 
 		NodesGenerator.generateIdentity(this)
@@ -172,95 +228,90 @@ class Invoice extends Sale {
 	}
 
 	/**
-	 * Parse xml string for filling attributes.
-	 * If printed taxpayer is different from system current taxpayer then throw error.
+	 * @return xmlDoc parsed
 	 */
 	fromXml(xmlContent) {
-		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+		// All about sale
+		const xmlDoc = super.fromXml(xmlContent)
 
-		let ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		if(ruc == "") {
-			ruc = xmlDoc.evaluate("/*/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		}
-		if(ruc != this.getTaxpayer().getIdentification().getNumber()) {
-			throw new Error("Comprobante de pago no fue emitido por el contribuyente actual.")
-		}
+		{
+			const orderReference = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "OrderReference")[0];
+			if (orderReference) {
+				const orderReferenceId = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent;
 
-		this.setHash(
-			xmlDoc.evaluate("/*/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		)
-
-		const issueDate = xmlDoc.evaluate("/*/cbc:IssueDate", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		this.setIssueDate()
-
-		const customer = new Person()
-		customer.setName(
-			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
-		)
-		customer.setAddress(
-			removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cac:RegistrationAddress/cac:AddressLine/cbc:Line", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue )
-		)
-		try {
-			customer.setIdentification(
-				new Identification().setIdentity(
-					removeCdataTag( xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue ),
-					xmlDoc.evaluate("/*/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-				)
-			)
-		}
-		catch(e) {
-			Notiflix.Report.warning("Inconsistencia", e.message, "Aceptar")
-			return
-		}
-		this.setCustomer(customer)
-
-		const identification = xmlDoc.evaluate("/*/cbc:ID", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue.split('-')
-		this.setId(identification[0], Number.parseInt(identification[1]))
-
-		this.setCurrencyId(
-			xmlDoc.evaluate("/*/cbc:DocumentCurrencyCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		)
-
-		this.setTypeCode(
-			xmlDoc.evaluate("/*/cbc:InvoiceTypeCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-		)
-
-		const productsLength = xmlDoc.evaluate("count(/*/cac:InvoiceLine)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-		for(let i = 1; i <= productsLength; ++i) {
-			const product = new Item(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cbc:Description", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-			)
-			product.setUnitCode(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity/@unitCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-			)
-			product.setClassificationCode(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Item/cac:CommodityClassification/cbc:ItemClassificationCode", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-			)
-			product.setExemptionReasonCode(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:TaxExemptionReasonCode", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-			)
-			product.setIgvPercentage(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-			)
-			product.setIscPercentage(0)
-			product.setQuantity(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cbc:InvoicedQuantity", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-			)
-			product.setUnitValue(
-				xmlDoc.evaluate("/*/cac:InvoiceLine[" + i + "]/cac:Price/cbc:PriceAmount", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-			)
-			this.addItem(product)
+				if (orderReferenceId) {
+					this.setOrderReference(orderReferenceId)
+					const orderReferenceText = orderReference.getElementsByTagNameNS(Receipt.namespaces.cbc, "CustomerReference")[0]?.textContent;
+					if (orderReferenceText) {
+						this.setOrderReferenceText(orderReferenceText)
+					}
+				}
+			}
 		}
 
-		const orderReference = xmlDoc.evaluate("count(/*/cac:OrderReference/cbc:ID)", xmlDoc, nsResolver, XPathResult.NUMBER_TYPE, null ).numberValue
-		if(orderReference) {
-			this.setOrderReference(
-				orderReference
+		// All items. Always present.
+		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "InvoiceLine")
+		for (let i = 0; i < items.length; i++) {
+			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
+			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent || "" )
+			item.setUnitValue(
+				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
+				false
 			)
+			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.getAttribute("unitCode") || "" )
 
-			const orderReferenceText = xmlDoc.evaluate("/*/cac:OrderReference/cbc:CustomerReference", xmlDoc, nsResolver, XPathResult.STRING_TYPE, null ).stringValue
-			if(orderReferenceText) {
-				this.setOrderReferenceText(referenceTag)
+			// Warning because there are many tags with same name
+			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
+			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
+
+			item.calcMounts()
+			this.addItem(item)
+		}
+
+		{ // about detractions
+			// possible deduction
+			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
+			if (paymentMean) { // exists deduction
+				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
+				if (id == "Detraccion") { // deduction exists
+					// look for more about this deduction
+					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
+					for (const paymentTerm of paymentTerms) {
+						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
+							continue
+						}
+
+						// we found it
+						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
+						this.calcDetractionAmount()
+						break // then nothing else
+					}
+				}
+			}
+		}
+
+		{ // check if there are shares
+			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms") // always exists
+			for (let i = 0; i < paymentTerms.length; ++i) {
+				if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent == "FormaPago") {
+					// If there is Credito means that next siblings are amounts
+					if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentMeansID")[0].textContent == "Credito") {
+						++i; // set index to next sibling
+						// iterate posible remaining shares
+						for (; i < paymentTerms.length; ++i) {
+							// if FormaPago is not found, means we don't have any share
+							if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "FormaPago") {
+								break
+							}
+							const share = new Share()
+							// capture date and amount
+							share.setAmount(paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent)
+							const dateParts = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentDueDate")[0].textContent.split('-') // split in year, month and day
+							share.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+							this.addShare(share)
+						}
+					}
+				}
 			}
 		}
 	}

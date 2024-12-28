@@ -19,16 +19,16 @@ class NodesGenerator {
 
 	static generateDates(invoice) {
 		const cbcIssueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueDate")
-		cbcIssueDate.textContent = invoice.getIssueDate().toISOString().substr(0, 10)
+		cbcIssueDate.textContent = Receipt.displayDate(invoice.getIssueDate())
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueDate)
 
 		const cbcIssueTime = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:IssueTime")
-		cbcIssueTime.textContent = invoice.getIssueDate().toISOString().substr(11, 8)
+		cbcIssueTime.textContent = Receipt.displayTime(invoice.getIssueDate())
 		invoice.xmlDocument.documentElement.appendChild(cbcIssueTime)
 
 		if (invoice.getTypeCode() == 1 && invoice.getDueDate() && invoice.getShares().length == 0) {
 			const cbcDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:DueDate")
-			cbcDueDate.textContent = invoice.getDueDate()
+			cbcDueDate.textContent = Receipt.displayDate(invoice.getDueDate())
 			invoice.xmlDocument.documentElement.appendChild(cbcDueDate)
 		}
 	}
@@ -303,7 +303,7 @@ class NodesGenerator {
 			cacRegistrationAddress.appendChild(cacAddressLine)
 
 			const cbcLine = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Line")
-			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress()) )
+			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress().line) )
 			cacAddressLine.appendChild(cbcLine)
 		}
 	}
@@ -320,7 +320,7 @@ class NodesGenerator {
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
-			cbcHandlingCode.textContent = "01" // Must be variable
+			cbcHandlingCode.textContent = despatch.getHandlingCode(true) // Must be variable
 			cacShipment.appendChild(cbcHandlingCode)
 
 			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")
@@ -348,7 +348,7 @@ class NodesGenerator {
 				cacShipmentStage.appendChild(cacTransitPeriod)
 				{
 					const cbcStartDate = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:StartDate")
-					cbcStartDate.textContent = despatch.getStartDate().toISOString().substr(0, 10)
+					cbcStartDate.textContent = Receipt.displayDate(despatch.getStartDate())
 					cacTransitPeriod.appendChild(cbcStartDate)
 				}
 
@@ -640,7 +640,7 @@ class NodesGenerator {
 		const cacPaymentTerms = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:PaymentTerms")
 		invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
 		{
-			const cbcID = invoice.xmlDocument.createElementNS(namespaces.cbc, "cbc:ID")
+			const cbcID = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ID")
 			cbcID.textContent = "FormaPago"
 			cacPaymentTerms.appendChild(cbcID)
 
@@ -678,7 +678,7 @@ class NodesGenerator {
 				cacPaymentTerms.appendChild(cbcAmount)
 
 				const cbcPaymentDueDate = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentDueDate")
-				cbcPaymentDueDate.textContent = share.getDueDate()
+				cbcPaymentDueDate.textContent = Receipt.displayDate(share.getDueDate())
 				cacPaymentTerms.appendChild(cbcPaymentDueDate)
 			}
 		}
@@ -951,15 +951,17 @@ class NodesGenerator {
 					cacSellersItemIdentification.appendChild(cbcID)
 				}
 
-				const cacCommodityClassification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CommodityClassification")
-				cacItem.appendChild(cacCommodityClassification)
+				if (item.getClassificationCode()) {
+					const cacCommodityClassification = invoice.xmlDocument.createElementNS(Receipt.namespaces.cac, "cac:CommodityClassification")
+					cacItem.appendChild(cacCommodityClassification)
 
-				const cbcItemClassificationCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ItemClassificationCode")
-				cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
-				cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
-				cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-				cbcItemClassificationCode.textContent = item.getClassificationCode()
-				cacCommodityClassification.appendChild(cbcItemClassificationCode)
+					const cbcItemClassificationCode = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:ItemClassificationCode")
+					cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
+					cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
+					cbcItemClassificationCode.setAttribute("listName", "Item Classification")
+					cbcItemClassificationCode.textContent = item.getClassificationCode()
+					cacCommodityClassification.appendChild(cbcItemClassificationCode)
+				}
 			}
 
 			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {

@@ -29,8 +29,7 @@ class SoapEnvelope {
 
 	static generateEnvelope(taxpayer) {
 		// The main document
-		const xmlDoc = (new DOMImplementation()).createDocument(null, "soapenv:Envelope")
-		xmlDoc.documentElement.setAttribute("xmlns:soapenv", SoapEnvelope.namespaces.soapenv)
+		const xmlDoc = (new DOMImplementation()).createDocument("http://schemas.xmlsoap.org/soap/envelope/", "soapenv:Envelope")
 		xmlDoc.documentElement.setAttribute("xmlns:ser", SoapEnvelope.namespaces.ser)
 		xmlDoc.documentElement.setAttribute("xmlns:wsse", SoapEnvelope.namespaces.wsse)
 

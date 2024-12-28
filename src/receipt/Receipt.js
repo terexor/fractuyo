@@ -32,8 +32,14 @@ class Receipt {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
 		this.#name = name
+	}
 
-		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${name}-2`, name)
+	setName(name) {
+		this.#name = name
+	}
+
+	createXmlWrapper() {
+		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${this.#name}-2`, this.#name)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
@@ -61,14 +67,14 @@ class Receipt {
 	/**
 	 * Format serie and number: F000-00000001
 	 */
-	getId(withType = false) {
+	getId(withType = false, compacted = false) {
 		if(this.#serie == undefined || this.#numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
 		}
 		if(withType) {
-			return String(this.#typeCode).padStart(2, '0') + "-" + this.#serie + "-" + String(this.#numeration).padStart(8, '0')
+			return String(this.#typeCode).padStart(2, '0') + '-' + this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
 		}
-		return this.#serie + '-' + String(this.#numeration).padStart(8, '0')
+		return this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
 	}
 
 	setId(serie, numeration) {
@@ -126,6 +132,13 @@ class Receipt {
 		return this.#taxpayer
 	}
 
+	/**
+	 * Replace the taxpayer.
+	 */
+	setTaxpayer(taxpayer) {
+		this.#taxpayer = taxpayer
+	}
+
 	getCustomer() {
 		return this.#customer
 	}
@@ -148,6 +161,18 @@ class Receipt {
 
 	addItem(item) {
 		this.#items.push(item)
+	}
+
+	/**
+	 * Recreate items array without an item.
+	 * @param index in array.
+	 */
+	removeItem(index) {
+		this.#items = [...this.#items.slice(0, index), ...this.#items.slice(index + 1)]
+	}
+
+	clearItems() {
+		this.#items = [];
 	}
 
 	get items() {
@@ -220,11 +245,13 @@ class Receipt {
 
 	/**
 	 * @param type according JSZip API.
+	 * @param xmlString that is raw XML.
 	 * @return A ZIP file containing XML.
 	 */
-	async createZip(type = "base64") {
+	async createZip(type = "base64", xmlString) {
 		const zip = new JSZip()
-		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + this.xmlDocument.toString()
+		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+			( xmlString ?? (new XMLSerializer().serializeToString(this.xmlDocument)) ) // if there is xmlString then use it
 		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
 		return zip.generateAsync({type: type}).then(zipb64 => {
@@ -232,21 +259,22 @@ class Receipt {
 		})
 	}
 
-	async handleProof(zipStream, isBase64 = true) {
+	async handleProof(zipStream, isBase64 = true, compacted = false) {
 		const zip = new JSZip()
 
 		return zip.loadAsync(zipStream, {base64: isBase64}).then(async (zip) => {
-			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`).async("string").then(async (data) => {
+			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true, compacted)}.xml`).async("string").then(async (data) => {
 				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
 				// Go directly to node <cbc:ResponseCode>
 				const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
 
 				if (codes.length > 0) {
-					return parseInt(codes[0].textContent) // 0 when everthing is really OK
+					const description = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "Description")[0]?.textContent ?? "Sin descripción"
+					return [ parseInt(codes[0].textContent), description ] // 0 when everthing is really OK
 				}
 				else { // error
-					return -1 // we have problems
+					return [ -1, "No se encontró respuesta." ] // we have problems
 				}
 			})
 		})
@@ -279,6 +307,27 @@ class Receipt {
 		}
 	}
 
+	toString() {
+		return (new XMLSerializer().serializeToString(this.xmlDocument))
+	}
+
+	/**
+	 * Parse receipt header.
+	 * @return xmlDoc parsed.
+	 */
+	fromXml(xmlContent) {
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+
+		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent // Everybody has identity
+		const [serie, numeration] = id.split('-')
+		this.setSerie(serie)
+		this.setNumeration(parseInt(numeration))
+
+		this.setHash(xmlDoc.getElementsByTagNameNS(Receipt.namespaces.ds, "DigestValue")[0].textContent)
+
+		return xmlDoc
+	}
+
 	static namespaces = Object.freeze(
 		{
 			cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
@@ -298,14 +347,38 @@ class Receipt {
 	}
 
 	/**
+	 * Helper to print a date.
+	 * https://stackoverflow.com/a/41480350
+	 * @return date as string in format yyyy-mm-dd.
+	 */
+	static displayDate(date) {
+		const day = date.getDate()
+		const month = date.getMonth() + 1
+		const year = date.getFullYear()
+
+		return year + "-" + ( (month < 10 ? "0" : "") + month ) + "-" + ( (day < 10 ? "0" : "") + day )
+	}
+
+	/**
+	 * @return time as string in format HH:MM:SS
+	 */
+	static displayTime(date) {
+		const hour = date.getHours()
+		const min = date.getMinutes()
+		const sec = date.getSeconds()
+
+		return ( (hour < 10 ? "0" : "") + hour ) + ":" + ( (min < 10 ? "0" : "") + min ) + ":" + ( (sec < 10 ? "0" : "") + sec )
+	}
+
+	/**
 	 * @param amount is a decimal number.
 	 */
-	static amountToWords(amount, junctor, tail) {
+	static amountToWords(amount, junctor, tail, decimals = 2) {
 		if (amount == 0.0) {
 			return `CERO ${junctor} 00/100 ${tail}`
 		}
 
-		return writtenNumber(amount, { lang: "es" }) + ` ${junctor} ${amount.toFixed(2).split('.')[1]}/100 ${tail}`
+		return writtenNumber(amount | 0 /*truncate positive floating point*/, { lang: "es" }) + ` ${junctor} ${amount.toFixed(decimals).split('.')[1]}/100 ${tail}`
 	}
 }
 
