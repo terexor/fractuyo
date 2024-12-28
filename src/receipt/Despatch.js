@@ -210,6 +210,8 @@ class Despatch extends Receipt {
 		const typeCode = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, `${this.name}TypeCode`)[0]?.textContent || "";
 		this.setTypeCode(parseInt(typeCode))
 
+		this.#note = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "Note")[0]?.textContent
+
 		{
 			const taxpayer = new Taxpayer()
 			const accountingSupplierParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "DespatchSupplierParty")[0];
