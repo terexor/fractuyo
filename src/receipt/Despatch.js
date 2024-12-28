@@ -282,6 +282,11 @@ class Despatch extends Receipt {
 				this.#inLightVehicle = true;
 			}
 
+			const transportMode = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "TransportModeCode")[0].textContent
+			// We will check more data about carrier if is public transport
+			if (transportMode === "01") {
+			}
+
 			{ // delivery address
 				const deliveryAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DeliveryAddress")[0]
 				const address = new Address()
