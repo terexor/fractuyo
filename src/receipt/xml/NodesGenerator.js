@@ -320,7 +320,7 @@ class NodesGenerator {
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
-			cbcHandlingCode.textContent = despatch.getHandlingCode(true) // Must be variable
+			cbcHandlingCode.textContent = despatch.getHandlingCode(true)
 			cacShipment.appendChild(cbcHandlingCode)
 
 			const cbcGrossWeightMeasure = despatch.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:GrossWeightMeasure")
@@ -613,7 +613,7 @@ class NodesGenerator {
 
 				const cbcAmount  = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")
 				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcAmount.textContent = invoice.getDetractionAmount().toFixed(2) //Must be variable
+				cbcAmount.textContent = invoice.getDetractionAmount().toFixed(2)
 				cacPaymentTerms.appendChild(cbcAmount)
 			}
 		}
