@@ -34,6 +34,8 @@ class Despatch extends Receipt {
 
 	#port
 
+	#url // Generated in Sunat
+
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "DespatchAdvice")
 	}
@@ -155,6 +157,10 @@ class Despatch extends Receipt {
 		this.#port = port
 	}
 
+	setUrl(url) {
+		this.#url = url
+	}
+
 	getPort() {
 		return this.#port
 	}
@@ -181,6 +187,10 @@ class Despatch extends Receipt {
 		NodesGenerator.generateShipment(this)
 
 		NodesGenerator.generateLines(this)
+	}
+
+	getQrData() {
+		return this.#url
 	}
 
 	async declare(zipStream) {
