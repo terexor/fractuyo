@@ -26,18 +26,35 @@ class Endpoint {
 		Endpoint.#mode = mode
 	}
 
+	/**
+	 * @param service is index integer.
+	 * @param url is a string for that endpoint.
+	 * @param deploymentMode is boolean with true. False to test.
+	 */
 	static setUrl(service, url, deploymentMode = false) {
-		if (service < 0 || service > 3) {
-			throw new Error("Servicio no existente.")
+		// setting classic services
+		if (service == Endpoint.INDEX_INVOICE || service == Endpoint.INDEX_RETENTION) {
+			if (deploymentMode) {
+				Endpoint.#urls[service].deploy = url
+			}
+			else {
+				Endpoint.#urls[service].test = url
+			}
+
+			return // nothing else
 		}
 
-		if (productionMode) {
-			Endpoint.#urls[service].deploy = url
-			return
+		// setting "new" services
+		if ((service & Endpoint.#REST_MASK) != 0) {
+			service >>= Endpoint.#offset
+			--service
+			if (deploymentMode) {
+				Endpoint.#restUrls[service].deploy = url
+			}
+			else {
+				Endpoint.#restUrls[service].test = url
+			}
 		}
-
-		Endpoint.#urls[service].test = url
-		return
 	}
 
 	static #urls = [
