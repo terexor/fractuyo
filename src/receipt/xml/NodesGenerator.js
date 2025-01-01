@@ -608,7 +608,7 @@ class NodesGenerator {
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
 				const cbcPaymentPercent = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:PaymentPercent")
-				cbcPaymentPercent.textContent = "12" //Must be variable
+				cbcPaymentPercent.textContent = this.receipt.getDetractionPercentage()
 				cacPaymentTerms.appendChild(cbcPaymentPercent)
 
 				const cbcAmount  = invoice.xmlDocument.createElementNS(Receipt.namespaces.cbc, "cbc:Amount")

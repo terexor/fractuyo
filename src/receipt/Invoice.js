@@ -30,6 +30,10 @@ class Invoice extends Sale {
 		throw new Error("Porcentaje de detracción inconsistente.")
 	}
 
+	getDetractionPercentage() {
+		return this.#detractionPercentage
+	}
+
 	getDetractionAmount(withFormat = false) {
 		return withFormat ? this.#detractionAmount.toFixed(2) : this.#detractionAmount
 	}
