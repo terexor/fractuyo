@@ -193,6 +193,57 @@ class Despatch extends Receipt {
 		return this.#url
 	}
 
+	validate(validateNumeration) {
+		super.validate(validateNumeration)
+
+		if (!(this.#startDate instanceof Date)) {
+			throw new Error("No hay fecha de partida.")
+		}
+
+		if (!this.#weight || this.#weight <= 0) {
+			throw new Error("No tiene peso correcto.")
+		}
+
+		if (!this.#unitCode || this.#unitCode.length == 0) {
+			throw new Error("No tiene unidad de medida de peso.")
+		}
+
+		if (!this.#handlingCode) {
+			throw new Error("No está definido el motivo.")
+		}
+
+		if (this.#deliveryAddress instanceof Address) {
+			if (!this.#deliveryAddress.line || this.#deliveryAddress.line.length == 0) {
+				throw new Error("No hay línea en dirección de destino.")
+			}
+			if (!this.#deliveryAddress.ubigeo || this.#deliveryAddress.ubigeo.length != 6) {
+				throw new Error("No hay ubigeo en dirección de destino.")
+			}
+		}
+		else {
+			throw new Error("No hay dirección de destino.")
+		}
+
+		if (this.items.length == 0) {
+			throw new Error("No hay ítems en este despacho.")
+		}
+
+		// Check item attributes
+		let c = 0;
+		for (const item of this.items) {
+			c++; // simple counter
+			if (!item.getQuantity() || item.getQuantity() <= 0) {
+				throw new Error(`Ítem ${c} tiene cantidad errónea.`)
+			}
+			if (!item.getUnitCode() || item.getUnitCode().length == 0) {
+				throw new Error(`Ítem ${c} sin unidad de medida.`)
+			}
+			if (!item.getDescription() || item.getDescription().length == 0) {
+				throw new Error(`Ítem ${c} no tiene descripción.`)
+			}
+		}
+	}
+
 	async declare(zipStream) {
 		const jsonBody = await Rest.generateSend(this, zipStream)
 		const responseText = await Endpoint.fetchSend(JSON.stringify(jsonBody), this)

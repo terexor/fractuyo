@@ -145,6 +145,39 @@ class Sale extends Receipt {
 			+ '|' + this.getCustomer().getIdentification().getNumber()
 	}
 
+	validate(validateNumeration) {
+		super.validate(validateNumeration)
+
+		if (this.items.length == 0) {
+			throw new Error("No hay ítems en esta venta.")
+		}
+
+		if (!this.#currencyId || this.#currencyId.length != 3) { // length according ISO
+			throw new Error("Moneda no establecida.")
+		}
+
+		// Check item attributes
+		let c = 0;
+		for (const item of this.items) {
+			c++; // simple counter
+			if (!item.getQuantity() || item.getQuantity() <= 0) {
+				throw new Error(`Ítem ${c} tiene cantidad errónea.`)
+			}
+			if (!item.getUnitCode() || item.getUnitCode().length == 0) {
+				throw new Error(`Ítem ${c} sin unidad de medida.`)
+			}
+			if (!item.getLineExtensionAmount() || item.getLineExtensionAmount() <= 0) {
+				throw new Error(`Ítem ${c} tiene valor de venta erróneo.`)
+			}
+			if (!item.getPricingReferenceAmount() || item.getPricingReferenceAmount() <= 0) {
+				throw new Error(`Ítem ${c} tiene precio de venta unitario erróneo.`)
+			}
+			if (!item.getDescription() || item.getDescription().length == 0) {
+				throw new Error(`Ítem ${c} no tiene descripción.`)
+			}
+		}
+	}
+
 	/**
 	 * Parse xml string for filling attributes.
 	 * If printed taxpayer is different from system current taxpayer then throw error.
