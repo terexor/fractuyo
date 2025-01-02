@@ -328,6 +328,20 @@ class Receipt {
 		return xmlDoc
 	}
 
+	validate(validateNumeration = true) {
+		if (!this.#serie || this.#serie.length != 4) {
+			throw new Error("Serie inconsistente.")
+		}
+
+		if (validateNumeration && (!this.#numeration || this.#numeration <= 0 || this.#numeration > 99999999)) {
+			throw new Error("Numeración fuera de rango.")
+		}
+
+		if (!(this.#issueDate instanceof Date)) {
+			throw new Error("No hay fecha de emisión.")
+		}
+	}
+
 	static namespaces = Object.freeze(
 		{
 			cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",

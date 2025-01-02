@@ -171,16 +171,14 @@ class Invoice extends Sale {
 	 * Check if everything can be processed.
 	 * It does some calculations
 	 */
-	validate() {
+	validate(validateNumeration) {
+		super.validate(validateNumeration)
+
 		switch(this.getTypeCode()) {
-			case "01":
+			case 1: // for "factura"
 				if(this.getCustomer().getIdentification().getType() != 6) {
 					throw new Error("El cliente debe tener RUC.")
 				}
-		}
-
-		if(!this.getIssueDate()) {
-			this.setIssueDate()
 		}
 
 		if(this.#sharesAmount) {
