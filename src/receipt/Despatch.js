@@ -359,6 +359,13 @@ class Despatch extends Receipt {
 			const transportMode = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "TransportModeCode")[0].textContent
 			// We will check more data about carrier if is public transport
 			if (transportMode === "01") {
+				const carrierParty = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "CarrierParty")[0]
+
+				const carrier = new Person()
+				carrier.setName(carrierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0].textContent)
+				const identification = carrierParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]
+				carrier.setIdentification(new Identification(identification.getAttribute("schemeID"), identification.textContent))
+				this.setCarrier(carrier)
 			}
 
 			{ // delivery address
