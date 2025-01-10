@@ -723,39 +723,76 @@ class NodesGenerator {
 			cbcTaxAmount.textContent = invoice.taxTotalAmount.toFixed(2)
 			cacTaxTotal.appendChild(cbcTaxAmount)
 
-			const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
-			cacTaxTotal.appendChild(cacTaxSubtotal)
-			{
-				const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
-				cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcTaxableAmount.textContent = invoice.getOperationAmount(0).toFixed(2)
-				cacTaxSubtotal.appendChild( cbcTaxableAmount )
+			//Assign data according taxability
+			let taxTypeCode
+			let taxSchemeId
+			let taxSchemeName
+			// loop all types of taxes
+			for (let operationIndex = 0; operationIndex < 4; ++operationIndex) { // 4 steps
+				if (invoice.getOperationAmount(operationIndex) <= 0) {
+					continue // if that slot is zero then do nothing
+				}
 
-				const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-				cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcTaxAmount.textContent = invoice.igvAmount.toFixed(2)
-				cacTaxSubtotal.appendChild(cbcTaxAmount)
+				switch(operationIndex) {
+					case 0: { // "gravado"
+						taxTypeCode = "VAT"
+						taxSchemeId = "1000"
+						taxSchemeName = "IGV"
+						break
+					}
+					case 1: { // "exonerado"
+						taxTypeCode = "VAT"
+						taxSchemeId = "9997"
+						taxSchemeName = "EXO"
+						break
+					}
+					case 2: { // "inafecto"
+						taxTypeCode = "FRE"
+						taxSchemeId = "9998"
+						taxSchemeName = "INA"
+						break
+					}
+					default: {
+						taxTypeCode = "OTH"
+						taxSchemeId = "9999"
+						taxSchemeName = "OTROS CONCEPTOS DE PAGO"
+					}
+				}
 
-				const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
-				cacTaxSubtotal.appendChild(cacTaxCategory)
+				const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
+				cacTaxTotal.appendChild(cacTaxSubtotal)
 				{
-					const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
-					cacTaxCategory.appendChild(cacTaxScheme)
+					const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcTaxableAmount.textContent = invoice.getOperationAmount(operationIndex).toFixed(2)
+					cacTaxSubtotal.appendChild( cbcTaxableAmount )
+
+					const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcTaxAmount.textContent = operationIndex ? "0.00" : invoice.igvAmount.toFixed(2)
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+					const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
+					cacTaxSubtotal.appendChild(cacTaxCategory)
 					{
-						const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-						cbcID.setAttribute("schemeName", "Codigo de tributos")
-						cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
-						cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
-						cbcID.textContent = "1000"
-						cacTaxScheme.appendChild(cbcID)
+						const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
+						cacTaxCategory.appendChild(cacTaxScheme)
+						{
+							const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+							cbcID.setAttribute("schemeName", "Codigo de tributos")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
+							cbcID.textContent = taxSchemeId
+							cacTaxScheme.appendChild(cbcID)
 
-						const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-						cbcName.textContent = "IGV"
-						cacTaxScheme.appendChild(cbcName)
+							const cbcName = invoice.xmlDocument.createElement("cbc:Name")
+							cbcName.textContent = taxSchemeName
+							cacTaxScheme.appendChild(cbcName)
 
-						const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
-						cbcTaxTypeCode.textContent = "VAT"
-						cacTaxScheme.appendChild(cbcTaxTypeCode)
+							const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
+							cbcTaxTypeCode.textContent = taxTypeCode
+							cacTaxScheme.appendChild(cbcTaxTypeCode)
+						}
 					}
 				}
 			}
@@ -847,6 +884,36 @@ class NodesGenerator {
 					cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
 					cacTaxTotal.appendChild(cbcTaxAmount)
 
+					//Assign data according taxability
+					let taxTypeCode
+					let taxSchemeId
+					let taxSchemeName
+					switch(true) {
+						case (item.getExemptionReasonCode() < 20): { // "gravado"
+							taxTypeCode = "VAT"
+							taxSchemeId = "1000"
+							taxSchemeName = "IGV"
+							break
+						}
+						case (item.getExemptionReasonCode() < 30): { // "exonerado"
+							taxTypeCode = "VAT"
+							taxSchemeId = "9997"
+							taxSchemeName = "EXO"
+							break
+						}
+						case (item.getExemptionReasonCode() < 40): { // "inafecto"
+							taxTypeCode = "FRE"
+							taxSchemeId = "9998"
+							taxSchemeName = "INA"
+							break
+						}
+						default: {
+							taxTypeCode = "OTH"
+							taxSchemeId = "9999"
+							taxSchemeName = "OTROS CONCEPTOS DE PAGO"
+						}
+					}
+
 					if (item.getIscAmount() > 0) { //ISC
 						const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
 						cacTaxTotal.appendChild(cacTaxSubtotal)
@@ -889,7 +956,8 @@ class NodesGenerator {
 							}
 						}
 					}
-					if( item.getIgvAmount() > 0 ) { //IGV
+
+					{
 						const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
 						cacTaxTotal.appendChild(cacTaxSubtotal)
 
@@ -918,19 +986,19 @@ class NodesGenerator {
 							cacTaxCategory.appendChild(cacTaxScheme)
 							{
 								const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-								cbcID.textContent = "1000"
+								cbcID.textContent = taxSchemeId
 								cacTaxScheme.appendChild(cbcID)
 
 								const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-								cbcName.textContent = "IGV"
+								cbcName.textContent = taxSchemeName
 								cacTaxScheme.appendChild(cbcName)
 
 								const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
-								cbcTaxTypeCode.textContent = "VAT"
+								cbcTaxTypeCode.textContent = taxTypeCode
 								cacTaxScheme.appendChild(cbcTaxTypeCode)
 							}
 						}
-					}
+					} // block of exemption
 				}
 			}
 
