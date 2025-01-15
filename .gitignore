@@ -1,1 +1,4 @@
 /node_modules
+
+# Sometimes is used at "compiling"
+/dist
