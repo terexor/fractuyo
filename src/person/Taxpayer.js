@@ -3,9 +3,6 @@ import Person from "./Person.js"
 import * as asn1js from "asn1js"
 
 class Taxpayer extends Person {
-	#paillierPublicKey
-	#paillierPrivateKey
-
 	#certPem
 	#certDer
 	#keyDer
@@ -23,23 +20,6 @@ class Taxpayer extends Person {
 	#telephone
 
 	#tradeName
-
-	createPaillierPublicKey(n, g) {
-		this.#paillierPublicKey = new PublicKey(n, g)
-	}
-
-	getPaillierPublicKey() {
-		return this.#paillierPublicKey
-	}
-
-	createPaillierPrivateKey(lambda, mu, n, g, p, q) {
-		this.#paillierPublicKey = new PublicKey(n, g)
-		this.#paillierPrivateKey = new PrivateKey(lambda, mu, paillierPublicKey, p, q)
-	}
-
-	getPaillierPrivateKey() {
-		return this.#paillierPrivateKey
-	}
 
 	/**
 	 * @return array containing PEM in single string and DER.
