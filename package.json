@@ -3,7 +3,6 @@
 	"version": "0.1.0",
 	"description": "Invoice generator.",
 	"main": "src/fractuyo.js",
-	"type": "module",
 	"exports": {
 		".": "./src/fractuyo.js"
 	},
