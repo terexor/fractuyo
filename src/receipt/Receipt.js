@@ -5,6 +5,10 @@ import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
 import SoapEnvelope from "./xml/SoapEnvelope.js"
 import Endpoint from "../webservice/Endpoint.js"
 
+/**
+ * Representation of any document required by Sunat.
+ * @class
+ */
 class Receipt {
 	#name
 
@@ -244,9 +248,9 @@ class Receipt {
 	}
 
 	/**
-	 * @param type according JSZip API.
-	 * @param xmlString that is raw XML.
-	 * @return A ZIP file containing XML.
+	 * @param {string} type according JSZip API.
+	 * @param {string} xmlString that is raw XML.
+	 * @return {Object} A ZIP file containing XML.
 	 */
 	async createZip(type = "base64", xmlString) {
 		const zip = new JSZip()
