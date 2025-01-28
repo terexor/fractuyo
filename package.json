@@ -11,7 +11,8 @@
 		"test": "ava --serial",
 		"test:invoice": "ava ./tests/invoice.*",
 		"test:despatch": "ava ./tests/despatch.*",
-		"test:note": "ava ./tests/note.*"
+		"test:credit": "ava ./tests/credit.*",
+		"test:debit": "ava ./tests/debit.*"
 	},
 	"repository": {
 		"type": "git",

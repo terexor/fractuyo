@@ -123,7 +123,9 @@ test.serial("signing despatch", async tester => {
 	const isSigned = await despatch.sign(subtle)
 
 	tester.true(isSigned)
+})
 
+test.serial("presenting despatch", async tester => {
 	try {
 		if (!Endpoint.token) {
 			const tokenData = await Endpoint.fetchToken(taxpayer)
