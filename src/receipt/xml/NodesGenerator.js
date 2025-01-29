@@ -401,7 +401,7 @@ class NodesGenerator {
 							cbcJobTitle.textContent = driverIndex++ == 0 ? "Principal" : "Secundario"
 							cacDriverPerson.appendChild(cbcJobTitle)
 
-							const cacIdentityDocumentReference = despatch.xmlDocument.createElement("cbc:IdentityDocumentReference")
+							const cacIdentityDocumentReference = despatch.xmlDocument.createElement("cac:IdentityDocumentReference")
 							cacDriverPerson.appendChild(cacIdentityDocumentReference)
 							{
 								const cbcID = despatch.xmlDocument.createElement("cbc:ID")
