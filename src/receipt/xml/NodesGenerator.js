@@ -401,7 +401,7 @@ class NodesGenerator {
 							cbcJobTitle.textContent = driverIndex++ == 0 ? "Principal" : "Secundario"
 							cacDriverPerson.appendChild(cbcJobTitle)
 
-							const cacIdentityDocumentReference = despatch.xmlDocument.createElement("cbc:IdentityDocumentReference")
+							const cacIdentityDocumentReference = despatch.xmlDocument.createElement("cac:IdentityDocumentReference")
 							cacDriverPerson.appendChild(cacIdentityDocumentReference)
 							{
 								const cbcID = despatch.xmlDocument.createElement("cbc:ID")
@@ -608,7 +608,7 @@ class NodesGenerator {
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
 				const cbcPaymentPercent = invoice.xmlDocument.createElement("cbc:PaymentPercent")
-				cbcPaymentPercent.textContent = this.receipt.getDetractionPercentage()
+				cbcPaymentPercent.textContent = invoice.getDetractionPercentage()
 				cacPaymentTerms.appendChild(cbcPaymentPercent)
 
 				const cbcAmount  = invoice.xmlDocument.createElement("cbc:Amount")
@@ -800,6 +800,18 @@ class NodesGenerator {
 	}
 
 	static generateTotal(invoice) {
+		if (invoice.getTypeCode() == 8) {
+			const cacRequestedMonetaryTotal = invoice.xmlDocument.createElement("cac:RequestedMonetaryTotal")
+			invoice.xmlDocument.documentElement.appendChild(cacRequestedMonetaryTotal)
+			{
+				const cbcPayableAmount = invoice.xmlDocument.createElement("cbc:PayableAmount")
+				cbcPayableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+				cacRequestedMonetaryTotal.appendChild(cbcPayableAmount)
+			}
+			return;
+		}
+
 		const cacLegalMonetaryTotal = invoice.xmlDocument.createElement("cac:LegalMonetaryTotal")
 		invoice.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
 		{

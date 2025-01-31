@@ -1,14 +1,20 @@
-const fs = require("node:fs");
-const test = require("ava");
+import test from 'ava'
+import { JSDOM } from 'jsdom'
+import fs from 'node:fs'
+import { Application } from "xmldsigjs"
 
-const { setCryptoEngine, Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } = require("../dist/fractuyo.js");
+import { Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
-let invoice
+let debitNote
 
 test.before(async t => {
-	setCryptoEngine("NodeJS", globalThis.crypto)
+	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
+	global.window = window
+	global.document = window.document
+
+	Application.setEngine("NodeJS", globalThis.crypto)
 })
 
 test.serial("creating persons", tester => {
@@ -46,15 +52,16 @@ test.serial("creating persons", tester => {
 	tester.is(taxpayer.getIdentification().getNumber(), "20606829265")
 })
 
-test.serial("creating invoice", (tester) => {
-	invoice = new Invoice(taxpayer, customer)
-	invoice.setIssueDate(new Date("13-Sep-2024 UTC"))
-	invoice.setCurrencyId("USD")
-	invoice.setTypeCode(1)
-	invoice.setSerie("F000")
-	invoice.setNumeration(19970601)
-	invoice.setOrderReference("test-002")
-	invoice.setOrderReferenceText("Testing library to generate invoice")
+test.serial("creating note", tester => {
+	debitNote = new Note(taxpayer, customer, false)
+	debitNote.setIssueDate(new Date("20-Sep-2024 UTC"))
+	debitNote.setCurrencyId("USD")
+	debitNote.setSerie("F000")
+	debitNote.setNumeration(97)
+	debitNote.setResponseCode(1)
+	debitNote.setDocumentReference("F000-19970601")
+	debitNote.setDocumentReferenceTypeCode(1)
+	debitNote.setDescription("Testing library to eliminate invoice")
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
@@ -66,28 +73,28 @@ test.serial("creating invoice", (tester) => {
 	product.setUnitValue(100.00)
 	product.calcMounts()
 
-	invoice.addItem(product)
+	debitNote.addItem(product)
 
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
-	tester.is(invoice.getId(true), "01-F000-19970601")
-	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
+	tester.is(debitNote.getId(true), "08-F000-00000097")
+	tester.is(debitNote.getQrData(), "20606829265|08|F000|00000097|18.00|118.00|2024-09-20|6|20545314437")
 })
 
-test.serial("signing invoice", async tester => {
-	invoice.toXml()
+test.serial("signing note", async tester => {
+	debitNote.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await invoice.sign(subtle)
+	const isSigned = await debitNote.sign(subtle)
 
 	tester.true(isSigned)
 })
 
 test.serial("presenting note", async tester => {
 	try {
-		const zipStream = await invoice.createZip()
-		const serverZipStream = await invoice.declare(zipStream)
-		const [ serverCode, serverDescription ] = await invoice.handleProof(serverZipStream)
+		const zipStream = await debitNote.createZip()
+		const serverZipStream = await debitNote.declare(zipStream)
+		const [ serverCode, serverDescription ] = await debitNote.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}
