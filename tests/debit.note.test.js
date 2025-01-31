@@ -1,20 +1,14 @@
-import test from 'ava'
-import { JSDOM } from 'jsdom'
-import fs from 'node:fs'
-import { Application } from "xmldsigjs"
+const fs = require("node:fs");
+const test = require("ava");
 
-import { Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+const { setCryptoEngine, Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } = require("../dist/fractuyo.js");
 
 let customer
 let taxpayer
 let debitNote
 
 test.before(async t => {
-	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-	global.window = window
-	global.document = window.document
-
-	Application.setEngine("NodeJS", globalThis.crypto)
+	setCryptoEngine("NodeJS", globalThis.crypto)
 })
 
 test.serial("creating persons", tester => {
