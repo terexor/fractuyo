@@ -1,7 +1,7 @@
-import test from 'ava'
-import fs from 'node:fs'
+const fs = require("node:fs");
+const test = require("ava");
 
-import { setCryptoEngine, Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+const { setCryptoEngine, Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } = require("../dist/fractuyo.js");
 
 let customer
 let taxpayer
