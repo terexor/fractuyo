@@ -1,9 +1,8 @@
 import test from 'ava'
 import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
-import { Application } from "xmldsigjs"
 
-import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { setCryptoEngine, Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
@@ -14,7 +13,7 @@ test.before(async t => {
 	global.window = window
 	global.document = window.document
 
-	Application.setEngine("NodeJS", globalThis.crypto)
+	setCryptoEngine("NodeJS", globalThis.crypto)
 })
 
 test.serial("creating persons", tester => {
