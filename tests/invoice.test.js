@@ -1,5 +1,4 @@
 import test from 'ava'
-import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 
 import { setCryptoEngine, Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
@@ -9,10 +8,6 @@ let taxpayer
 let invoice
 
 test.before(async t => {
-	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-	global.window = window
-	global.document = window.document
-
 	setCryptoEngine("NodeJS", globalThis.crypto)
 })
 
