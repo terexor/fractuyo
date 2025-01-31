@@ -8,6 +8,7 @@
 		".": "./dist/fractuyo.js"
 	},
 	"scripts": {
+		"build:types": "tsc",
 		"test": "ava --serial",
 		"test:invoice": "ava ./tests/invoice.*",
 		"test:despatch": "ava ./tests/despatch.*",
