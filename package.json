@@ -3,8 +3,9 @@
 	"version": "0.1.0",
 	"description": "Invoice generator.",
 	"main": "src/fractuyo.js",
+	"types": "dist/fractuyo.d.ts",
 	"exports": {
-		".": "./src/fractuyo.js"
+		".": "./dist/fractuyo.js"
 	},
 	"scripts": {
 		"test": "ava --serial",
