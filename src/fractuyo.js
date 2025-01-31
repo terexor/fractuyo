@@ -18,7 +18,14 @@ import Port from "./shipment/Port.js"
 
 import Endpoint from "./webservice/Endpoint.js";
 
+import { Application } from "xmldsigjs";
+
+function setCryptoEngine(engineName, engine) {
+	Application.setEngine(engineName, engine);
+}
+
 export {
+	setCryptoEngine,
 	Receipt,
 	Invoice,
 	Note,
