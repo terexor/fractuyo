@@ -1,173 +1,179 @@
-var Item = function(_description) {
-	var description
-	var code
-	var quantity
-	var unitValue
-	var unitCode, classificationCode
-	var igvPercentage = 0, iscPercentage = 0
-	var taxableIgvAmount
-	var igvAmount, iscAmount
-	var taxTotalAmount
-	var lineExtensionAmount, pricingReferenceAmount
-	var exemptionReasonCode
+class Item {
+	#description
+	#code
+	#quantity
+	#unitValue
+	#unitCode
+	#classificationCode
+	#igvPercentage = 0
+	#iscPercentage = 0
+	#taxableIgvAmount
+	#igvAmount
+	#iscAmount
+	#taxTotalAmount
+	#lineExtensionAmount
+	#pricingReferenceAmount
+	#exemptionReasonCode
 
-	this.getDescription = function() {
-		return description
+	constructor(description) {
+		this.setDescription(description)
 	}
 
-	this.setDescription = function(d) {
-		if( ( typeof d === "string" || d instanceof String ) && d.length > 0 ) {
-			description = d
+	getDescription() {
+		return this.#description
+	}
+
+	setDescription(d) {
+		if ( ( typeof d === "string" || d instanceof String ) && d.length > 0 ) {
+			this.#description = d
 			return
 		}
 	}
 
-	this.setCode = function(c) {
-		if( ( typeof c === "string" || c instanceof String ) && c.length > 0 ) {
-			code = c
+	setCode(c) {
+		if ( ( typeof c === "string" || c instanceof String ) && c.length > 0 ) {
+			this.#code = c
 		}
 	}
 
-	this.getCode = function() {
-		return code
+	getCode() {
+		return this.#code
 	}
 
-	this.getQuantity = function(withFormat = false, decimalLength = 2) {
-		return withFormat ? quantity.toFixed(decimalLength) : quantity
+	getQuantity(withFormat = false, decimalLength = 2) {
+		return withFormat ? this.#quantity.toFixed(decimalLength) : this.#quantity
 	}
 
-	this.setQuantity = function(q) {
-		quantity = parseFloat(q)
-		if(isNaN(quantity)) {
+	setQuantity(q) {
+		this.#quantity = parseFloat(q)
+		if (isNaN(this.#quantity)) {
 			throw new Error("Cantidad no es un número.")
 		}
-		if(quantity <= 0) {
+		if (this.#quantity <= 0) {
 			throw new Error("No puede haber 0 como cantidad.")
 		}
 	}
 
-	this.getLineExtensionAmount = function(withFormat = false) {
-		return withFormat ? lineExtensionAmount.toFixed(2) : lineExtensionAmount
+	getLineExtensionAmount(withFormat = false) {
+		return withFormat ? this.#lineExtensionAmount.toFixed(2) : this.#lineExtensionAmount
 	}
 
 	/**
 	 * According roll 03.
 	 */
-	this.setUnitCode = function(uc) {
-		unitCode = uc
+	setUnitCode(uc) {
+		this.#unitCode = uc
 	}
 
-	this.getUnitCode = function() {
-		return unitCode
+	getUnitCode() {
+		return this.#unitCode
 	}
 
 	/**
 	 * According roll 25.
 	 */
-	this.setClassificationCode = function(cc) {
-		classificationCode = cc
+	setClassificationCode(cc) {
+		this.#classificationCode = cc
 	}
 
-	this.getClassificationCode = function() {
-		return classificationCode
+	getClassificationCode() {
+		return this.#classificationCode
 	}
 
-	this.getIscPercentage = function() {
-		return iscPercentage
+	getIscPercentage() {
+		return this.#iscPercentage
 	}
 
-	this.setIscPercentage = function(ip) {
-		if(ip >= 0 || ip <= 100) {
-			iscPercentage = ip
+	setIscPercentage(ip) {
+		if (ip >= 0 || ip <= 100) {
+			this.#iscPercentage = ip
 			return
 		}
 		throw new Error("Porcentaje ISC inconsistente.")
 	}
 
-	this.getIscAmount = function(withFormat = false) {
-		return withFormat ? iscAmount.toFixed(2) : iscAmount
+	getIscAmount(withFormat = false) {
+		return withFormat ? this.#iscAmount.toFixed(2) : this.#iscAmount
 	}
 
-	this.setIgvPercentage = function(ip) {
-		if(ip >= 0 || ip <= 100) {
-			igvPercentage = ip
+	setIgvPercentage(ip) {
+		if (ip >= 0 || ip <= 100) {
+			this.#igvPercentage = ip
 			return
 		}
 		throw new Error("Porcentaje IGV inconsistente.")
 	}
 
-	this.getIgvPercentage = function() {
-		return igvPercentage
+	getIgvPercentage() {
+		return this.#igvPercentage
 	}
 
-	this.getIgvAmount = function(withFormat = false) {
-		return withFormat ? igvAmount.toFixed(2) : igvAmount
+	getIgvAmount(withFormat = false) {
+		return withFormat ? this.#igvAmount.toFixed(2) : this.#igvAmount
 	}
 
-	this.getUnitValue = function(withFormat = false, decimalLength = 2) {
-		return withFormat ? unitValue.toFixed(decimalLength) : unitValue
+	getUnitValue(withFormat = false, decimalLength = 2) {
+		return withFormat ? this.#unitValue.toFixed(decimalLength) : this.#unitValue
 	}
 
-	this.setUnitValue = function(uv, withoutIgv) {
+	setUnitValue(uv, withoutIgv = false) {
 		uv = parseFloat(uv)
-		if(!withoutIgv) {
-			unitValue = uv
+		if (!withoutIgv) {
+			this.#unitValue = uv
 		}
 		else {
-			if(isNaN(igvPercentage)) {
+			if (isNaN(this.#igvPercentage)) {
 				throw new Error("Se requiere previamente porcentaje del IGV.")
 			}
-			unitValue = uv / ( 1 + igvPercentage / 100 )
+			this.#unitValue = uv / ( 1 + this.#igvPercentage / 100 )
 		}
 	}
 
-	this.calcMounts = function() {
+	calcMounts() {
 		//Todo esto asumiendo que el valorUnitario no tiene incluido el IGV.
 		//~ (auxiliar) valorVenta = cantidad * valorUnitario
-		lineExtensionAmount = quantity * unitValue
+		this.#lineExtensionAmount = this.#quantity * this.#unitValue
 
 		let decimalIscPercentage = 0
 		let decimalIgvPercentage = 0
 
 		// Only apply when we are including taxes
-		if (exemptionReasonCode < 20) {
-			decimalIscPercentage = iscPercentage / 100 // eg: 0.17
-			decimalIgvPercentage = igvPercentage / 100 // eg: 0.18
+		if (this.#exemptionReasonCode < 20) {
+			decimalIscPercentage = this.#iscPercentage / 100 // eg: 0.17
+			decimalIgvPercentage = this.#igvPercentage / 100 // eg: 0.18
 		}
 
-		pricingReferenceAmount = unitValue * (1 + decimalIscPercentage) * (1 + decimalIgvPercentage)
+		this.#pricingReferenceAmount = this.#unitValue * (1 + decimalIscPercentage) * (1 + decimalIgvPercentage)
 
 		//~ valorISC = (porcentajeISC/100)×valorVenta
-		iscAmount = decimalIscPercentage * lineExtensionAmount
+		this.#iscAmount = decimalIscPercentage * this.#lineExtensionAmount
 
 		//~ valorIGV=(porcentajeIGV/100)×(valorVenta + valorISC)
-		taxableIgvAmount = iscAmount + lineExtensionAmount
-		igvAmount = taxableIgvAmount * decimalIgvPercentage
+		this.#taxableIgvAmount = this.#iscAmount + this.#lineExtensionAmount
+		this.#igvAmount = this.#taxableIgvAmount * decimalIgvPercentage
 
-		taxTotalAmount = iscAmount + igvAmount
+		this.#taxTotalAmount = this.#iscAmount + this.#igvAmount
 	}
 
-	this.getTaxableIgvAmount = function(withFormat) {
-		return withFormat ? taxableIgvAmount.toFixed(2) : taxableIgvAmount
+	getTaxableIgvAmount(withFormat) {
+		return withFormat ? this.#taxableIgvAmount.toFixed(2) : this.#taxableIgvAmount
 	}
 
-	this.getPricingReferenceAmount = function(withFormat = false, decimalLength = 2) {
-		return withFormat ? pricingReferenceAmount.toFixed(decimalLength) : pricingReferenceAmount
+	getPricingReferenceAmount(withFormat = false, decimalLength = 2) {
+		return withFormat ? this.#pricingReferenceAmount.toFixed(decimalLength) : this.#pricingReferenceAmount
 	}
 
-	this.getTaxTotalAmount = function(withFormat = false) {
-		return withFormat ? taxTotalAmount.toFixed(2) : taxTotalAmount
+	getTaxTotalAmount(withFormat = false) {
+		return withFormat ? this.#taxTotalAmount.toFixed(2) : this.#taxTotalAmount
 	}
 
-	this.setExemptionReasonCode = function(xrc) {
-		exemptionReasonCode = xrc
+	setExemptionReasonCode(xrc) {
+		this.#exemptionReasonCode = xrc
 	}
 
-	this.getExemptionReasonCode = function() {
-		return exemptionReasonCode
+	getExemptionReasonCode() {
+		return this.#exemptionReasonCode
 	}
-
-	this.setDescription(_description) // Assigning description in constructor
 }
 
 export default Item;
