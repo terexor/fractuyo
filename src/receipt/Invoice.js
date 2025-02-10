@@ -125,8 +125,10 @@ class Invoice extends Sale {
 
 	setDiscount(discountAmount) {
 		if(discountAmount > 0) {
-			this.#discount = new Charge(false)
-			this.#discount.setTypeCode("02")
+			if (this.#discount == undefined) {
+				this.#discount = new Charge(false)
+				this.#discount.setTypeCode("02")
+			}
 			this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
 
 			//Recalc amounts
