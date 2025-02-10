@@ -28,6 +28,10 @@ class Sale extends Receipt {
 		return this.#lineExtensionAmount
 	}
 
+	set lineExtensionAmount(amount) {
+		this.#lineExtensionAmount = amount
+	}
+
 	get taxTotalAmount() {
 		return this.#taxTotalAmount
 	}

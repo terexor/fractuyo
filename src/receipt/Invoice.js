@@ -2,6 +2,7 @@ import Item from "./Item.js"
 import Receipt from "./Receipt.js"
 import Share from "./Share.js"
 import Sale from "./Sale.js"
+import Charge from "./Charge.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Invoice extends Sale {
