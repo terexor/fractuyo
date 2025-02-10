@@ -124,25 +124,32 @@ class Invoice extends Sale {
 	}
 
 	setDiscount(discountAmount) {
-		if(discountAmount > 0) {
-			if (this.#discount == undefined) {
-				this.#discount = new Charge(false)
-				this.#discount.setTypeCode("02")
-			}
-			this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+		// Converting in number
+		discountAmount = parseFloat(discountAmount)
 
-			//Recalc amounts
-			const factorInverse = 1 - this.#discount.factor
-			this.igvAmount *= factorInverse
-			this.iscAmount *= factorInverse
-			this.taxTotalAmount *= factorInverse
-			this.taxInclusiveAmount *= factorInverse
-			this.lineExtensionAmount *= factorInverse
-			this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
-			this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
-			this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
-			this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
+		// Removing discount
+		if (discountAmount <= 0) {
+			this.#discount = undefined
+			return
 		}
+
+		if (this.#discount == undefined) {
+			this.#discount = new Charge(false)
+			this.#discount.setTypeCode("02")
+		}
+		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+
+		//Recalc amounts
+		const factorInverse = 1 - this.#discount.factor
+		this.igvAmount *= factorInverse
+		this.iscAmount *= factorInverse
+		this.taxTotalAmount *= factorInverse
+		this.taxInclusiveAmount *= factorInverse
+		this.lineExtensionAmount *= factorInverse
+		this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
+		this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
+		this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
+		this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
 	}
 
 	getDiscount() {
