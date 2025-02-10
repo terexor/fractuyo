@@ -128,7 +128,7 @@ class Invoice extends Sale {
 		discountAmount = parseFloat(discountAmount)
 
 		// Removing discount
-		if (discountAmount <= 0) {
+		if (isNaN(discountAmount) || discountAmount <= 0) {
 			this.#discount = undefined
 			return
 		}
