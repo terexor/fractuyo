@@ -331,6 +331,18 @@ class Invoice extends Sale {
 				}
 			}
 		}
+
+		// Discount or recharge
+		{
+			// possible discount
+			const allowanceCharge = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AllowanceCharge")[0]
+			if (allowanceCharge) {
+				const chargeIndicator = allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "ChargeIndicator")[0].textContent === "true"
+				if (!chargeIndicator) { // it's discount
+					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, true)
+				}
+			}
+		}
 	}
 }
 
