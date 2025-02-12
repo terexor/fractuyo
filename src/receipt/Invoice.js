@@ -123,7 +123,7 @@ class Invoice extends Sale {
 		return this.#orderReferenceText
 	}
 
-	setDiscount(discountAmount) {
+	setDiscount(discountAmount, fromBase = false) {
 		// Converting in number
 		discountAmount = parseFloat(discountAmount)
 
@@ -137,6 +137,11 @@ class Invoice extends Sale {
 			this.#discount = new Charge(false)
 			this.#discount.setTypeCode("02")
 		}
+
+		if (fromBase) {
+			discountAmount *= 1.18 // Must be variable
+		}
+
 		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
 
 		//Recalc amounts
