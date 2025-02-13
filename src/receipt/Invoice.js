@@ -285,28 +285,6 @@ class Invoice extends Sale {
 			this.addItem(item)
 		}
 
-		{ // about detractions
-			// possible deduction
-			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
-			if (paymentMean) { // exists deduction
-				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
-				if (id == "Detraccion") { // deduction exists
-					// look for more about this deduction
-					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
-					for (const paymentTerm of paymentTerms) {
-						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
-							continue
-						}
-
-						// we found it
-						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
-						this.calcDetractionAmount()
-						break // then nothing else
-					}
-				}
-			}
-		}
-
 		{ // check if there are shares
 			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms") // always exists
 			for (let i = 0; i < paymentTerms.length; ++i) {
@@ -340,6 +318,28 @@ class Invoice extends Sale {
 				const chargeIndicator = allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "ChargeIndicator")[0].textContent === "true"
 				if (!chargeIndicator) { // it's discount
 					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, true)
+				}
+			}
+		}
+
+		{ // about detractions
+			// possible deduction
+			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
+			if (paymentMean) { // exists deduction
+				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
+				if (id == "Detraccion") { // deduction exists
+					// look for more about this deduction
+					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
+					for (const paymentTerm of paymentTerms) {
+						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
+							continue
+						}
+
+						// we found it
+						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
+						this.calcDetractionAmount()
+						break // then nothing else
+					}
 				}
 			}
 		}
