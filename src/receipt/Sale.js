@@ -1,4 +1,5 @@
 import Receipt from "./Receipt.js"
+import Charge from "./Charge.js"
 import Item from "./Item.js"
 import Share from "./Share.js"
 import Taxpayer from "../person/Taxpayer.js"
@@ -19,6 +20,8 @@ class Sale extends Receipt {
 	#iscAmount = 0
 	#icbpAmount = 0
 	#operationAmounts = [0, 0, 0, 0]
+
+	#discount
 
 	constructor(taxpayer, customer, name) {
 		super(taxpayer, customer, name)
@@ -86,6 +89,44 @@ class Sale extends Receipt {
 
 	getCurrencyId() {
 		return this.#currencyId
+	}
+
+	setDiscount(discountAmount, fromBase = false) {
+		// Converting in number
+		discountAmount = parseFloat(discountAmount)
+
+		// Removing discount
+		if (isNaN(discountAmount) || discountAmount <= 0) {
+			this.#discount = undefined
+			return
+		}
+
+		if (this.#discount == undefined) {
+			this.#discount = new Charge(false)
+			this.#discount.setTypeCode("02")
+		}
+
+		if (fromBase) {
+			discountAmount *= 1.18 // Must be variable
+		}
+
+		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+
+		//Recalc amounts
+		const factorInverse = 1 - this.#discount.factor
+		this.igvAmount *= factorInverse
+		this.iscAmount *= factorInverse
+		this.taxTotalAmount *= factorInverse
+		this.taxInclusiveAmount *= factorInverse
+		this.lineExtensionAmount *= factorInverse
+		this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
+		this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
+		this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
+		this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
+	}
+
+	getDiscount() {
+		return this.#discount
 	}
 
 	addItem(item) {
