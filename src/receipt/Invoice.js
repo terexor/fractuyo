@@ -2,6 +2,7 @@ import Item from "./Item.js"
 import Receipt from "./Receipt.js"
 import Share from "./Share.js"
 import Sale from "./Sale.js"
+import Charge from "./Charge.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Invoice extends Sale {
@@ -122,24 +123,38 @@ class Invoice extends Sale {
 		return this.#orderReferenceText
 	}
 
-	setDiscount(discountAmount) {
-		if(discountAmount > 0) {
+	setDiscount(discountAmount, fromBase = false) {
+		// Converting in number
+		discountAmount = parseFloat(discountAmount)
+
+		// Removing discount
+		if (isNaN(discountAmount) || discountAmount <= 0) {
+			this.#discount = undefined
+			return
+		}
+
+		if (this.#discount == undefined) {
 			this.#discount = new Charge(false)
 			this.#discount.setTypeCode("02")
-			this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
-
-			//Recalc amounts
-			const factorInverse = 1 - this.#discount.factor
-			this.igvAmount *= factorInverse
-			this.iscAmount *= factorInverse
-			this.taxTotalAmount *= factorInverse
-			this.taxInclusiveAmount *= factorInverse
-			this.lineExtensionAmount *= factorInverse
-			this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
-			this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
-			this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
-			this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
 		}
+
+		if (fromBase) {
+			discountAmount *= 1.18 // Must be variable
+		}
+
+		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+
+		//Recalc amounts
+		const factorInverse = 1 - this.#discount.factor
+		this.igvAmount *= factorInverse
+		this.iscAmount *= factorInverse
+		this.taxTotalAmount *= factorInverse
+		this.taxInclusiveAmount *= factorInverse
+		this.lineExtensionAmount *= factorInverse
+		this.setOperationAmount(0, this.getOperationAmount(0) * factorInverse)
+		this.setOperationAmount(1, this.getOperationAmount(1) * factorInverse)
+		this.setOperationAmount(2, this.getOperationAmount(2) * factorInverse)
+		this.setOperationAmount(3, this.getOperationAmount(3) * factorInverse)
 	}
 
 	getDiscount() {
@@ -270,28 +285,6 @@ class Invoice extends Sale {
 			this.addItem(item)
 		}
 
-		{ // about detractions
-			// possible deduction
-			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
-			if (paymentMean) { // exists deduction
-				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
-				if (id == "Detraccion") { // deduction exists
-					// look for more about this deduction
-					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
-					for (const paymentTerm of paymentTerms) {
-						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
-							continue
-						}
-
-						// we found it
-						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
-						this.calcDetractionAmount()
-						break // then nothing else
-					}
-				}
-			}
-		}
-
 		{ // check if there are shares
 			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms") // always exists
 			for (let i = 0; i < paymentTerms.length; ++i) {
@@ -312,6 +305,40 @@ class Invoice extends Sale {
 							share.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
 							this.addShare(share)
 						}
+					}
+				}
+			}
+		}
+
+		// Discount or recharge
+		{
+			// possible discount
+			const allowanceCharge = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AllowanceCharge")[0]
+			if (allowanceCharge) {
+				const chargeIndicator = allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "ChargeIndicator")[0].textContent === "true"
+				if (!chargeIndicator) { // it's discount
+					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, true)
+				}
+			}
+		}
+
+		{ // about detractions
+			// possible deduction
+			const paymentMean = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentMeans")[0]
+			if (paymentMean) { // exists deduction
+				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
+				if (id == "Detraccion") { // deduction exists
+					// look for more about this deduction
+					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
+					for (const paymentTerm of paymentTerms) {
+						if (paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "Detraccion") {
+							continue
+						}
+
+						// we found it
+						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
+						this.calcDetractionAmount()
+						break // then nothing else
 					}
 				}
 			}
