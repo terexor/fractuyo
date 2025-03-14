@@ -328,6 +328,11 @@ class Invoice extends Sale {
 			if (paymentMean) { // exists deduction
 				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
 				if (id == "Detraccion") { // deduction exists
+					// parsing bank account
+					const payeeFinancialAccount = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cac, "PayeeFinancialAccount")[0]
+					// setting bank account
+					this.getTaxpayer().setDeductionsAccount(payeeFinancialAccount.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent)
+
 					// look for more about this deduction
 					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
 					for (const paymentTerm of paymentTerms) {
