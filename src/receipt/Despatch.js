@@ -63,6 +63,14 @@ class Despatch extends Receipt {
 
 	setWeight(weight) {
 		this.#weight = weight
+		const regex = /^\d{1,12}(\.\d{1,3})?$/
+		if (regex.test(weight)) {
+			this.#weight = parseFloat(weight)
+			return
+		}
+
+		// Weightless to throw error in validation
+		this.#weight = 0
 	}
 
 	getWeight() {
