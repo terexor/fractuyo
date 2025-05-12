@@ -78,6 +78,16 @@ const serverZipStream = await receipt.declare(zipStream);
 
 const [ serverCode, serverDescription ] = await receipt.handleProof(serverZipStream);
 ```
+
+### Endpoints
+
+The library includes the HTTP endpoints for SUNAT, both for testing and for production use. By default, the test endpoints are assigned, and you can switch to the production endpoint by using the following (before declaring):
+
+```javascript
+import { Endpoint } from "fractuyo";
+Endpoint.setMode(true); // false for test
+```
+
 ## Test locally
 
 Clone the project.
