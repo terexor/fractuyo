@@ -115,6 +115,27 @@ Start test of invoice with AVA.
 ```
 In addition to ``invoice`` are available ``credit``, ``debit`` and ``despatch``.
 
+### Validating against XSD schemas
+
+Follow these steps to run XSD validation tests:
+
+1. Add XSD files
+Place the required .xsd files inside the folder:
+
+```bash
+tests/xsd/2.1/
+```
+The official XSD files provided by Sunat or OASIS are usually organized in the following subfolders, which must be preserved:
+
+```bash
+tests/xsd/2.1/common/
+tests/xsd/2.1/maindoc/
+```
+
+2. Enable validation tests
+Test functions related to XSD validation — such as those under "signing note" — contain a return statement that skips execution.
+To actually run those tests, remove the return line inside that test function.
+
 ## FAQ
 
 #### Does it generate documents with all the necessary XML tags?

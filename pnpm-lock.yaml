@@ -23,6 +23,9 @@ importers:
       xmldsigjs:
         specifier: ^2.6.1
         version: 2.6.1
+      xmllint-wasm:
+        specifier: ^4.0.2
+        version: 4.0.2
     devDependencies:
       ava:
         specifier: ^6.1.3
@@ -907,6 +910,10 @@ packages:
   xmldsigjs@2.6.1:
     resolution: {integrity: sha512-XSXD9BJrkJV/s4q9cJDrB1t+llBs2ZKr+qgBqmkpxB5r4kg7Q1HA2Bfai1njPZtYjxVmkUa6zJ4AxyM4js0nBQ==}
 
+  xmllint-wasm@4.0.2:
+    resolution: {integrity: sha512-tJxQzA9krv9gaQxYFJ/NVrpLf/wpWYPKjweCLMNbjooBTsW7/O26pyc3Pd0Lp0oTLUMFir/MEX3ybY/hhRjIpw==}
+    engines: {node: '>=12.4.0'}
+
   xpath.js@1.1.0:
     resolution: {integrity: sha512-jg+qkfS4K8E7965sqaUl8mRngXiKb3WZGfONgE18pr03FUQiuSV6G+Ej4tS55B+rIQSFEIw3phdVAQ4pPqNWfQ==}
     engines: {node: '>=0.4.0'}
@@ -1777,6 +1784,8 @@ snapshots:
       tslib: 2.8.1
       xml-core: 1.1.5
       xpath: 0.0.32
+
+  xmllint-wasm@4.0.2: {}
 
   xpath.js@1.1.0: {}
 

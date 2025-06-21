@@ -1,7 +1,7 @@
 {
 	"name": "fractuyo",
-	"version": "0.1.0",
-	"description": "Invoice generator.",
+	"version": "0.3.0",
+	"description": "Generates electronic invoices and other tax documents compliant with Sunat (Peru) standards.",
 	"main": "src/fractuyo.js",
 	"type": "module",
 	"exports": {
@@ -20,9 +20,27 @@
 	},
 	"keywords": [
 		"invoice",
+		"invoice generator",
+		"e-invoice",
+		"electronic invoice",
+		"billing",
+		"factura electrónica",
+		"boleta",
+		"boleta de venta",
+		"firma electrónica",
+		"Peru",
+		"Peruvian tax",
+		"UBL 2.1",
+		"XML invoice",
+		"XML signature",
+		"digital signature",
 		"receipt",
+		"credit note",
+		"debit note",
+		"despatch",
 		"taxpayer",
-		"sunat"
+		"CPE",
+		"Sunat"
 	],
 	"author": "Terexor",
 	"license": "ISC",
@@ -35,7 +53,8 @@
 		"asn1js": "^3.0.5",
 		"jszip": "^3.10.1",
 		"written-number": "^0.11.1",
-		"xmldsigjs": "^2.6.1"
+		"xmldsigjs": "^2.6.1",
+		"xmllint-wasm": "^4.0.2"
 	},
 	"devDependencies": {
 		"ava": "^6.1.3",

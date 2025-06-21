@@ -6,6 +6,8 @@ import SoapEnvelope from "./xml/SoapEnvelope.js"
 import Endpoint from "../webservice/Endpoint.js"
 
 class Receipt {
+	static #xmllintInstance // validator for XML
+
 	#name
 
 	#taxpayer
@@ -309,6 +311,39 @@ class Receipt {
 
 	toString() {
 		return (new XMLSerializer().serializeToString(this.xmlDocument))
+	}
+
+	/**
+	 * Validate own XML against XSD.
+	 * @param {Array} xsdContentArray.
+	 * @returns {Promise<boolean>} - false if there are errors.
+	 */
+	async validateXmlWithXsd(mainXsdContent, importedXsdContents) {
+		if (!Receipt.#xmllintInstance) {
+			const { validateXML } = await import("xmllint-wasm")
+			Receipt.#xmllintInstance = validateXML
+		}
+
+		const result = await Receipt.#xmllintInstance({
+				xml: [{
+					fileName: this.getId() + ".xml",
+					contents: (new XMLSerializer().serializeToString(this.xmlDocument))
+				}],
+				schema: mainXsdContent,
+				preload: importedXsdContents
+		})
+		.catch(function (e) {
+			console.error(e)
+			return false
+		})
+
+		if (result.valid) {
+			return true
+		}
+		else {
+			console.error('Errores de validación XML:', result.errors)
+			return false
+		}
 	}
 
 	/**

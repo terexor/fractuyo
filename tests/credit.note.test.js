@@ -88,6 +88,55 @@ test.serial("signing note", async tester => {
 	const isSigned = await creditNote.sign(subtle)
 
 	tester.true(isSigned)
+
+	// Remove this return to validate credit note with XSD
+	return
+
+	try {
+		const mainXsdContent = fs.readFileSync("./tests/xsd/2.1/maindoc/UBL-CreditNote-2.1.xsd", "utf8").replace(
+			/schemaLocation="(\.\.\/)+common\//g,
+			'schemaLocation="'
+		)
+
+		const secondarySchemas = [
+			"UBL-CommonAggregateComponents-2.1.xsd",
+			"UBL-CommonBasicComponents-2.1.xsd",
+			"UBL-CommonExtensionComponents-2.1.xsd",
+			"UBL-CommonSignatureComponents-2.1.xsd",
+			"UBL-ExtensionContentDataType-2.1.xsd",
+			"UBL-QualifiedDataTypes-2.1.xsd",
+			"UBL-SignatureAggregateComponents-2.1.xsd",
+			"UBL-SignatureBasicComponents-2.1.xsd",
+			"UBL-UnqualifiedDataTypes-2.1.xsd",
+			"UBL-xmldsig-core-schema-2.1.xsd",
+			"UBL-XAdESv132-2.1.xsd",
+			"UBL-XAdESv141-2.1.xsd",
+			"CCTS_CCT_SchemaModule-2.1.xsd"
+		].map(filename => ({
+			fileName: filename,
+			contents: fs.readFileSync(`./tests/xsd/2.1/common/${filename}`, "utf8").replace(
+				/schemaLocation="(\.\.\/)+common\//g,
+				'schemaLocation="'
+			)
+		}))
+
+		const xmlValidated = await creditNote.validateXmlWithXsd(
+			{
+				fileName: "UBL-CreditNote-2.1.xsd",
+				contents: mainXsdContent
+			},
+			secondarySchemas
+		)
+
+		if (!xmlValidated) {
+			tester.true(false)
+			return
+		}
+	}
+	catch (err) {
+		console.error(err)
+		tester.true(false)
+	}
 })
 
 test.serial("presenting note", async tester => {
