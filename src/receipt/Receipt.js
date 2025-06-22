@@ -26,6 +26,8 @@ class Receipt {
 
 	#items = Array()
 
+	#documentReferences = Array()
+
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
 	}
@@ -179,6 +181,14 @@ class Receipt {
 
 	get items() {
 		return this.#items
+	}
+
+	addDocumentReference(reference) {
+		this.#documentReferences.push(reference)
+	}
+
+	getDocumentReferences() {
+		return this.#documentReferences
 	}
 
 	get taxpayer() {

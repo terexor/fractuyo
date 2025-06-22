@@ -7,9 +7,6 @@ class Note extends Sale {
 	#description
 	#responseCode // type for this note
 
-	#documentReference
-	#documentReferenceTypeCode
-
 	/**
 	 * @param isCredit must be boolean to choose between credit as true or false for debit.
 	 */
@@ -52,25 +49,6 @@ class Note extends Sale {
 			return String(this.#responseCode).padStart(2, '0')
 		}
 		return this.#responseCode
-	}
-
-	setDocumentReference(reference) {
-		this.#documentReference = reference
-	}
-
-	getDocumentReference() {
-		return this.#documentReference
-	}
-
-	setDocumentReferenceTypeCode(code) {
-		this.#documentReferenceTypeCode = code
-	}
-
-	getDocumentReferenceTypeCode(withFormat = false) {
-		if (withFormat) {
-			return String(this.#documentReferenceTypeCode).padStart(2, '0')
-		}
-		return this.#documentReferenceTypeCode
 	}
 
 	toXml() {
