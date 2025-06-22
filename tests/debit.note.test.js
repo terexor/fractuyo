@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
-import { Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Note, Item, Share, DocumentReference, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
