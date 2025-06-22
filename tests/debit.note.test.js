@@ -59,9 +59,12 @@ test.serial("creating note", tester => {
 	debitNote.setSerie("F000")
 	debitNote.setNumeration(97)
 	debitNote.setResponseCode(1)
-	debitNote.setDocumentReference("F000-19970601")
-	debitNote.setDocumentReferenceTypeCode(1)
 	debitNote.setDescription("Testing library to eliminate invoice")
+
+	const billingReference = new DocumentReference(0)
+	billingReference.setId("F000-19970601")
+	billingReference.setTypeCode(1)
+	debitNote.addDocumentReference(billingReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")

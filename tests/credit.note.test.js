@@ -59,9 +59,12 @@ test.serial("creating note", tester => {
 	creditNote.setSerie("F000")
 	creditNote.setNumeration(97)
 	creditNote.setResponseCode(1)
-	creditNote.setDocumentReference("F000-19970601")
-	creditNote.setDocumentReferenceTypeCode(1)
 	creditNote.setDescription("Testing library to eliminate invoice")
+
+	const billingReference = new DocumentReference(0)
+	billingReference.setId("F000-19970601")
+	billingReference.setTypeCode(1)
+	creditNote.addDocumentReference(billingReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
