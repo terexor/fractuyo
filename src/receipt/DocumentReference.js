@@ -35,7 +35,10 @@ class DocumentReference {
 		this.#typeCode = code
 	}
 
-	getTypeCode() {
+	getTypeCode(withFormat = false) {
+		if (withFormat) {
+			return String(this.#typeCode).padStart(2, '0')
+		}
 		return this.#typeCode
 	}
 
