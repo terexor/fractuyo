@@ -4,6 +4,7 @@ import Note from "./receipt/Note.js";
 import Despatch from "./receipt/Despatch.js";
 import Item from "./receipt/Item.js";
 import Share from "./receipt/Share.js";
+import DocumentReference from "./receipt/DocumentReference.js";
 import Charge from "./receipt/Charge.js";
 
 import Person from "./person/Person.js";
@@ -24,6 +25,7 @@ export {
 	Note,
 	Despatch,
 	Item,
+	DocumentReference,
 	Share,
 	Charge,
 	Person,
