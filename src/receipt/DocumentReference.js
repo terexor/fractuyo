@@ -4,9 +4,10 @@
 class DocumentReference {
 	/**
 	 * Type to use as reference:
-	 * 0: Additional
-	 * 1: Despatch
-	 * 2: Contract
+	 * 0: Used as billing reference in notes
+	 * 1: Additional
+	 * 2: Despatch
+	 * 3: Contract
 	 */
 	#referenceType
 
@@ -21,6 +22,10 @@ class DocumentReference {
 	 */
 	constructor(referenceType) {
 		this.#referenceType = referenceType
+	}
+
+	getReferenceType() {
+		return this.#referenceType
 	}
 
 	setId(id) {
