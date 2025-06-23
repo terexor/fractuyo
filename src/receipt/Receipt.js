@@ -325,7 +325,8 @@ class Receipt {
 
 	/**
 	 * Validate own XML against XSD.
-	 * @param {Array} xsdContentArray.
+	 * @param {String} mainXsdContent.
+	 * @param {Array} importedXsdContents.
 	 * @returns {Promise<boolean>} - false if there are errors.
 	 */
 	async validateXmlWithXsd(mainXsdContent, importedXsdContents) {
