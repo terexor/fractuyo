@@ -22,6 +22,8 @@ class Invoice extends Sale {
 
 	#discount
 
+	#prepaidPayment = Array()
+
 	setDetractionPercentage(dp) {
 		if(dp >= 0 && dp <= 100) {
 			this.#detractionPercentage = dp
@@ -182,6 +184,14 @@ class Invoice extends Sale {
 		return withFormat ? shareableAmount.toFixed(2) : shareableAmount
 	}
 
+	addPrepaidPayment(payment) {
+		this.#prepaidPayment.push(payment)
+	}
+
+	getPrepaidPayments() {
+		return this.#prepaidPayment
+	}
+
 	/**
 	 * Check if everything can be processed.
 	 * It does some calculations
@@ -234,6 +244,8 @@ class Invoice extends Sale {
 		NodesGenerator.generatePaymentMeans(this)
 
 		NodesGenerator.generatePaymentTerms(this)
+
+		NodesGenerator.generatePayments(this)
 
 		NodesGenerator.generateCharge(this)
 

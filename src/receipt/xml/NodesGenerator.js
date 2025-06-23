@@ -701,6 +701,23 @@ class NodesGenerator {
 		}
 	}
 
+	static generatePayments(invoice) {
+		for (const payment of invoice.getPrepaidPayments()) {
+			const cacPrepaidPayment = invoice.xmlDocument.createElement("cac:PrepaidPayment")
+			invoice.xmlDocument.documentElement.appendChild(cacPrepaidPayment)
+			{
+				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+				cbcID.textContent = payment.getId()
+				cacPrepaidPayment.appendChild(cbcID)
+
+				const cbcPaidAmount = invoice.xmlDocument.createElement("cbc:PaidAmount")
+				cbcPaidAmount.textContent = payment.getAmount().toFixed(2)
+				cbcPaidAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				cacPrepaidPayment.appendChild(cbcPaidAmount)
+			}
+		}
+	}
+
 	static generateCharge(invoice) {
 		if (invoice.getDiscount()) {
 			const cacAllowanceCharge = invoice.xmlDocument.createElement("cac:AllowanceCharge")
