@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
-import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js'
+import { Invoice, Item, DocumentReference, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js'
 
 let customer
 let taxpayer
@@ -61,6 +61,11 @@ test.serial("creating invoice", (tester) => {
 	invoice.setNumeration(19970601)
 	invoice.setOrderReference("test-002")
 	invoice.setOrderReferenceText("Testing library to generate invoice")
+
+	const additionalDocumentReference = new DocumentReference(1)
+	additionalDocumentReference.setId("F000-19970214")
+	additionalDocumentReference.setTypeCode(1)
+	invoice.addAdditionalDocumentReference(additionalDocumentReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")

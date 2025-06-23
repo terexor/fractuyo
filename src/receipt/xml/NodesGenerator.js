@@ -118,6 +118,23 @@ class NodesGenerator {
 				}
 			}
 		}
+
+		// Additionals
+		if (invoice.getAdditionalDocumentReferences().length) {
+			for (const additionalDocumentReference of invoice.getAdditionalDocumentReferences()) {
+				const cacAdditionalDocumentReference = invoice.xmlDocument.createElement("cac:AdditionalDocumentReference")
+				invoice.xmlDocument.documentElement.appendChild(cacAdditionalDocumentReference)
+				{
+					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+					cbcID.textContent = additionalDocumentReference.getId()
+					cacAdditionalDocumentReference.appendChild(cbcID)
+
+					const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
+					cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
+					cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
+				}
+			}
+		}
 	}
 
 	static generateSignature(invoice) {
