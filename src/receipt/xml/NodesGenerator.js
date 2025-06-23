@@ -129,6 +129,22 @@ class NodesGenerator {
 				const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
 				cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
 				cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
+
+				const cbcDocumentStatusCode = invoice.xmlDocument.createElement("cbc:DocumentStatusCode")
+				cbcDocumentStatusCode.textContent = "1"
+				cacAdditionalDocumentReference.appendChild(cbcDocumentStatusCode)
+
+				const cacIssuerParty = invoice.xmlDocument.createElement("cac:IssuerParty")
+				cacAdditionalDocumentReference.appendChild(cacIssuerParty)
+				{
+					const cacPartyIdentification = invoice.xmlDocument.createElement("cac:PartyIdentification")
+					cacIssuerParty.appendChild(cacPartyIdentification)
+					{
+						const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+						cbcID.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+						cacPartyIdentification.appendChild(cbcID)
+					}
+				}
 			}
 		}
 	}
