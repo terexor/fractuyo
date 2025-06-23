@@ -57,7 +57,7 @@ class Note extends Sale {
 	}
 
 	setInvoiceDocumentReference(invoiceDocumentReference) {
-		if (invoiceDocumentReference.getReferenceType() != 1) {
+		if (invoiceDocumentReference.getReferenceType() != 0) {
 			throw new Error("Reference de documento no es de tipo facturación.")
 		}
 

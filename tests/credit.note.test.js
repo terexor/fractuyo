@@ -64,7 +64,7 @@ test.serial("creating note", tester => {
 	const billingReference = new DocumentReference(0)
 	billingReference.setId("F000-19970601")
 	billingReference.setTypeCode(1)
-	creditNote.addDocumentReference(billingReference)
+	creditNote.setInvoiceDocumentReference(billingReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")

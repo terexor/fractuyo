@@ -107,21 +107,14 @@ class NodesGenerator {
 			{
 				const cacInvoiceDocumentReference = invoice.xmlDocument.createElement("cac:InvoiceDocumentReference")
 				cacBillingReference.appendChild(cacInvoiceDocumentReference)
-
-				for (const documentReference of invoice.getDocumentReferences()) {
-					if (documentReference.getReferenceType() != 0) {
-						continue
-					}
-
+				{
 					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-					cbcID.textContent = documentReference.getId()
+					cbcID.textContent = invoice.getInvoiceDocumentReference().getId()
 					cacInvoiceDocumentReference.appendChild(cbcID)
 
 					const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
-					cbcDocumentTypeCode.textContent = documentReference.getTypeCode(true)
+					cbcDocumentTypeCode.textContent = invoice.getInvoiceDocumentReference().getTypeCode(true)
 					cacInvoiceDocumentReference.appendChild(cbcDocumentTypeCode)
-
-					break
 				}
 			}
 		}
@@ -1070,13 +1063,7 @@ class NodesGenerator {
 		note.xmlDocument.documentElement.appendChild(cacDiscrepancyResponse)
 		{
 			const cbcReferenceID = note.xmlDocument.createElement("cbc:ReferenceID")
-			for (const documentReference of note.getDocumentReferences()) {
-				if (documentReference.getReferenceType() != 0) {
-					continue
-				}
-				cbcReferenceID.textContent = documentReference.getId()
-				break
-			}
+			cbcReferenceID.textContent = note.getInvoiceDocumentReference().getId()
 			cacDiscrepancyResponse.appendChild(cbcReferenceID)
 
 			const cbcResponseCode = note.xmlDocument.createElement("cbc:ResponseCode")
