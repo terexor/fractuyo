@@ -97,8 +97,6 @@ class NodesGenerator {
 				cbcCustomerReference.appendChild( invoice.xmlDocument.createCDATASection(invoice.getOrderReferenceText()) )
 				cacOrderReference.appendChild(cbcCustomerReference)
 			}
-
-			return
 		}
 
 		if ((invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8)) { // for note
@@ -120,19 +118,17 @@ class NodesGenerator {
 		}
 
 		// Additionals
-		if (invoice.getAdditionalDocumentReferences().length) {
-			for (const additionalDocumentReference of invoice.getAdditionalDocumentReferences()) {
-				const cacAdditionalDocumentReference = invoice.xmlDocument.createElement("cac:AdditionalDocumentReference")
-				invoice.xmlDocument.documentElement.appendChild(cacAdditionalDocumentReference)
-				{
-					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-					cbcID.textContent = additionalDocumentReference.getId()
-					cacAdditionalDocumentReference.appendChild(cbcID)
+		for (const additionalDocumentReference of invoice.getAdditionalDocumentReferences()) {
+			const cacAdditionalDocumentReference = invoice.xmlDocument.createElement("cac:AdditionalDocumentReference")
+			invoice.xmlDocument.documentElement.appendChild(cacAdditionalDocumentReference)
+			{
+				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+				cbcID.textContent = additionalDocumentReference.getId()
+				cacAdditionalDocumentReference.appendChild(cbcID)
 
-					const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
-					cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
-					cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
-				}
+				const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
+				cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
+				cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
 			}
 		}
 	}
