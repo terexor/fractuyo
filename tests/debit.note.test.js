@@ -59,7 +59,7 @@ test.serial("creating note", tester => {
 	debitNote.setSerie("F000")
 	debitNote.setNumeration(97)
 	debitNote.setResponseCode(1)
-	debitNote.setDescription("Testing library to eliminate invoice")
+	debitNote.setDescription("Testing library to add interest on late payment")
 
 	const billingReference = new DocumentReference(0)
 	billingReference.setId("F000-19970601")
