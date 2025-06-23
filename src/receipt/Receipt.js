@@ -26,7 +26,7 @@ class Receipt {
 
 	#items = Array()
 
-	#documentReferences = Array()
+	#additionalDocumentReferences = Array()
 
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
@@ -183,12 +183,16 @@ class Receipt {
 		return this.#items
 	}
 
-	addDocumentReference(reference) {
-		this.#documentReferences.push(reference)
+	addAdditionalDocumentReference(reference) {
+		if (reference.getReferenceType() != 1) {
+			throw new Error("Reference de documento no es de tipo adicional.")
+		}
+
+		this.#additionalDocumentReferences.push(reference)
 	}
 
-	getDocumentReferences() {
-		return this.#documentReferences
+	getAdditionalDocumentReferences(referenceType) {
+		return this.#additionalDocumentReferences
 	}
 
 	get taxpayer() {
