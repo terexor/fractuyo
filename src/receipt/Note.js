@@ -8,6 +8,11 @@ class Note extends Sale {
 	#responseCode // type for this note
 
 	/**
+	 * DocumentReference
+	 */
+	#invoiceDocumentReference
+
+	/**
 	 * @param isCredit must be boolean to choose between credit as true or false for debit.
 	 */
 	constructor(taxpayer, customer, isCredit) {
@@ -49,6 +54,18 @@ class Note extends Sale {
 			return String(this.#responseCode).padStart(2, '0')
 		}
 		return this.#responseCode
+	}
+
+	setInvoiceDocumentReference(invoiceDocumentReference) {
+		if (invoiceDocumentReference.getReferenceType() != 1) {
+			throw new Error("Reference de documento no es de tipo facturación.")
+		}
+
+		this.#invoiceDocumentReference = invoiceDocumentReference
+	}
+
+	getInvoiceDocumentReference() {
+		return this.#invoiceDocumentReference
 	}
 
 	toXml() {
