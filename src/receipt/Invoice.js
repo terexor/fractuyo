@@ -22,7 +22,7 @@ class Invoice extends Sale {
 
 	#discount
 
-	#prepaidPayment = Array()
+	#prepaidPayments = Array()
 
 	setDetractionPercentage(dp) {
 		if(dp >= 0 && dp <= 100) {
@@ -185,11 +185,11 @@ class Invoice extends Sale {
 	}
 
 	addPrepaidPayment(payment) {
-		this.#prepaidPayment.push(payment)
+		this.#prepaidPayments.push(payment)
 	}
 
 	getPrepaidPayments() {
-		return this.#prepaidPayment
+		return this.#prepaidPayments
 	}
 
 	/**
