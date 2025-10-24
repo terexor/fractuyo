@@ -22,7 +22,20 @@ class Endpoint {
 		Endpoint.#fetchFunction = customFetch
 	}
 
+	/**
+	 * Sets the deployment mode.
+	 * @deprecated Use {@link Endpoint.setDeploymentMode} instead.
+	 * @param {boolean} mode - The new mode to set.
+	 */
 	static setMode(mode) {
+		Endpoint.#mode = mode
+	}
+
+	/**
+	 * Changes to deployment mode because always test mode starts.
+	 * @param {boolean} [mode=true] - The new mode to set. Set to `false` for test mode.
+	 */
+	static setDeploymentMode(mode = true) {
 		Endpoint.#mode = mode
 	}
 

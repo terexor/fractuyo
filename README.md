@@ -42,9 +42,11 @@ customer.setIdentification(new Identification(6, "10000000001"));
 const taxpayer = new Taxpayer();
 taxpayer.setIdentification(new Identification(6, "20000000001"));
 taxpayer.setName("Monsters Inc.");
+taxpayer.setSolUser("usuarioSOL"); // for SOAP
+taxpayer.setSolPass("claveSOL");
 taxpayer.setSolId("id"); // for REST
-taxpayer.setSolUser("user"); // for SOAP
-taxpayer.setCert("rsaPublic");
+taxpayer.setCert("rsaCertContent");
+taxpayer.setKey("rsaKeyContent");
 
 const receipt = new Invoice(taxpayer, customer);
 invoice.setCurrencyId("USD");
@@ -81,12 +83,41 @@ const [ serverCode, serverDescription ] = await receipt.handleProof(serverZipStr
 
 ### Endpoints
 
-The library includes the HTTP endpoints for SUNAT, both for testing and for production use. By default, the test endpoints are assigned, and you can switch to the production endpoint by using the following (before declaring):
+You may not need to use the methods of the Endpoint class, as the classes that handle the documents use them internally.
+
+The library includes the HTTP endpoints for SUNAT, both for testing and for production use.
 
 ```javascript
 import { Endpoint } from "fractuyo";
-Endpoint.setMode(true); // false for test
 ```
+
+#### Deployment or test
+
+The generation of documents up to the inclusion of the electronic signature is identical in both deployment mode and test mode.
+
+By default, the test endpoints are assigned, and you can switch to the production endpoint by using the following code (before declaring):
+
+```javascript
+const receipt = new Invoice(taxpayer, customer);
+Endpoint.setDeploymentMode(true); // false for test
+receipt.declare(zipStream);
+```
+
+#### Change endpoints
+
+If the endpoints are not what you need, then you can assign your own endpoints for both modes individually.
+
+```javascript
+let deploymentMode = true; // or false for test
+Endpoint.setUrl(Endpoint.INDEX_INVOICE, "new URL", deploymentMode);
+Endpoint.setUrl(Endpoint.INDEX_RETENTION, "new URL", deploymentMode);
+// and used for despatchs
+Endpoint.setUrl(Endpoint.INDEX_TOKEN, "new URL", deploymentMode);
+Endpoint.setUrl(Endpoint.INDEX_SEND, "new URL", deploymentMode);
+Endpoint.setUrl(Endpoint.INDEX_STATUS, "new URL", deploymentMode);
+```
+
+View documentation or source code to check URL structure.
 
 ## Test locally
 

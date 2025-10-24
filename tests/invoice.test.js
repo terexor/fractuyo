@@ -138,7 +138,7 @@ test.serial("signing invoice", async tester => {
 	}
 })
 
-test.serial("presenting note", async tester => {
+test.serial("presenting invoice", async tester => {
 	try {
 		const zipStream = await invoice.createZip()
 		const serverZipStream = await invoice.declare(zipStream)
