@@ -8,6 +8,7 @@ import Address from "../person/Address.js"
 
 class Sale extends Receipt {
 	#currencyId
+	#igvPercentage
 
 	/*
 	 * Global totals
@@ -88,8 +89,33 @@ class Sale extends Receipt {
 		return this.#currencyId
 	}
 
-	addItem(item) {
+	/**
+	 * Sunat requires that the IGV rate must be the same across all items in an invoice.
+	 * It must correspond to a valid rate.
+	 */
+	set igvPercentage(percentage) {
+		this.#igvPercentage = percentage
+	}
+
+	get igvPercentage() {
+		return this.#igvPercentage
+	}
+
+	/**
+	 * Adds an item to the collection or cart.
+	 *
+	 * @param {Item} item - The item to be added.
+	 * @param {boolean} [withoutCalculation=false] - If true, skips recalculating totals after adding the item.
+	 *
+	 * @returns {void} This function does not return a value.
+	 */
+	addItem(item, withoutCalculation = false) {
 		super.addItem(item)
+
+		// Avoid calculation over this header
+		if (withoutCalculation) {
+			return
+		}
 
 		this.#lineExtensionAmount += item.getLineExtensionAmount()
 		this.#taxTotalAmount += item.getTaxTotalAmount()
@@ -261,6 +287,15 @@ class Sale extends Receipt {
 			}
 
 			this.setCustomer(customer)
+		}
+
+
+		// about totals
+		{
+			const legalMonetaryTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "LegalMonetaryTotal")[0]
+			this.lineExtensionAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "LineExtensionAmount")[0].textContent)
+			this.taxInclusiveAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxInclusiveAmount")[0].textContent)
+			// missing payable amount
 		}
 
 		return xmlDoc

@@ -39,6 +39,10 @@ class Endpoint {
 		Endpoint.#mode = mode
 	}
 
+	static getDeploymentMode() {
+		return Endpoint.#mode
+	}
+
 	/**
 	 * @param service is index integer.
 	 * @param url is a string for that endpoint.

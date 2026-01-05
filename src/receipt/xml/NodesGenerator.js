@@ -154,7 +154,7 @@ class NodesGenerator {
 			cacDigitalSignatureAttachment.appendChild(cacExternalReference)
 
 			const cbcUri = invoice.xmlDocument.createElement("cbc:URI")
-			cbcUri.textContent = "#teroxoris"
+			cbcUri.textContent = "#terexoris"
 			cacExternalReference.appendChild(cbcUri)
 		}
 	}
@@ -827,7 +827,7 @@ class NodesGenerator {
 
 			const cbcPayableAmount  = invoice.xmlDocument.createElement("cbc:PayableAmount")
 			cbcPayableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2) // That is not the correct amount
 			cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
 		}
 	}

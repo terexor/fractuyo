@@ -123,7 +123,7 @@ class Invoice extends Sale {
 		return this.#orderReferenceText
 	}
 
-	setDiscount(discountAmount, fromBase = false) {
+	setDiscount(discountAmount, fromBase = false, direct = false) {
 		// Converting in number
 		discountAmount = parseFloat(discountAmount)
 
@@ -139,10 +139,25 @@ class Invoice extends Sale {
 		}
 
 		if (fromBase) {
-			discountAmount *= 1.18 // Must be variable
+			// IGV percentage: 18 / 100: 0.18. Then sum is 1.18
+			discountAmount *= 1.0 + (this.igvPercentage / 100)
+		}
+
+		if (direct) {
+			this.#discount.setAmount(discountAmount)
+			return
 		}
 
 		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+	}
+
+	/**
+	 * After setting discount exists factor so recalc setting all amounts.
+	 */
+	recalcWithDiscountFactor() {
+		if (this.#discount == undefined) {
+			return
+		}
 
 		//Recalc amounts
 		const factorInverse = 1 - this.#discount.factor
@@ -282,7 +297,7 @@ class Invoice extends Sale {
 			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
 
 			item.calcMounts()
-			this.addItem(item)
+			this.addItem(item, true)
 		}
 
 		{ // check if there are shares
@@ -310,6 +325,27 @@ class Invoice extends Sale {
 			}
 		}
 
+		// taxes
+		{
+			const taxTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxTotal")[0]
+			const taxSubtotals = taxTotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxSubtotal")
+			for (const taxSubtotal of taxSubtotals) {
+				const taxCategory = taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxCategory")[0]
+				const taxScheme = taxCategory.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxScheme")[0]
+				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "IGV") {
+					// Real value, not calculated
+					this.igvAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+					this.setOperationAmount(0, parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxableAmount")[0].textContent))
+					continue
+				}
+				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "ISC") {
+					// Real value, not calculated
+					this.iscAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+					continue
+				}
+			}
+		}
+
 		// Discount or recharge
 		{
 			// possible discount
@@ -317,7 +353,7 @@ class Invoice extends Sale {
 			if (allowanceCharge) {
 				const chargeIndicator = allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "ChargeIndicator")[0].textContent === "true"
 				if (!chargeIndicator) { // it's discount
-					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, true)
+					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, false, true)
 				}
 			}
 		}

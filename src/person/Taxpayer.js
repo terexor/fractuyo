@@ -145,7 +145,7 @@ class Taxpayer extends Person {
 	}
 
 	setDeductionsAccount(da) {
-		if(da.length > 0) {
+		if (da && da.length != 0) {
 			this.#deductionsAccount = da
 		}
 	}
