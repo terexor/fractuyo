@@ -128,7 +128,7 @@ class Note extends Sale {
 			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
 
 			item.calcMounts();
-			this.addItem(item)
+			this.addItem(item, true)
 		}
 
 		{// related document
