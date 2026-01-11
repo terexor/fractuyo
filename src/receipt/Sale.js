@@ -289,6 +289,26 @@ class Sale extends Receipt {
 			this.setCustomer(customer)
 		}
 
+		// Taxes and taxable amounts
+		{
+			const taxTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxTotal")[0]
+			const taxSubtotals = taxTotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxSubtotal")
+			for (const taxSubtotal of taxSubtotals) {
+				const taxCategory = taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxCategory")[0]
+				const taxScheme = taxCategory.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxScheme")[0]
+				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "IGV") {
+					// Real value, not calculated
+					this.igvAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+					this.setOperationAmount(0, parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxableAmount")[0].textContent))
+					continue
+				}
+				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "ISC") {
+					// Real value, not calculated
+					this.iscAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+					continue
+				}
+			}
+		}
 
 		// about totals
 		{
