@@ -302,6 +302,12 @@ class Sale extends Receipt {
 					this.setOperationAmount(0, parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxableAmount")[0].textContent))
 					continue
 				}
+				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "EXO") {
+					// Real value, not calculated
+					this.igvAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+					this.setOperationAmount(1, parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxableAmount")[0].textContent))
+					continue
+				}
 				if (taxScheme.getElementsByTagNameNS(Receipt.namespaces.cbc, "Name")[0].textContent == "ISC") {
 					// Real value, not calculated
 					this.iscAmount = parseFloat(taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
