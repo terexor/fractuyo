@@ -73,6 +73,22 @@ class Note extends Sale {
 		return this.#documentReferenceTypeCode
 	}
 
+	validate(validateNumeration) {
+		super.validate(validateNumeration)
+
+		if (this.#documentReferenceTypeCode == 1) {
+			// Both must start with F
+			if (!(this.getSerie().startsWith("F") && this.#documentReference.startsWith("F"))) {
+				throw new Error("La serie para Nota de Factura debe empezar con F.")
+			}
+		} else if (this.#documentReferenceTypeCode == 3) {
+			// Both must start with B
+			if (!(this.getSerie().startsWith("B") && this.#documentReference.startsWith("B"))) {
+				throw new Error("La serie para Nota de Boleta de venta debe empezar con B.");
+			}
+		}
+	}
+
 	toXml() {
 		this.createXmlWrapper();
 
