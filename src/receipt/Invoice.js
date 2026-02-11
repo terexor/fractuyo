@@ -3,6 +3,7 @@ import Receipt from "./Receipt.js"
 import Share from "./Share.js"
 import Sale from "./Sale.js"
 import Charge from "./Charge.js"
+import Detraction from "./Detraction.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
 class Invoice extends Sale {
@@ -17,27 +18,9 @@ class Invoice extends Sale {
 	#shares = Array()
 	#sharesAmount = 0
 
-	#detractionPercentage = 0
-	#detractionAmount = 0
+	#detraction
 
 	#discount
-
-	setDetractionPercentage(dp) {
-		if(dp >= 0 && dp <= 100) {
-			this.#detractionPercentage = dp
-			return
-		}
-		this.#detractionPercentage = 0
-		throw new Error("Porcentaje de detracción inconsistente.")
-	}
-
-	getDetractionPercentage() {
-		return this.#detractionPercentage
-	}
-
-	getDetractionAmount(withFormat = false) {
-		return withFormat ? this.#detractionAmount.toFixed(2) : this.#detractionAmount
-	}
 
 	getShares() {
 		return this.#shares
@@ -176,25 +159,37 @@ class Invoice extends Sale {
 		return this.#discount
 	}
 
-	calcDetractionAmount() {
-		if (this.#detractionPercentage > 0) {
-			if (this.taxInclusiveAmount > 700) {
-				this.#detractionAmount = this.taxInclusiveAmount * this.#detractionPercentage / 100
-				return // exit this function successfully
-			}
-			this.#detractionAmount = 0.0 // to overwrite when amount decrements
-		}
-		else {
-			this.#detractionAmount = 0.0
-		}
-	}
-
 	/**
 	 * Performs substraction taxInclusiveAmount with detractionAmount.
 	 */
 	getShareableAmount(withFormat = false) {
-		const shareableAmount = this.taxInclusiveAmount - this.#detractionAmount
+		const shareableAmount = this.taxInclusiveAmount - (this.#detraction?.getAmount() ?? 0.0)
 		return withFormat ? shareableAmount.toFixed(2) : shareableAmount
+	}
+
+	/**
+	 * Create detraction object with given percentage.
+	 */
+	setDetraction(detractionPercentage) {
+		// Removing detraction
+		if (isNaN(detractionPercentage) || detractionPercentage <= 0) {
+			this.#detraction = undefined
+			return
+		}
+
+		if (this.#detraction == undefined) {
+			this.#detraction = new Detraction()
+		}
+
+		this.#detraction.setPercentage(detractionPercentage)
+	}
+
+	getDetraction() {
+		return this.#detraction
+	}
+
+	hasDetraction() {
+		return this.#detraction != null && this.#detraction.getAmount() > 0.0
 	}
 
 	/**
@@ -212,14 +207,18 @@ class Invoice extends Sale {
 		}
 
 		if(this.#sharesAmount) {
-			if(this.#detractionAmount) {
-				if(this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detractionAmount).toFixed(2)) {
+			if (this.hasDetraction()) {
+				if (this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detraction.getAmount()).toFixed(2)) {
 					throw new Error("La suma de las cuotas difiere del total menos detracción.")
 				}
 			}
 			else if(this.#sharesAmount.toFixed(2) != this.taxInclusiveAmount.toFixed(2)) {
 				throw new Error("La suma de las cuotas difiere del total.")
 			}
+		}
+
+		if (this.hasDetraction() && !this.#detraction.getCode()) {
+			throw new Error("Falta código de detracción.")
 		}
 	}
 
@@ -343,11 +342,6 @@ class Invoice extends Sale {
 			if (paymentMean) { // exists deduction
 				const id = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent
 				if (id == "Detraccion") { // deduction exists
-					// parsing bank account
-					const payeeFinancialAccount = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cac, "PayeeFinancialAccount")[0]
-					// setting bank account
-					this.getTaxpayer().setDeductionsAccount(payeeFinancialAccount.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent)
-
 					// look for more about this deduction
 					const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
 					for (const paymentTerm of paymentTerms) {
@@ -356,10 +350,16 @@ class Invoice extends Sale {
 						}
 
 						// we found it
-						this.setDetractionPercentage(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
-						this.calcDetractionAmount()
+						this.setDetraction(parseInt(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentPercent")[0].textContent))
+						this.getDetraction().setCode(paymentTerm.getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentMeansID")[0].textContent)
+						this.getDetraction().calcAmount(this.taxInclusiveAmount)
 						break // then nothing else
 					}
+
+					// parsing bank account
+					const payeeFinancialAccount = paymentMean.getElementsByTagNameNS(Receipt.namespaces.cac, "PayeeFinancialAccount")[0]
+					// setting bank account
+					this.getDetraction().setFinancialAccount(payeeFinancialAccount.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent)
 				}
 			}
 		}

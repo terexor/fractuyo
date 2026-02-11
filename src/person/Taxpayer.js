@@ -193,7 +193,7 @@ class Taxpayer extends Person {
 	}
 
 	clearData() {
-		this.#certPem = this.#certDer = this.#keyDer = this.#solId = this.#solSecret = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = null
+		this.#certPem = this.#certDer = this.#keyDer = this.#solId = this.#solSecret = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = this.#deductionsAccount = null
 	}
 }
 
