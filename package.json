@@ -1,6 +1,6 @@
 {
 	"name": "fractuyo",
-	"version": "0.4.2",
+	"version": "0.5.0",
 	"description": "Generates electronic invoices and other tax documents compliant with Sunat (Peru) standards.",
 	"main": "src/fractuyo.js",
 	"type": "module",
@@ -10,6 +10,7 @@
 	"scripts": {
 		"test": "ava --serial",
 		"test:invoice": "ava ./tests/invoice.*",
+		"test:invoice:detraction": "ava ./tests/invoice.detraction.test.js",
 		"test:despatch": "ava ./tests/despatch.*",
 		"test:credit": "ava ./tests/credit.*",
 		"test:debit": "ava ./tests/debit.*"
