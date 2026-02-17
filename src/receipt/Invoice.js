@@ -204,6 +204,10 @@ class Invoice extends Sale {
 				if(this.getCustomer().getIdentification().getType() != 6) {
 					throw new Error("El cliente debe tener RUC.")
 				}
+			case 3: // for "boleta"
+				if (this.taxInclusiveAmount >= 700.0 && !(this.getCustomer()?.getIdentification())) {
+					throw new Error("El cliente no puede ser omitido.")
+				}
 		}
 
 		if(this.#sharesAmount) {

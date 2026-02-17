@@ -10,6 +10,7 @@
 	"scripts": {
 		"test": "ava --serial",
 		"test:invoice": "ava ./tests/invoice.*",
+		"test:invoice:boleta": "ava ./tests/invoice.boleta.test.js",
 		"test:invoice:detraction": "ava ./tests/invoice.detraction.test.js",
 		"test:despatch": "ava ./tests/despatch.*",
 		"test:credit": "ava ./tests/credit.*",

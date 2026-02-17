@@ -281,21 +281,21 @@ class NodesGenerator {
 		cacParty.appendChild(cacPartyIdentification)
 
 		const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-		cbcId.setAttribute("schemeID", invoice.getCustomer().getIdentification().getType())
+		cbcId.setAttribute("schemeID", invoice.getCustomer()?.getIdentification()?.getType() ?? "1")
 		cbcId.setAttribute("schemeName", "Documento de Identidad")
 		cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
 		cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-		cbcId.textContent = invoice.getCustomer().getIdentification().getNumber()
+		cbcId.textContent = invoice.getCustomer()?.getIdentification()?.getNumber() ?? "-"
 		cacPartyIdentification.appendChild(cbcId)
 
 		const cacPartyLegalEntity = invoice.xmlDocument.createElement("cac:PartyLegalEntity")
 		cacParty.appendChild(cacPartyLegalEntity)
 
 		const cbcRegistrationName = invoice.xmlDocument.createElement("cbc:RegistrationName")
-		cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getName()) )
+		cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer()?.getName() ?? "Nemo") )
 		cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
-		if(invoice.getCustomer().getAddress()) {
+		if (invoice.getCustomer()?.getAddress()) {
 			const cacRegistrationAddress = invoice.xmlDocument.createElement("cac:RegistrationAddress")
 			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 

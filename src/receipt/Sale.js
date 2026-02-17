@@ -171,8 +171,8 @@ class Sale extends Receipt {
 			+ '|' + this.igvAmount.toFixed(2)
 			+ '|' + this.taxInclusiveAmount.toFixed(2)
 			+ '|' + this.getIssueDate().toISOString().substr(0, 10)
-			+ '|' + this.getCustomer().getIdentification().getType()
-			+ '|' + this.getCustomer().getIdentification().getNumber()
+			+ '|' + (this.getCustomer()?.getIdentification()?.getType() ?? "")
+			+ '|' + (this.getCustomer()?.getIdentification()?.getNumber() ?? "")
 	}
 
 	validate(validateNumeration) {
