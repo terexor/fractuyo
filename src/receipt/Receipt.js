@@ -102,6 +102,11 @@ class Receipt {
 		this.#numeration = number
 	}
 
+	unsetId() {
+		this.#serie = undefined
+		this.#numeration = undefined
+	}
+
 	getNumeration() {
 		return this.#numeration
 	}
