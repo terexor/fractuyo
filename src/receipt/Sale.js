@@ -267,31 +267,39 @@ class Sale extends Receipt {
 		}
 
 		{
-			const customer = new Person()
 			const accountingCustomerParty = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "AccountingCustomerParty")[0];
 			const id = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || "";
-			const type = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
-			customer.setIdentification(new Identification(parseInt(type), id))
-			customer.setName(accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0]?.textContent || "-")
 
-			// customer address
-			{
-				const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
+			// Sometimes customer does not exist
+			if (id != "-") {
+				const customer = new Person()
+				const type = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.getAttribute("schemeID") || "";
+				customer.setIdentification(new Identification(parseInt(type), id))
+				customer.setName(accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cbc, "RegistrationName")[0]?.textContent || "-")
 
-				if (registrationAddress) {
-					const address = new Address();
-					address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "";
+				// customer address
+				{
+					const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
 
-					customer.setAddress(address);
+					if (registrationAddress) {
+						const address = new Address();
+						address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "";
+
+						customer.setAddress(address);
+					}
 				}
-			}
 
-			this.setCustomer(customer)
+				this.setCustomer(customer)
+			}
 		}
 
 		// Taxes and taxable amounts
 		{
 			const taxTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxTotal")[0]
+
+			// The sum of everything behind
+			this.#taxTotalAmount = parseFloat(taxTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxAmount")[0].textContent)
+
 			const taxSubtotals = taxTotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxSubtotal")
 			for (const taxSubtotal of taxSubtotals) {
 				const taxCategory = taxSubtotal.getElementsByTagNameNS(Receipt.namespaces.cac, "TaxCategory")[0]
