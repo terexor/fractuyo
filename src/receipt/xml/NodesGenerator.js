@@ -724,6 +724,45 @@ class NodesGenerator {
 			cbcTaxAmount.textContent = invoice.taxTotalAmount.toFixed(2)
 			cacTaxTotal.appendChild(cbcTaxAmount)
 
+			if (invoice.iscAmount > 0) { //ISC
+				const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
+				cacTaxTotal.appendChild(cacTaxSubtotal)
+				{
+					const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcTaxableAmount.textContent = invoice.getOperationAmount(0).toFixed(2)
+					cacTaxSubtotal.appendChild( cbcTaxableAmount )
+
+					const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					cbcTaxAmount.textContent = invoice.iscAmount.toFixed(2)
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+
+					const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
+					cacTaxSubtotal.appendChild(cacTaxCategory)
+					{
+						const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
+						cacTaxCategory.appendChild(cacTaxScheme)
+						{
+							const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+							cbcID.setAttribute("schemeName", "Codigo de tributos")
+							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
+							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
+							cbcID.textContent = "2000"
+							cacTaxScheme.appendChild(cbcID)
+
+							const cbcName = invoice.xmlDocument.createElement("cbc:Name")
+							cbcName.textContent = "ISC"
+							cacTaxScheme.appendChild(cbcName)
+
+							const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
+							cbcTaxTypeCode.textContent = "EXC"
+							cacTaxScheme.appendChild(cbcTaxTypeCode)
+						}
+					}
+				}
+			}
+
 			//Assign data according taxability
 			let taxTypeCode
 			let taxSchemeId
