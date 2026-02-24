@@ -122,6 +122,7 @@ class Sale extends Receipt {
 		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
 
 		this.#igvAmount += item.getIgvAmount()
+		this.#iscAmount += item.getIscAmount()
 
 		//Assign data according taxability
 		switch(true) {
@@ -141,7 +142,7 @@ class Sale extends Receipt {
 	 */
 	recalcMounts() {
 		// Cleaning values
-		this.#lineExtensionAmount = this.#taxTotalAmount = this.#taxInclusiveAmount = this.#igvAmount = 0
+		this.#lineExtensionAmount = this.#taxTotalAmount = this.#taxInclusiveAmount = this.#igvAmount = this.#iscAmount = 0
 		this.#operationAmounts[0] = this.#operationAmounts[1] = this.#operationAmounts[2] = this.#operationAmounts[3] = 0;
 
 		for (const item of this.items) {
@@ -150,6 +151,7 @@ class Sale extends Receipt {
 			this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
 
 			this.#igvAmount += item.getIgvAmount()
+			this.#iscAmount += item.getIscAmount()
 
 			//Assign data according taxability
 			switch(true) {
