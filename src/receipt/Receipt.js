@@ -73,10 +73,16 @@ class Receipt {
 		if(this.#serie == undefined || this.#numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
 		}
+
+		// Pre-format numeration as string
+		const numStr = compacted ? String(this.#numeration) : String(this.#numeration).padStart(8, '0')
+
 		if(withType) {
-			return String(this.#typeCode).padStart(2, '0') + '-' + this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
+			const type = String(this.#typeCode).padStart(2, '0')
+			return `${type}-${this.#serie}-${numStr}`
 		}
-		return this.#serie + '-' + ( compacted ? this.#numeration : String(this.#numeration).padStart(8, '0') )
+
+		return `${this.#serie}-${numStr}`
 	}
 
 	setId(serie, numeration) {

@@ -19,7 +19,7 @@ class Sale extends Receipt {
 	#igvAmount = 0
 	#iscAmount = 0
 	#icbpAmount = 0
-	#operationAmounts = [0, 0, 0, 0]
+	#operationAmounts = new Float64Array(4) // zero-filling [0, 0, 0, 0]
 
 	constructor(taxpayer, customer, name) {
 		super(taxpayer, customer, name)
@@ -143,7 +143,7 @@ class Sale extends Receipt {
 	recalcMounts() {
 		// Cleaning values
 		this.#lineExtensionAmount = this.#taxTotalAmount = this.#taxInclusiveAmount = this.#igvAmount = this.#iscAmount = 0
-		this.#operationAmounts[0] = this.#operationAmounts[1] = this.#operationAmounts[2] = this.#operationAmounts[3] = 0;
+		this.#operationAmounts.fill(0) // fast for cleaning
 
 		for (const item of this.items) {
 			this.#lineExtensionAmount += item.getLineExtensionAmount()
