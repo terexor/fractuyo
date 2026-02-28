@@ -1,4 +1,5 @@
-import { Parse, SignedXml } from "xmldsigjs"
+import { Parse } from "xmldsigjs"
+import XmlSigner from "./xml/XmlSigner.js"
 import writtenNumber from "written-number"
 import JSZip from "jszip"
 import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
@@ -196,64 +197,38 @@ class Receipt {
 		return this.#taxpayer
 	}
 
-	async sign(cryptoSubtle, hashAlgorithm = "SHA-256", canonMethod = "c14n") {
-		if(this.xmlDocument == undefined) {
+	async finalize(cryptoSubtle, canonMethod = "c14n") {
+		if (this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
 		}
 
-		const alg = {
-			name: "RSASSA-PKCS1-v1_5",
-			hash: hashAlgorithm,
-			modulusLength: 1024,
-			publicExponent: new Uint8Array([1, 0, 1])
+		try {
+			this.xmlDocument = Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
+
+			// Getting signature using extarnal signer
+			const signatureNode = await XmlSigner.getSignedNode(
+				cryptoSubtle,
+				this.xmlDocument,
+				this.#taxpayer,
+				canonMethod
+			);
+
+			const xmlEl = this.xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
+			xmlEl.appendChild(signatureNode)
+
+			return true
+		} catch (e) {
+			console.error("Error en la finalización/firma:", e);
+			return false
 		}
+	}
 
-		// Read cert
-		const certDer = this.#taxpayer.getCert()
-
-		// Read key
-		const keyDer = this.#taxpayer.getKey()
-		const key = await cryptoSubtle.importKey("pkcs8", keyDer, alg, true, ["sign"])
-
-		const x509 = this.#taxpayer.getCertPem()
-
-		const transforms = ["enveloped", canonMethod]
-
-		this.xmlDocument = Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
-
-		return Promise.resolve()
-			.then(() => {
-				const signature = new SignedXml()
-
-				return signature.Sign(
-					alg,        // algorithm
-					key,        // key
-					this.xmlDocument,// document
-					{           // options
-						references: [
-							{ id: "terexoris", uri: "", hash: hashAlgorithm, transforms: transforms }
-						],
-						x509: [x509],
-						signerRole: { claimed: ["Taxpayer"] },
-						/*
-						 * It exists, but Sunat does not handle big numbers (20 bytes) in serial numbers so was removed.
-						 * Structure can be found in http://www.datypic.com/sc/ubl21/e-xades_SigningCertificate.html
-						 * It could be enabled using global options.
-						 */
-						// signingCertificate: x509
-					}
-				)
-			})
-			.then((signature) => {
-				// Add signature to document
-				const xmlEl = this.xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
-				xmlEl.appendChild(signature.GetXml())
-				return true
-			})
-			.catch(function (e) {
-				console.error(e)
-				return false
-			})
+	/**
+	 * @deprecated Use finalize() instead for better performance and architecture.
+	 */
+	async sign(cryptoSubtle, canonMethod = "c14n") {
+		// Just calling the real method
+		return await this.finalize(cryptoSubtle, canonMethod)
 	}
 
 	/**
