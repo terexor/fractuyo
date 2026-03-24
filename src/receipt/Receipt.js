@@ -41,22 +41,15 @@ class Receipt {
 		this.#name = name
 	}
 
+	/**
+	 * Create new XML document.
+	 */
 	createXmlWrapper() {
 		this.xmlDocument = (new DOMImplementation()).createDocument(`urn:oasis:names:specification:ubl:schema:xsd:${this.#name}-2`, this.#name)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cac", Receipt.namespaces.cac)
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ext", Receipt.namespaces.ext)
-
-		// Space for appending signature
-		const extUblExtensions = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtensions")
-		this.xmlDocument.documentElement.appendChild(extUblExtensions)
-
-		const extUblExtension = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:UBLExtension")
-		extUblExtensions.appendChild(extUblExtension)
-
-		const extExtensionContent = this.xmlDocument.createElementNS(Receipt.namespaces.ext, "ext:ExtensionContent")
-		extUblExtension.appendChild(extExtensionContent)
 	}
 
 	get name() {

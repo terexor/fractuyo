@@ -1,45 +1,90 @@
 import Receipt from "../Receipt.js"
 
 class NodesGenerator {
-	static generateHeader(invoice) {
-		const cbcUblVersionId = invoice.xmlDocument.createElement("cbc:UBLVersionID")
-		cbcUblVersionId.textContent = invoice.getUblVersion()
-		invoice.xmlDocument.documentElement.appendChild(cbcUblVersionId)
+	/**
+	 * Space for appending signature.
+	 */
+	static generateUblExtensions(document) {
+		const fragment = document.xmlDocument.createDocumentFragment()
 
-		const cbcCustomizationId = invoice.xmlDocument.createElement("cbc:CustomizationID")
+		const extUblExtensions = document.xmlDocument.createElement("ext:UBLExtensions")
+
+		const extUblExtension = document.xmlDocument.createElement("ext:UBLExtension")
+		extUblExtensions.appendChild(extUblExtension)
+
+		const extExtensionContent = document.xmlDocument.createElement("ext:ExtensionContent")
+		extUblExtension.appendChild(extExtensionContent)
+
+		fragment.appendChild(extUblExtensions)
+		return fragment
+	}
+
+	static generateHeader(invoice) {
+		const doc = invoice.xmlDocument
+		// Ultra-light container
+		const fragment = doc.createDocumentFragment()
+
+		const cbcUblVersionId = doc.createElement("cbc:UBLVersionID")
+		cbcUblVersionId.textContent = invoice.getUblVersion()
+		fragment.appendChild(cbcUblVersionId)
+
+		const cbcCustomizationId = doc.createElement("cbc:CustomizationID")
 		cbcCustomizationId.textContent = invoice.getCustomizationId()
-		invoice.xmlDocument.documentElement.appendChild(cbcCustomizationId)
+		fragment.appendChild(cbcCustomizationId)
+
+		// Use this fragment and the other fragments in the same place
+		return fragment
 	}
 
 	static generateIdentity(invoice) {
+		const fragment = invoice.xmlDocument.createDocumentFragment()
+
 		const cbcId = invoice.xmlDocument.createElement("cbc:ID")
 		cbcId.textContent = invoice.getId()
-		invoice.xmlDocument.documentElement.appendChild(cbcId)
+		fragment.appendChild(cbcId)
+
+		return fragment
 	}
 
 	static generateDates(invoice) {
-		const cbcIssueDate = invoice.xmlDocument.createElement("cbc:IssueDate")
-		cbcIssueDate.textContent = Receipt.displayDate(invoice.getIssueDate())
-		invoice.xmlDocument.documentElement.appendChild(cbcIssueDate)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
 
-		const cbcIssueTime = invoice.xmlDocument.createElement("cbc:IssueTime")
-		cbcIssueTime.textContent = Receipt.displayTime(invoice.getIssueDate())
-		invoice.xmlDocument.documentElement.appendChild(cbcIssueTime)
+		// caching
+		const issueDate = invoice.getIssueDate()
+		const typeCode = invoice.getTypeCode()
 
-		if (invoice.getTypeCode() == 1 && invoice.getDueDate() && invoice.getShares().length == 0) {
-			const cbcDueDate = invoice.xmlDocument.createElement("cbc:DueDate")
-			cbcDueDate.textContent = Receipt.displayDate(invoice.getDueDate())
-			invoice.xmlDocument.documentElement.appendChild(cbcDueDate)
+		const cbcIssueDate = doc.createElement("cbc:IssueDate")
+		cbcIssueDate.textContent = Receipt.displayDate(issueDate)
+		fragment.appendChild(cbcIssueDate)
+
+		const cbcIssueTime = doc.createElement("cbc:IssueTime")
+		cbcIssueTime.textContent = Receipt.displayTime(issueDate)
+		fragment.appendChild(cbcIssueTime)
+
+		if (typeCode == 1 && invoice.getShares().length == 0) {
+			// caching due date
+			const dueDate = invoice.getDueDate()
+
+			if (dueDate) {
+				const cbcDueDate = doc.createElement("cbc:DueDate")
+				cbcDueDate.textContent = Receipt.displayDate(dueDate)
+				fragment.appendChild(cbcDueDate)
+			}
 		}
+
+		return fragment
 	}
 
 	static generateTypeCode(invoice) {
+		const fragment = invoice.xmlDocument.createDocumentFragment()
+
 		const cbcInvoiceTypeCode = invoice.xmlDocument.createElement(`cbc:${invoice.name}TypeCode`)
 		cbcInvoiceTypeCode.textContent = invoice.getTypeCode(true)
-		invoice.xmlDocument.documentElement.appendChild(cbcInvoiceTypeCode)
+		fragment.appendChild(cbcInvoiceTypeCode)
 
 		if (!(invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3)) {
-			return
+			return fragment
 		}
 
 		if (invoice.hasDetraction()) {
@@ -48,340 +93,407 @@ class NodesGenerator {
 		else {
 			cbcInvoiceTypeCode.setAttribute("listID", "0101")
 		}
+
+		return fragment
 	}
 
 	static generateNotes(invoice) {
-		const cbcNote = invoice.xmlDocument.createElement("cbc:Note")
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
 
-		if (invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) {
+		const typeCode = invoice.getTypeCode()
+
+		const cbcNote = doc.createElement("cbc:Note")
+
+		if (typeCode == 9 || typeCode == 31) {
 			if (!invoice.getNote()) { // if empty
-				return
+				return fragment // it's empty
 			}
 
-			cbcNote.appendChild( invoice.xmlDocument.createCDATASection(invoice.getNote()) )
-			invoice.xmlDocument.documentElement.appendChild(cbcNote)
-			return
+			cbcNote.appendChild(doc.createCDATASection(invoice.getNote()))
+			fragment.appendChild(cbcNote)
+			return fragment
 		}
 
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( invoice.xmlDocument.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
-		invoice.xmlDocument.documentElement.appendChild(cbcNote)
+		cbcNote.appendChild( doc.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
+		fragment.appendChild(cbcNote)
 
-		if ((invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) && invoice.hasDetraction()) {
-			const cbcNote = invoice.xmlDocument.createElement("cbc:Note")
+		if ((typeCode == 1 || typeCode == 3) && invoice.hasDetraction()) {
+			const cbcNote = doc.createElement("cbc:Note")
 			cbcNote.setAttribute("languageLocaleID", "2006")
-			cbcNote.appendChild( invoice.xmlDocument.createCDATASection("Operación sujeta a detracción") )
-			invoice.xmlDocument.documentElement.appendChild(cbcNote)
+			cbcNote.appendChild(doc.createCDATASection("Operación sujeta a detracción"))
+			fragment.appendChild(cbcNote)
 		}
+
+		return fragment
 	}
 
 	static generateCurrencyCode(invoice) {
+		const fragment = invoice.xmlDocument.createDocumentFragment()
+
 		const cbcDocumentCurrencyCode = invoice.xmlDocument.createElement("cbc:DocumentCurrencyCode")
 		cbcDocumentCurrencyCode.textContent = invoice.getCurrencyId()
-		invoice.xmlDocument.documentElement.appendChild(cbcDocumentCurrencyCode)
+		fragment.appendChild(cbcDocumentCurrencyCode)
+
+		return fragment
 	}
 
 	static generateReference(invoice) {
-		if ((invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) && invoice.getOrderReference()) { // for invoice
-			const cacOrderReference = invoice.xmlDocument.createElement("cac:OrderReference")
-			invoice.xmlDocument.documentElement.appendChild(cacOrderReference)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		const typeCode = invoice.getTypeCode()
+
+		if ((typeCode == 1 || typeCode == 3) && invoice.getOrderReference()) { // for invoice
+			const cacOrderReference = doc.createElement("cac:OrderReference")
+			fragment.appendChild(cacOrderReference)
 
 			{
-				const cbcId = invoice.xmlDocument.createElement("cbc:ID")
+				const cbcId = doc.createElement("cbc:ID")
 				cbcId.textContent = invoice.getOrderReference()
 				cacOrderReference.appendChild(cbcId)
 			}
 
 			if (invoice.getOrderReferenceText()) {
-				const cbcCustomerReference = invoice.xmlDocument.createElement("cbc:CustomerReference")
-				cbcCustomerReference.appendChild( invoice.xmlDocument.createCDATASection(invoice.getOrderReferenceText()) )
+				const cbcCustomerReference = doc.createElement("cbc:CustomerReference")
+				cbcCustomerReference.appendChild(doc.createCDATASection(invoice.getOrderReferenceText()))
 				cacOrderReference.appendChild(cbcCustomerReference)
 			}
 
-			return
+			return fragment
 		}
 
-		if ((invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8)) { // for note
-			const cacBillingReference = invoice.xmlDocument.createElement("cac:BillingReference")
-			invoice.xmlDocument.documentElement.appendChild(cacBillingReference)
+		if ((typeCode == 7 || typeCode == 8)) { // for note
+			const cacBillingReference = doc.createElement("cac:BillingReference")
+			fragment.appendChild(cacBillingReference)
 			{
-				const cacInvoiceDocumentReference = invoice.xmlDocument.createElement("cac:InvoiceDocumentReference")
+				const cacInvoiceDocumentReference = doc.createElement("cac:InvoiceDocumentReference")
 				cacBillingReference.appendChild(cacInvoiceDocumentReference)
 				{
-					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+					const cbcID = doc.createElement("cbc:ID")
 					cbcID.textContent = invoice.getDocumentReference()
 					cacInvoiceDocumentReference.appendChild(cbcID)
 
-					const cbcDocumentTypeCode = invoice.xmlDocument.createElement("cbc:DocumentTypeCode")
+					const cbcDocumentTypeCode = doc.createElement("cbc:DocumentTypeCode")
 					cbcDocumentTypeCode.textContent = invoice.getDocumentReferenceTypeCode(true)
 					cacInvoiceDocumentReference.appendChild(cbcDocumentTypeCode)
 				}
 			}
+
+			return fragment
 		}
+
+		return fragment
 	}
 
 	static generateSignature(invoice) {
-		const cacSignature = invoice.xmlDocument.createElement("cac:Signature")
-		invoice.xmlDocument.documentElement.appendChild(cacSignature)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
 
-		const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-		cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+		// caching
+		const taxpayer = invoice.getTaxpayer()
+		const ruc = taxpayer.getIdentification().getNumber()
+
+		const cacSignature = doc.createElement("cac:Signature")
+
+		const cbcId = doc.createElement("cbc:ID")
+		cbcId.textContent = ruc
 		cacSignature.appendChild(cbcId)
 
 		{
-			const cacSignatoreParty = invoice.xmlDocument.createElement("cac:SignatoryParty")
+			const cacSignatoreParty = doc.createElement("cac:SignatoryParty")
 			cacSignature.appendChild(cacSignatoreParty)
 
-			const cacPartyIdentification = invoice.xmlDocument.createElement("cac:PartyIdentification")
+			const cacPartyIdentification = doc.createElement("cac:PartyIdentification")
 			cacSignatoreParty.appendChild(cacPartyIdentification)
 
-			const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-			cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+			const cbcId = doc.createElement("cbc:ID")
+			cbcId.textContent = ruc
 			cacPartyIdentification.appendChild(cbcId)
 
-			const cacPartyName = invoice.xmlDocument.createElement("cac:PartyName")
+			const cacPartyName = doc.createElement("cac:PartyName")
 			cacSignatoreParty.appendChild(cacPartyName)
 
-			const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-			cbcName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getName()) )
+			const cbcName = doc.createElement("cbc:Name")
+			cbcName.appendChild(doc.createCDATASection(taxpayer.getName()))
 			cacPartyName.appendChild(cbcName)
 		}
 		{
-			const cacDigitalSignatureAttachment = invoice.xmlDocument.createElement("cac:DigitalSignatureAttachment")
+			const cacDigitalSignatureAttachment = doc.createElement("cac:DigitalSignatureAttachment")
 			cacSignature.appendChild(cacDigitalSignatureAttachment)
 
-			const cacExternalReference = invoice.xmlDocument.createElement("cac:ExternalReference")
+			const cacExternalReference = doc.createElement("cac:ExternalReference")
 			cacDigitalSignatureAttachment.appendChild(cacExternalReference)
 
-			const cbcUri = invoice.xmlDocument.createElement("cbc:URI")
+			const cbcUri = doc.createElement("cbc:URI")
 			cbcUri.textContent = "#terexoris"
 			cacExternalReference.appendChild(cbcUri)
 		}
+
+		fragment.appendChild(cacSignature)
+		return fragment
 	}
 
 	static generateSupplier(invoice) { //Supplier (current taxpayer)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching
+		const taxpayer = invoice.getTaxpayer()
+		const address = taxpayer.getAddress()
+		const identification = taxpayer.getIdentification()
+		const typeCode = invoice.getTypeCode()
+
 		// Dynamic name for that node
-		const supplierNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3 || invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8) ? "cac:AccountingSupplierParty" :
-			(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) ? "cac:DespatchSupplierParty" :
+		const supplierNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingSupplierParty" :
+			(typeCode == 9 || typeCode == 31) ? "cac:DespatchSupplierParty" :
 			"cac:SupplierParty" // it's error
 
-		const cacAccountingSupplierParty = invoice.xmlDocument.createElement(supplierNodeName)
-		invoice.xmlDocument.documentElement.appendChild(cacAccountingSupplierParty)
+		const cacAccountingSupplierParty = doc.createElement(supplierNodeName)
 
-		const cacParty = invoice.xmlDocument.createElement("cac:Party")
+		const cacParty = doc.createElement("cac:Party")
 		cacAccountingSupplierParty.appendChild(cacParty)
 
-		const cacPartyIdentification = invoice.xmlDocument.createElement("cac:PartyIdentification")
+		const cacPartyIdentification = doc.createElement("cac:PartyIdentification")
 		cacParty.appendChild(cacPartyIdentification)
 
-		const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-		cbcId.setAttribute("schemeID", invoice.getTaxpayer().getIdentification().getType())
+		const cbcId = doc.createElement("cbc:ID")
+		cbcId.setAttribute("schemeID", identification.getType())
 		cbcId.setAttribute("schemeName", "Documento de Identidad")
 		cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
 		cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-		cbcId.textContent = invoice.getTaxpayer().getIdentification().getNumber()
+		cbcId.textContent = identification.getNumber()
 		cacPartyIdentification.appendChild(cbcId)
 
-		const cacPartyName = invoice.xmlDocument.createElement("cac:PartyName")
+		const cacPartyName = doc.createElement("cac:PartyName")
 		cacParty.appendChild(cacPartyName)
 
-		const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-		cbcName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getTradeName()) )
+		const cbcName = doc.createElement("cbc:Name")
+		cbcName.appendChild( doc.createCDATASection(taxpayer.getTradeName()) )
 		cacPartyName.appendChild(cbcName)
 
-		const cacPartyLegalEntity = invoice.xmlDocument.createElement("cac:PartyLegalEntity")
+		const cacPartyLegalEntity = doc.createElement("cac:PartyLegalEntity")
 		cacParty.appendChild(cacPartyLegalEntity)
 		{
-			const cbcRegistrationName = invoice.xmlDocument.createElement("cbc:RegistrationName")
-			cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getName()) )
+			const cbcRegistrationName = doc.createElement("cbc:RegistrationName")
+			cbcRegistrationName.appendChild( doc.createCDATASection(taxpayer.getName()) )
 			cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
-			const cacRegistrationAddress = invoice.xmlDocument.createElement("cac:RegistrationAddress")
+			const cacRegistrationAddress = doc.createElement("cac:RegistrationAddress")
 			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 			{
-				const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-				cbcId.textContent = invoice.getTaxpayer().getAddress().ubigeo
+				const cbcId = doc.createElement("cbc:ID")
+				cbcId.textContent = address.ubigeo
 				cacRegistrationAddress.appendChild(cbcId)
 
-				const cbcAddressTypeCode = invoice.xmlDocument.createElement("cbc:AddressTypeCode")
-				cbcAddressTypeCode.textContent = invoice.getTaxpayer().getAddress().typecode
+				const cbcAddressTypeCode = doc.createElement("cbc:AddressTypeCode")
+				cbcAddressTypeCode.textContent = address.typecode
 				cacRegistrationAddress.appendChild(cbcAddressTypeCode)
 
-				const cbcCitySubdivisionName = invoice.xmlDocument.createElement("cbc:CitySubdivisionName")
-				cbcCitySubdivisionName.textContent = invoice.getTaxpayer().getAddress().urbanization
+				const cbcCitySubdivisionName = doc.createElement("cbc:CitySubdivisionName")
+				cbcCitySubdivisionName.textContent = address.urbanization
 				cacRegistrationAddress.appendChild(cbcCitySubdivisionName)
 
-				const cbcCityName = invoice.xmlDocument.createElement("cbc:CityName")
-				cbcCityName.textContent = invoice.getTaxpayer().getAddress().city
+				const cbcCityName = doc.createElement("cbc:CityName")
+				cbcCityName.textContent = address.city
 				cacRegistrationAddress.appendChild(cbcCityName)
 
-				const cbcCountrySubentity = invoice.xmlDocument.createElement("cbc:CountrySubentity")
-				cbcCountrySubentity.textContent = invoice.getTaxpayer().getAddress().subentity
+				const cbcCountrySubentity = doc.createElement("cbc:CountrySubentity")
+				cbcCountrySubentity.textContent = address.subentity
 				cacRegistrationAddress.appendChild(cbcCountrySubentity)
 
-				const cbcDistrict = invoice.xmlDocument.createElement("cbc:District")
-				cbcDistrict.textContent = invoice.getTaxpayer().getAddress().district
+				const cbcDistrict = doc.createElement("cbc:District")
+				cbcDistrict.textContent = address.district
 				cacRegistrationAddress.appendChild(cbcDistrict)
 
-				const cacAddressLine = invoice.xmlDocument.createElement("cac:AddressLine")
+				const cacAddressLine = doc.createElement("cac:AddressLine")
 				cacRegistrationAddress.appendChild(cacAddressLine)
 
-				const cbcLine = invoice.xmlDocument.createElement("cbc:Line")
-				cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getTaxpayer().getAddress().line) )
+				const cbcLine = doc.createElement("cbc:Line")
+				cbcLine.appendChild( doc.createCDATASection(address.line) )
 				cacAddressLine.appendChild(cbcLine)
 
-				const cacCountry = invoice.xmlDocument.createElement("cac:Country")
+				const cacCountry = doc.createElement("cac:Country")
 				cacRegistrationAddress.appendChild(cacCountry)
 
-				const cbcIdentificationCode = invoice.xmlDocument.createElement("cbc:IdentificationCode")
-				cbcIdentificationCode.textContent = invoice.getTaxpayer().getAddress().country
+				const cbcIdentificationCode = doc.createElement("cbc:IdentificationCode")
+				cbcIdentificationCode.textContent = address.country
 				cacCountry.appendChild(cbcIdentificationCode)
 			}
 		}
 
-		if ( invoice.getTaxpayer().getWeb() || invoice.getTaxpayer().getEmail() || invoice.getTaxpayer().getTelephone() ) {
+		// Contact data (conditional optimization)
+		const tel = taxpayer.getTelephone()
+		const email = taxpayer.getEmail()
+		const web = taxpayer.getWeb()
+
+		if (tel || email || web) {
 			//Contact or marketing
-			const cacContact = invoice.xmlDocument.createElement("cac:Contact")
-			cacParty.appendChild(cacContact)
+			const cacContact = doc.createElement("cac:Contact")
 			{
-				if (invoice.getTaxpayer().getTelephone()) {
-					const cbcTelephone = invoice.xmlDocument.createElement("cbc:Telephone")
-					cbcTelephone.textContent = invoice.getTaxpayer().getTelephone()
+				if (tel) {
+					const cbcTelephone = doc.createElement("cbc:Telephone")
+					cbcTelephone.textContent = tel
 					cacContact.appendChild(cbcTelephone)
 				}
 
-				if (invoice.getTaxpayer().getEmail()) {
-					const cbcElectronicMail = invoice.xmlDocument.createElement("cbc:ElectronicMail")
-					cbcElectronicMail.textContent = invoice.getTaxpayer().getEmail()
+				if (email) {
+					const cbcElectronicMail = doc.createElement("cbc:ElectronicMail")
+					cbcElectronicMail.textContent = email
 					cacContact.appendChild(cbcElectronicMail)
 				}
 
-				if (invoice.getTaxpayer().getWeb()) {
-					const cbcNote = invoice.xmlDocument.createElement("cbc:Note")
-					cbcNote.textContent = invoice.getTaxpayer().getWeb()
+				if (web) {
+					const cbcNote = doc.createElement("cbc:Note")
+					cbcNote.textContent = web
 					cacContact.appendChild(cbcNote)
 				}
 			}
+			cacParty.appendChild(cacContact)
 		}
+
+		fragment.appendChild(cacAccountingSupplierParty)
+		return fragment
 	}
 
 	static generateCustomer(invoice) {
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching references and default values
+		const customer = invoice.getCustomer()
+		const identification = customer?.getIdentification()
+		const address = customer?.getAddress()
+		const typeCode = invoice.getTypeCode()
+
 		// Dynamic name for that node
-		const customerNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3 || invoice.getTypeCode() == 7 || invoice.getTypeCode() == 8) ? "cac:AccountingCustomerParty" :
-		(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31) ? "cac:DeliveryCustomerParty" :
+		const customerNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingCustomerParty" :
+		(typeCode == 9 || typeCode == 31) ? "cac:DeliveryCustomerParty" :
 		"cac:CustomerParty" // it's error
 
-		const cacAccountingCustomerParty = invoice.xmlDocument.createElement(customerNodeName)
-		invoice.xmlDocument.documentElement.appendChild(cacAccountingCustomerParty)
+		const cacAccountingCustomerParty = doc.createElement(customerNodeName)
 
-		const cacParty = invoice.xmlDocument.createElement("cac:Party")
+		const cacParty = doc.createElement("cac:Party")
 		cacAccountingCustomerParty.appendChild(cacParty)
 
-		const cacPartyIdentification = invoice.xmlDocument.createElement("cac:PartyIdentification")
-		cacParty.appendChild(cacPartyIdentification)
+		const cacPartyIdentification = doc.createElement("cac:PartyIdentification")
 
-		const cbcId = invoice.xmlDocument.createElement("cbc:ID")
-		cbcId.setAttribute("schemeID", invoice.getCustomer()?.getIdentification()?.getType() ?? "1")
+		const cbcId = doc.createElement("cbc:ID")
+		cbcId.setAttribute("schemeID", identification?.getType() ?? "1")
 		cbcId.setAttribute("schemeName", "Documento de Identidad")
 		cbcId.setAttribute("schemeAgencyName", "PE:SUNAT")
 		cbcId.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
-		cbcId.textContent = invoice.getCustomer()?.getIdentification()?.getNumber() ?? "-"
-		cacPartyIdentification.appendChild(cbcId)
+		cbcId.textContent = identification?.getNumber() ?? "-"
 
-		const cacPartyLegalEntity = invoice.xmlDocument.createElement("cac:PartyLegalEntity")
+		cacPartyIdentification.appendChild(cbcId)
+		cacParty.appendChild(cacPartyIdentification)
+
+		const cacPartyLegalEntity = doc.createElement("cac:PartyLegalEntity")
 		cacParty.appendChild(cacPartyLegalEntity)
 
-		const cbcRegistrationName = invoice.xmlDocument.createElement("cbc:RegistrationName")
-		cbcRegistrationName.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer()?.getName() ?? "Nemo") )
+		const cbcRegistrationName = doc.createElement("cbc:RegistrationName")
+		cbcRegistrationName.appendChild( doc.createCDATASection(customer?.getName() ?? "Nemo") )
 		cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
-		if (invoice.getCustomer()?.getAddress()) {
-			const cacRegistrationAddress = invoice.xmlDocument.createElement("cac:RegistrationAddress")
+		if (address?.line) {
+			const cacRegistrationAddress = doc.createElement("cac:RegistrationAddress")
 			cacPartyLegalEntity.appendChild(cacRegistrationAddress)
 
-			const cacAddressLine = invoice.xmlDocument.createElement("cac:AddressLine")
+			const cacAddressLine = doc.createElement("cac:AddressLine")
 			cacRegistrationAddress.appendChild(cacAddressLine)
 
-			const cbcLine = invoice.xmlDocument.createElement("cbc:Line")
-			cbcLine.appendChild( invoice.xmlDocument.createCDATASection(invoice.getCustomer().getAddress().line) )
+			const cbcLine = doc.createElement("cbc:Line")
+			cbcLine.appendChild( doc.createCDATASection(address.line) )
 			cacAddressLine.appendChild(cbcLine)
 		}
+
+		fragment.appendChild(cacAccountingCustomerParty)
+		return fragment
 	}
 
 	static generateShipment(despatch) {
-		const cacShipment = despatch.xmlDocument.createElement("cac:Shipment")
-		despatch.xmlDocument.documentElement.appendChild(cacShipment)
+		const doc = despatch.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching
+		const carrier = despatch.getCarrier()
+		const vehicles = despatch.getVehicles()
+		const drivers = despatch.getDrivers()
+		const containers = despatch.getPackages() // remember that package is a reserved word
+
+		const cacShipment = doc.createElement("cac:Shipment")
 		{
-			const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+			const cbcID = doc.createElement("cbc:ID")
 			cbcID.textContent = "SUNAT_Envio"
 			cacShipment.appendChild(cbcID)
 
-			const cbcHandlingCode = despatch.xmlDocument.createElement("cbc:HandlingCode")
+			const cbcHandlingCode = doc.createElement("cbc:HandlingCode")
 			cbcHandlingCode.setAttribute("listAgencyName", "PE:SUNAT")
 			cbcHandlingCode.setAttribute("listName", "Motivo de traslado")
 			cbcHandlingCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20")
 			cbcHandlingCode.textContent = despatch.getHandlingCode(true)
 			cacShipment.appendChild(cbcHandlingCode)
 
-			const cbcGrossWeightMeasure = despatch.xmlDocument.createElement("cbc:GrossWeightMeasure")
+			const cbcGrossWeightMeasure = doc.createElement("cbc:GrossWeightMeasure")
 			cbcGrossWeightMeasure.setAttribute("unitCode", despatch.getUnitCode())
 			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
 			if (!despatch.getCarrier() && despatch.inLightVehicle()) { // we are sending in own light vehicle
-				const cbcSpecialInstructions = despatch.xmlDocument.createElement("cbc:SpecialInstructions")
+				const cbcSpecialInstructions = doc.createElement("cbc:SpecialInstructions")
 				cbcSpecialInstructions.textContent = "SUNAT_Envio_IndicadorTrasladoVehiculoM1L"
 				cacShipment.appendChild(cbcSpecialInstructions)
 			}
 
-			const cacShipmentStage = despatch.xmlDocument.createElement("cac:ShipmentStage")
+			const cacShipmentStage = doc.createElement("cac:ShipmentStage")
 			cacShipment.appendChild(cacShipmentStage)
 			{
-				const cbcTransportModeCode = despatch.xmlDocument.createElement("cbc:TransportModeCode")
+				const cbcTransportModeCode = doc.createElement("cbc:TransportModeCode")
 				cbcTransportModeCode.setAttribute("listName", "Modalidad de traslado")
 				cbcTransportModeCode.setAttribute("listAgencyName", "PE:SUNAT")
 				cbcTransportModeCode.setAttribute("listURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18")
-				cbcTransportModeCode.textContent = !despatch.getCarrier() ? "02" : "01"
+				cbcTransportModeCode.textContent = !carrier ? "02" : "01"
 				cacShipmentStage.appendChild(cbcTransportModeCode)
 
-				const cacTransitPeriod = despatch.xmlDocument.createElement("cac:TransitPeriod")
+				const cacTransitPeriod = doc.createElement("cac:TransitPeriod")
 				cacShipmentStage.appendChild(cacTransitPeriod)
 				{
-					const cbcStartDate = despatch.xmlDocument.createElement("cbc:StartDate")
+					const cbcStartDate = doc.createElement("cbc:StartDate")
 					cbcStartDate.textContent = Receipt.displayDate(despatch.getStartDate())
 					cacTransitPeriod.appendChild(cbcStartDate)
 				}
 
-				if (despatch.getCarrier()) {
-					const cacCarrierParty = despatch.xmlDocument.createElement("cac:CarrierParty")
+				if (carrier) {
+					const cacCarrierParty = doc.createElement("cac:CarrierParty")
 					cacShipmentStage.appendChild(cacCarrierParty)
 					{
-						const cacPartyIdentification = despatch.xmlDocument.createElement("cac:PartyIdentification")
+						const cacPartyIdentification = doc.createElement("cac:PartyIdentification")
 						cacCarrierParty.appendChild(cacPartyIdentification)
 						{
-							const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+							const cbcID = doc.createElement("cbc:ID")
 							cbcID.setAttribute("schemeID", "6")
-							cbcID.textContent = despatch.getCarrier().getIdentification().getNumber()
+							cbcID.textContent = carrier.getIdentification().getNumber()
 							cacPartyIdentification.appendChild(cbcID)
 						}
 
-						const cacPartyLegalEntity = despatch.xmlDocument.createElement("cac:PartyLegalEntity")
+						const cacPartyLegalEntity = doc.createElement("cac:PartyLegalEntity")
 						cacCarrierParty.appendChild(cacPartyLegalEntity)
 						{
-							const cbcRegistrationName = despatch.xmlDocument.createElement("cbc:RegistrationName")
-							cbcRegistrationName.appendChild( despatch.xmlDocument.createCDATASection(despatch.getCarrier().getName()) )
+							const cbcRegistrationName = doc.createElement("cbc:RegistrationName")
+							cbcRegistrationName.appendChild(doc.createCDATASection(carrier.getName()))
 							cacPartyLegalEntity.appendChild(cbcRegistrationName)
 						}
 					}
 				}
 
-				if (despatch.getDrivers().length > 0) {
-					let driverIndex = 0
-					for (const driver of despatch.getDrivers()) {
-						const cacDriverPerson = despatch.xmlDocument.createElement("cac:DriverPerson")
+				if (drivers.length > 0) {
+					for (let driverIndex = 0; driverIndex < drivers.length; ++driverIndex) {
+						const driver = drivers[driverIndex]
+						const cacDriverPerson = doc.createElement("cac:DriverPerson")
 						cacShipmentStage.appendChild(cacDriverPerson)
 						{
-							const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+							const cbcID = doc.createElement("cbc:ID")
 							cbcID.setAttribute("schemeID", driver.getIdentification().getType())
 							cbcID.setAttribute("schemeName", "Documento de Identidad")
 							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
@@ -389,22 +501,22 @@ class NodesGenerator {
 							cbcID.textContent = driver.getIdentification().getNumber()
 							cacDriverPerson.appendChild(cbcID)
 
-							const cbcFirstName = despatch.xmlDocument.createElement("cbc:FirstName")
+							const cbcFirstName = doc.createElement("cbc:FirstName")
 							cbcFirstName.textContent = driver.getName()
 							cacDriverPerson.appendChild(cbcFirstName)
 
-							const cbcFamilyName = despatch.xmlDocument.createElement("cbc:FamilyName")
+							const cbcFamilyName = doc.createElement("cbc:FamilyName")
 							cbcFamilyName.textContent = driver.getFamilyName()
 							cacDriverPerson.appendChild(cbcFamilyName)
 
-							const cbcJobTitle = despatch.xmlDocument.createElement("cbc:JobTitle")
-							cbcJobTitle.textContent = driverIndex++ == 0 ? "Principal" : "Secundario"
+							const cbcJobTitle = doc.createElement("cbc:JobTitle")
+							cbcJobTitle.textContent = driverIndex == 0 ? "Principal" : "Secundario"
 							cacDriverPerson.appendChild(cbcJobTitle)
 
-							const cacIdentityDocumentReference = despatch.xmlDocument.createElement("cac:IdentityDocumentReference")
+							const cacIdentityDocumentReference = doc.createElement("cac:IdentityDocumentReference")
 							cacDriverPerson.appendChild(cacIdentityDocumentReference)
 							{
-								const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+								const cbcID = doc.createElement("cbc:ID")
 								cbcID.textContent = driver.getLicense()
 								cacIdentityDocumentReference.appendChild(cbcID)
 							}
@@ -413,137 +525,137 @@ class NodesGenerator {
 				}
 			}
 
-			const cacDelivery = despatch.xmlDocument.createElement("cac:Delivery")
+			// cache
+			const deliveryAddress = despatch.getDeliveryAddress()
+			const despatchAddress = despatch.getDespatchAddress()
+
+			const cacDelivery = doc.createElement("cac:Delivery")
 			cacShipment.appendChild(cacDelivery)
 			{
-				const cacDeliveryAddress = despatch.xmlDocument.createElement("cac:DeliveryAddress")
+				const cacDeliveryAddress = doc.createElement("cac:DeliveryAddress")
 				cacDelivery.appendChild(cacDeliveryAddress)
 				{
-					const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+					const cbcID = doc.createElement("cbc:ID")
 					cbcID.setAttribute("schemeAgencyName", "PE:INEI")
 					cbcID.setAttribute("schemeName", "Ubigeos")
-					cbcID.textContent = despatch.getDeliveryAddress().ubigeo
+					cbcID.textContent = deliveryAddress.ubigeo
 					cacDeliveryAddress.appendChild(cbcID)
 
-					const cacAddressLine = despatch.xmlDocument.createElement("cac:AddressLine")
+					const cacAddressLine = doc.createElement("cac:AddressLine")
 					cacDeliveryAddress.appendChild(cacAddressLine)
 					{
-						const cbcLine = despatch.xmlDocument.createElement("cbc:Line")
-						cbcLine.textContent = despatch.getDeliveryAddress().line
+						const cbcLine = doc.createElement("cbc:Line")
+						cbcLine.textContent = deliveryAddress.line
 						cacAddressLine.appendChild(cbcLine)
 					}
 				}
 
-				const cacDespatch = despatch.xmlDocument.createElement("cac:Despatch")
+				const cacDespatch = doc.createElement("cac:Despatch")
 				cacDelivery.appendChild(cacDespatch)
 				{
-					const cacDespatchAddress = despatch.xmlDocument.createElement("cac:DespatchAddress")
+					const cacDespatchAddress = doc.createElement("cac:DespatchAddress")
 					cacDespatch.appendChild(cacDespatchAddress)
 					{
-						const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+						const cbcID = doc.createElement("cbc:ID")
 						cbcID.setAttribute("schemeAgencyName", "PE:INEI")
 						cbcID.setAttribute("schemeName", "Ubigeos")
-						cbcID.textContent = despatch.getDespatchAddress().ubigeo
+						cbcID.textContent = despatchAddress.ubigeo
 						cacDespatchAddress.appendChild(cbcID)
 
-						const cacAddressLine = despatch.xmlDocument.createElement("cac:AddressLine")
+						const cacAddressLine = doc.createElement("cac:AddressLine")
 						cacDespatchAddress.appendChild(cacAddressLine)
 						{
-							const cbcLine = despatch.xmlDocument.createElement("cbc:Line")
-							cbcLine.textContent = despatch.getDespatchAddress().line
+							const cbcLine = doc.createElement("cbc:Line")
+							cbcLine.textContent = despatchAddress.line
 							cacAddressLine.appendChild(cbcLine)
 						}
 					}
 				}
 			}
 
-			let containerIndex = 0
-			for (const container of despatch.getPackages()) {
-				const cacTransportHandlingUnit = despatch.xmlDocument.createElement("cac:TransportHandlingUnit")
+			for (let containerIndex = 0; containerIndex < containers.length; ++containerIndex) {
+				const container = containers[containerIndex]
+				const cacTransportHandlingUnit = doc.createElement("cac:TransportHandlingUnit")
 				cacShipment.appendChild(cacTransportHandlingUnit)
 				{
-					const cacPackage = despatch.xmlDocument.createElement("cac:Package")
+					const cacPackage = doc.createElement("cac:Package")
 					cacTransportHandlingUnit.appendChild(cacPackage)
 					{
-						const cbcID = despatch.xmlDocument.createElement("cbc:ID")
-						cbcID.textContent = ++packageIndex
+						const cbcID = doc.createElement("cbc:ID")
+						cbcID.textContent = String(containerIndex)
 						cacPackage.appendChild(cbcID)
 
-						const cbcTraceID = despatch.xmlDocument.createElement("cbc:TraceID")
+						const cbcTraceID = doc.createElement("cbc:TraceID")
 						cbcTraceID.textContent = container.traceIdentity
 						cacPackage.appendChild(cbcTraceID)
 					}
 				}
 			}
 
-			if (despatch.getVehicles().length > 0) {
-				const cacTransportHandlingUnit = despatch.xmlDocument.createElement("cac:TransportHandlingUnit")
+			if (vehicles.length > 0) {
+				const cacTransportHandlingUnit = doc.createElement("cac:TransportHandlingUnit")
 				cacShipment.appendChild(cacTransportHandlingUnit)
 				{
-					const cacTransportEquipment = despatch.xmlDocument.createElement("cac:TransportEquipment")
+					const cacTransportEquipment = doc.createElement("cac:TransportEquipment")
 					cacTransportHandlingUnit.appendChild(cacTransportEquipment)
 					{
-						const cbcID = despatch.xmlDocument.createElement("cbc:ID")
-						cbcID.textContent = despatch.getVehicles()[0].identity
+						const cbcID = doc.createElement("cbc:ID")
+						cbcID.textContent = vehicles[0].identity
 						cacTransportEquipment.appendChild(cbcID)
 
-						if (despatch.getVehicles()[0].registrationIdentity) {
-							const cacApplicableTransportMeans = despatch.xmlDocument.createElement("cac:ApplicableTransportMeans")
+						if (vehicles[0].registrationIdentity) {
+							const cacApplicableTransportMeans = doc.createElement("cac:ApplicableTransportMeans")
 							cacTransportEquipment.appendChild(cacApplicableTransportMeans)
 							{
-								const cbcRegistrationNationalityID = despatch.xmlDocument.createElement("cbc:RegistrationNationalityID")
-								cbcRegistrationNationalityID.textContent = despatch.getVehicles()[0].registrationIdentity
+								const cbcRegistrationNationalityID = doc.createElement("cbc:RegistrationNationalityID")
+								cbcRegistrationNationalityID.textContent = vehicles[0].registrationIdentity
 								cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
 							}
 						}
 
 						// More vehicles
-						if (despatch.getVehicles().length > 1) {
-							let index = 0
-							for (const vehicle of despatch.getVehicles()) {
-								if (index == 0) { // We need to iterate secondary vehicles
-									++index
-									continue
-								}
-
-								const cacAttachedTransportEquipment = despatch.xmlDocument.createElement("cac:AttachedTransportEquipment")
+						if (vehicles.length > 1) {
+							// We need to iterate secondary vehicles
+							for (let i = 1; i < vehicles.length; ++i) {
+								const vehicle = vehicles[i]
+								const cacAttachedTransportEquipment = doc.createElement("cac:AttachedTransportEquipment")
 								cacTransportEquipment.appendChild(cacAttachedTransportEquipment)
 								{
-									const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+									const cbcID = doc.createElement("cbc:ID")
 									cbcID.textContent = vehicle.identity
 									cacAttachedTransportEquipment.appendChild(cbcID)
 
 									if (vehicle.registrationIdentity) {
-										const cacApplicableTransportMeans = despatch.xmlDocument.createElement("cac:ApplicableTransportMeans")
+										const cacApplicableTransportMeans = doc.createElement("cac:ApplicableTransportMeans")
 										cacAttachedTransportEquipment.appendChild(cacApplicableTransportMeans)
 										{
-											const cbcRegistrationNationalityID = despatch.xmlDocument.createElement("cbc:RegistrationNationalityID")
+											const cbcRegistrationNationalityID = doc.createElement("cbc:RegistrationNationalityID")
 											cbcRegistrationNationalityID.textContent = vehicle.registrationIdentity
 											cacApplicableTransportMeans.appendChild(cbcRegistrationNationalityID)
 										}
 									}
 
 									if (vehicle.authorization) {
-										const cacShipmentDocumentReference = despatch.xmlDocument.createElement("cac:ShipmentDocumentReference")
+										const cacShipmentDocumentReference = doc.createElement("cac:ShipmentDocumentReference")
 										cacAttachedTransportEquipment.appendChild(cacShipmentDocumentReference)
 										{
-											const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+											const cbcID = doc.createElement("cbc:ID")
 											cbcID.setAttribute("schemeID", vehicle.departmentCode)
 											cbcID.textContent = vehicle.authorization
 											cacShipmentDocumentReference.appendChild(cbcID)
 										}
 									}
 								}
-							}
+							} // for
 						}
 
-						if (despatch.getVehicles()[0].authorization) {
-							const cacShipmentDocumentReference = despatch.xmlDocument.createElement("cac:ShipmentDocumentReference")
+						if (vehicles[0].authorization) {
+							const cacShipmentDocumentReference = doc.createElement("cac:ShipmentDocumentReference")
 							cacTransportEquipment.appendChild(cacShipmentDocumentReference)
 							{
-								const cbcID = despatch.xmlDocument.createElement("cbc:ID")
-								cbcID.setAttribute("schemeID", despatch.getVehicles()[0].departmentCode)
-								cbcID.textContent = despatch.getVehicles()[0].authorization
+								const cbcID = doc.createElement("cbc:ID")
+								cbcID.setAttribute("schemeID", vehicles[0].departmentCode)
+								cbcID.textContent = vehicles[0].authorization
 								cacShipmentDocumentReference.appendChild(cbcID)
 							}
 						}
@@ -551,458 +663,467 @@ class NodesGenerator {
 				}
 			}
 
-			if (despatch.getPort()) {
-				const cacFirstArrivalPortLocation = despatch.xmlDocument.createElement("cac:FirstArrivalPortLocation")
+			const port = despatch.getPort()
+			if (port) {
+				// caching
+				const isPort = port.type
+
+				const cacFirstArrivalPortLocation = doc.createElement("cac:FirstArrivalPortLocation")
 				cacShipment.appendChild(cacFirstArrivalPortLocation)
 				{
-					const cbcID = despatch.xmlDocument.createElement("cbc:ID")
+					const cbcID = doc.createElement("cbc:ID")
 					cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
-					cbcID.setAttribute("schemeName", despatch.getPort().type ? "Puertos" : "Aeropuertos")
-					cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo" + (despatch.getPort().type ? "63" : "64"))
-					cbcID.textContent = despatch.getPort().identity
+					cbcID.setAttribute("schemeName", isPort ? "Puertos" : "Aeropuertos")
+					cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo" + (isPort ? "63" : "64"))
+					cbcID.textContent = port.identity
 					cacFirstArrivalPortLocation.appendChild(cbcID)
 
-					const cbcLocationTypeCode = despatch.xmlDocument.createElement("cbc:LocationTypeCode")
-					cbcLocationTypeCode.textContent = despatch.getPort().name.type ? "1" : "2"
+					const cbcLocationTypeCode = doc.createElement("cbc:LocationTypeCode")
+					cbcLocationTypeCode.textContent = port.name.type ? "1" : "2"
 					cacFirstArrivalPortLocation.appendChild(cbcLocationTypeCode)
 
-					const cbcName = despatch.xmlDocument.createElement("cbc:Name")
-					cbcName.textContent = despatch.getPort().name
+					const cbcName = doc.createElement("cbc:Name")
+					cbcName.textContent = port.name
 					cacFirstArrivalPortLocation.appendChild(cbcName)
 				}
 			}
 		}
+
+		fragment.appendChild(cacShipment)
+		return fragment
 	}
 
 	static generatePaymentMeans(invoice) {
-		if (invoice.hasDetraction()) {
-			const cacPaymentMeans = invoice.xmlDocument.createElement("cac:PaymentMeans")
-			invoice.xmlDocument.documentElement.appendChild(cacPaymentMeans)
+		const fragment = invoice.xmlDocument.createDocumentFragment()
+
+		if (!invoice.hasDetraction()) {
+			return fragment
+		}
+
+		// caching
+		const doc = invoice.xmlDocument
+		const detraction = invoice.getDetraction()
+		const currencyId = invoice.getCurrencyId() // Cachear esto también
+		// resolving here to avoid jumps
+		const bankAccount = detraction.getFinancialAccount() || invoice.getTaxpayer().getDeductionsAccount()
+
+		const cacPaymentMeans = doc.createElement("cac:PaymentMeans")
+		fragment.appendChild(cacPaymentMeans)
+		{
+			const cbcID = doc.createElement("cbc:ID")
+			cbcID.textContent = "Detraccion"
+			cacPaymentMeans.appendChild(cbcID)
+
+			const cbcPaymentMeansCode = doc.createElement("cbc:PaymentMeansCode")
+			cbcPaymentMeansCode.textContent = "003"
+			cacPaymentMeans.appendChild(cbcPaymentMeansCode)
+
+			const cacPayeeFinancialAccount = doc.createElement("cac:PayeeFinancialAccount")
+			cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
 			{
-				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-				cbcID.textContent = "Detraccion"
-				cacPaymentMeans.appendChild(cbcID)
-
-				const cbcPaymentMeansCode = invoice.xmlDocument.createElement("cbc:PaymentMeansCode")
-				cbcPaymentMeansCode.textContent = "003"
-				cacPaymentMeans.appendChild(cbcPaymentMeansCode)
-
-				const cacPayeeFinancialAccount = invoice.xmlDocument.createElement("cac:PayeeFinancialAccount")
-				cacPaymentMeans.appendChild(cacPayeeFinancialAccount)
-				{
-					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-					// Use explicit number or default
-					cbcID.textContent = invoice.getDetraction().getFinancialAccount() ?? invoice.getTaxpayer().getDeductionsAccount()
-					cacPayeeFinancialAccount.appendChild(cbcID)
-				}
-			}
-
-			const cacPaymentTerms = invoice.xmlDocument.createElement("cac:PaymentTerms")
-			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
-			{
-				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-				cbcID.textContent = "Detraccion"
-				cacPaymentTerms.appendChild(cbcID)
-
-				const cbcPaymentMeansID = invoice.xmlDocument.createElement("cbc:PaymentMeansID")
-				cbcPaymentMeansID.textContent = invoice.getDetraction().getCode()
-				cacPaymentTerms.appendChild(cbcPaymentMeansID)
-
-				const cbcPaymentPercent = invoice.xmlDocument.createElement("cbc:PaymentPercent")
-				cbcPaymentPercent.textContent = invoice.getDetraction().getPercentage()
-				cacPaymentTerms.appendChild(cbcPaymentPercent)
-
-				const cbcAmount  = invoice.xmlDocument.createElement("cbc:Amount")
-				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcAmount.textContent = invoice.getDetraction().getAmount().toFixed(2)
-				cacPaymentTerms.appendChild(cbcAmount)
+				const cbcID = doc.createElement("cbc:ID")
+				// Use explicit number or default
+				cbcID.textContent = bankAccount
+				cacPayeeFinancialAccount.appendChild(cbcID)
 			}
 		}
+
+		const cacPaymentTerms = doc.createElement("cac:PaymentTerms")
+		fragment.appendChild(cacPaymentTerms)
+		{
+			const cbcID = doc.createElement("cbc:ID")
+			cbcID.textContent = "Detraccion"
+			cacPaymentTerms.appendChild(cbcID)
+
+			const cbcPaymentMeansID = doc.createElement("cbc:PaymentMeansID")
+			cbcPaymentMeansID.textContent = detraction.getCode()
+			cacPaymentTerms.appendChild(cbcPaymentMeansID)
+
+			const cbcPaymentPercent = doc.createElement("cbc:PaymentPercent")
+			cbcPaymentPercent.textContent = detraction.getPercentage()
+			cacPaymentTerms.appendChild(cbcPaymentPercent)
+
+			const cbcAmount  = doc.createElement("cbc:Amount")
+			cbcAmount.setAttribute("currencyID", currencyId)
+			cbcAmount.textContent = detraction.getAmount().toFixed(2)
+			cacPaymentTerms.appendChild(cbcAmount)
+		}
+
+		return fragment
 	}
 
 	static generatePaymentTerms(invoice) {
-		if (invoice.getShares().length == 0) { //Cash Payment
-			const cacPaymentTerms = invoice.xmlDocument.createElement("cac:PaymentTerms")
-			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching
+		const shares = invoice.getShares()
+		const currencyId = invoice.getCurrencyId()
+
+		if (shares.length == 0) { //Cash Payment
+			const cacPaymentTerms = doc.createElement("cac:PaymentTerms")
 			{
-				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+				const cbcID = doc.createElement("cbc:ID")
 				cbcID.textContent = "FormaPago"
 				cacPaymentTerms.appendChild(cbcID)
 
-				const cbcPaymentMeansID = invoice.xmlDocument.createElement("cbc:PaymentMeansID")
+				const cbcPaymentMeansID = doc.createElement("cbc:PaymentMeansID")
 				cbcPaymentMeansID.textContent = "Contado"
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
 			}
 
-			return
+			fragment.appendChild(cacPaymentTerms)
+			return fragment
 		}
 
 		//Credit payment
-		const cacPaymentTerms = invoice.xmlDocument.createElement("cac:PaymentTerms")
-		invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+		const cacPaymentTerms = doc.createElement("cac:PaymentTerms")
 		{
-			const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+			const cbcID = doc.createElement("cbc:ID")
 			cbcID.textContent = "FormaPago"
 			cacPaymentTerms.appendChild(cbcID)
 
-			const cbcPaymentMeansID = invoice.xmlDocument.createElement("cbc:PaymentMeansID")
+			const cbcPaymentMeansID = doc.createElement("cbc:PaymentMeansID")
 			cbcPaymentMeansID.textContent = "Credito"
 			cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
-			const cbcAmount = invoice.xmlDocument.createElement("cbc:Amount")
-			cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			const cbcAmount = doc.createElement("cbc:Amount")
+			cbcAmount.setAttribute("currencyID", currencyId)
+
+			// when detraction: taxInclusiveAmount - detraction amount
+			let creditAmount = invoice.taxInclusiveAmount
 			if (invoice.hasDetraction()) {
-				cbcAmount.textContent = (invoice.taxInclusiveAmount - (invoice.getDetraction().getAmount())).toFixed(2)
+				creditAmount -= invoice.getDetraction().getAmount()
 			}
-			else {
-				cbcAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
-			}
+			cbcAmount.textContent = creditAmount.toFixed(2)
 			cacPaymentTerms.appendChild(cbcAmount)
 		}
 
 		let c = 0
-		for (const share of invoice.getShares()) {
-			const cacPaymentTerms = invoice.xmlDocument.createElement("cac:PaymentTerms")
-			invoice.xmlDocument.documentElement.appendChild(cacPaymentTerms)
+		for (let i = 0; i < shares.length; ++i) {
+			const share = shares[i]
+			const cacPaymentTerms = doc.createElement("cac:PaymentTerms")
 			{
-				const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+				const cbcID = doc.createElement("cbc:ID")
 				cbcID.textContent = "FormaPago"
 				cacPaymentTerms.appendChild(cbcID)
 
-				const cbcPaymentMeansID = invoice.xmlDocument.createElement("cbc:PaymentMeansID")
-				cbcPaymentMeansID.textContent = "Cuota" + String(++c).padStart(3, '0')
+				const cbcPaymentMeansID = doc.createElement("cbc:PaymentMeansID")
+				cbcPaymentMeansID.textContent = `Cuota${String(i + 1).padStart(3, '0')}`
 				cacPaymentTerms.appendChild(cbcPaymentMeansID)
 
-				const cbcAmount = invoice.xmlDocument.createElement("cbc:Amount")
-				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				const cbcAmount = doc.createElement("cbc:Amount")
+				cbcAmount.setAttribute("currencyID", currencyId)
 				cbcAmount.textContent = share.getAmount(true)
 				cacPaymentTerms.appendChild(cbcAmount)
 
-				const cbcPaymentDueDate = invoice.xmlDocument.createElement("cbc:PaymentDueDate")
+				const cbcPaymentDueDate = doc.createElement("cbc:PaymentDueDate")
 				cbcPaymentDueDate.textContent = Receipt.displayDate(share.getDueDate())
 				cacPaymentTerms.appendChild(cbcPaymentDueDate)
 			}
+			fragment.appendChild(cacPaymentTerms)
 		}
+
+		fragment.appendChild(cacPaymentTerms)
+		return fragment
 	}
 
 	static generateCharge(invoice) {
-		if (invoice.getDiscount()) {
-			const cacAllowanceCharge = invoice.xmlDocument.createElement("cac:AllowanceCharge")
-			invoice.xmlDocument.documentElement.appendChild(cacAllowanceCharge)
-			{
-				const cbcChargeIndicator = invoice.xmlDocument.createElement("cbc:ChargeIndicator")
-				cbcChargeIndicator.textContent = invoice.getDiscount().indicator
-				cacAllowanceCharge.appendChild(cbcChargeIndicator)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
 
-				const cbcAllowanceChargeReasonCode = invoice.xmlDocument.createElement("cbc:AllowanceChargeReasonCode")
-				cbcAllowanceChargeReasonCode.textContent = invoice.getDiscount().getTypeCode()
-				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
+		// caching
+		const discount = invoice.getDiscount()
 
-				const cbcMultiplierFactorNumeric = invoice.xmlDocument.createElement("cbc:MultiplierFactorNumeric")
-				cbcMultiplierFactorNumeric.textContent = invoice.getDiscount().factor.toFixed(5)
-				cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
-
-				const cbcAmount = invoice.xmlDocument.createElement("cbc:Amount")
-				cbcAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcAmount.textContent = invoice.getDiscount().amount.toFixed(2)
-				cacAllowanceCharge.appendChild(cbcAmount)
-
-				const cbcBaseAmount = invoice.xmlDocument.createElement("cbc:BaseAmount")
-				cbcBaseAmount.setAttribute("currencyID", invoice.getCurrencyId())
-				cbcBaseAmount.textContent = invoice.getDiscount().baseAmount.toFixed(2)
-				cacAllowanceCharge.appendChild(cbcBaseAmount)
-			}
+		if (!discount) {
+			return fragment
 		}
+
+		// more caching
+		const currencyId = invoice.getCurrencyId()
+
+		const cacAllowanceCharge = doc.createElement("cac:AllowanceCharge")
+		{
+			const cbcChargeIndicator = doc.createElement("cbc:ChargeIndicator")
+			cbcChargeIndicator.textContent = String(discount.indicator) // to print "true" or "false"
+			cacAllowanceCharge.appendChild(cbcChargeIndicator)
+
+			const cbcAllowanceChargeReasonCode = doc.createElement("cbc:AllowanceChargeReasonCode")
+			cbcAllowanceChargeReasonCode.textContent = discount.getTypeCode()
+			cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
+
+			const cbcMultiplierFactorNumeric = doc.createElement("cbc:MultiplierFactorNumeric")
+			cbcMultiplierFactorNumeric.textContent = discount.factor.toFixed(5)
+			cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
+
+			const cbcAmount = doc.createElement("cbc:Amount")
+			cbcAmount.setAttribute("currencyID", currencyId)
+			cbcAmount.textContent = discount.amount.toFixed(2)
+			cacAllowanceCharge.appendChild(cbcAmount)
+
+			const cbcBaseAmount = doc.createElement("cbc:BaseAmount")
+			cbcBaseAmount.setAttribute("currencyID", currencyId)
+			cbcBaseAmount.textContent = discount.baseAmount.toFixed(2)
+			cacAllowanceCharge.appendChild(cbcBaseAmount)
+		}
+		fragment.appendChild(cacAllowanceCharge)
+
+		return fragment
 	}
 
 	static generateTaxes(invoice) {
-		const cacTaxTotal = invoice.xmlDocument.createElement("cac:TaxTotal")
-		invoice.xmlDocument.documentElement.appendChild(cacTaxTotal)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+		const currencyId = invoice.getCurrencyId()
+
+		// Map to avoid switch and reducing bytecode
+		const TAX_CONFIG = [
+			{ id: "1000", name: "IGV", type: "VAT" }, // Index 0: Gravado
+			{ id: "9997", name: "EXO", type: "VAT" }, // Index 1: Exonerado
+			{ id: "9998", name: "INA", type: "FRE" }, // Index 2: Inafecto
+			{ id: "9999", name: "OTROS CONCEPTOS DE PAGO", type: "OTH" }
+		]
+
+		const cacTaxTotal = doc.createElement("cac:TaxTotal")
 		{
-			const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-			cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			// TaxAmount Global
+			const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
+			cbcTaxAmount.setAttribute("currencyID", currencyId)
 			cbcTaxAmount.textContent = invoice.taxTotalAmount.toFixed(2)
 			cacTaxTotal.appendChild(cbcTaxAmount)
 
-			if (invoice.iscAmount > 0) { //ISC
-				const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
-				cacTaxTotal.appendChild(cacTaxSubtotal)
+			// Inline function to generate subtotals
+			const createSubtotal = (taxableValue, taxValue, schemeData) => {
+				const cacTaxSubtotal = doc.createElement("cac:TaxSubtotal")
 				{
-					const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxableAmount.textContent = invoice.getOperationAmount(0).toFixed(2)
-					cacTaxSubtotal.appendChild( cbcTaxableAmount )
+					const cbcTaxableAmount = doc.createElement("cbc:TaxableAmount")
+					cbcTaxableAmount.setAttribute("currencyID", currencyId)
+					cbcTaxableAmount.textContent = taxableValue.toFixed(2)
 
-					const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxAmount.textContent = invoice.iscAmount.toFixed(2)
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
+					const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", currencyId)
+					cbcTaxAmount.textContent = taxValue.toFixed(2)
 
-					const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
+					const cacTaxCategory = doc.createElement("cac:TaxCategory")
 					{
-						const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
+						const cacTaxScheme = doc.createElement("cac:TaxScheme")
 						{
-							const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+							const cbcID = doc.createElement("cbc:ID")
 							cbcID.setAttribute("schemeName", "Codigo de tributos")
 							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
 							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
-							cbcID.textContent = "2000"
+							cbcID.textContent = schemeData.id
+
+							const cbcName = doc.createElement("cbc:Name")
+							cbcName.textContent = schemeData.name
+
+							const cbcTaxTypeCode = doc.createElement("cbc:TaxTypeCode")
+							cbcTaxTypeCode.textContent = schemeData.type
+
 							cacTaxScheme.appendChild(cbcID)
-
-							const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-							cbcName.textContent = "ISC"
 							cacTaxScheme.appendChild(cbcName)
-
-							const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
-							cbcTaxTypeCode.textContent = "EXC"
 							cacTaxScheme.appendChild(cbcTaxTypeCode)
 						}
+						cacTaxCategory.appendChild(cacTaxScheme)
 					}
+					cacTaxSubtotal.appendChild(cbcTaxableAmount)
+					cacTaxSubtotal.appendChild(cbcTaxAmount)
+					cacTaxSubtotal.appendChild(cacTaxCategory)
 				}
+
+				return cacTaxSubtotal
+			}
+
+			if (invoice.iscAmount > 0) { //ISC
+				cacTaxTotal.appendChild(
+					createSubtotal(invoice.getOperationAmount(0), iscAmount, { id: "2000", name: "ISC", type: "EXC" })
+				)
 			}
 
 			//Assign data according taxability
-			let taxTypeCode
-			let taxSchemeId
-			let taxSchemeName
-			// loop all types of taxes
-			for (let operationIndex = 0; operationIndex < 4; ++operationIndex) { // 4 steps
-				if (invoice.getOperationAmount(operationIndex) <= 0) {
-					continue // if that slot is zero then do nothing
+			for (let i = 0; i < 4; i++) {
+				const amount = invoice.getOperationAmount(i)
+				if (amount <= 0) {
+					continue
 				}
 
-				switch(operationIndex) {
-					case 0: { // "gravado"
-						taxTypeCode = "VAT"
-						taxSchemeId = "1000"
-						taxSchemeName = "IGV"
-						break
-					}
-					case 1: { // "exonerado"
-						taxTypeCode = "VAT"
-						taxSchemeId = "9997"
-						taxSchemeName = "EXO"
-						break
-					}
-					case 2: { // "inafecto"
-						taxTypeCode = "FRE"
-						taxSchemeId = "9998"
-						taxSchemeName = "INA"
-						break
-					}
-					default: {
-						taxTypeCode = "OTH"
-						taxSchemeId = "9999"
-						taxSchemeName = "OTROS CONCEPTOS DE PAGO"
-					}
-				}
-
-				const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
-				cacTaxTotal.appendChild(cacTaxSubtotal)
-				{
-					const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
-					cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxableAmount.textContent = invoice.getOperationAmount(operationIndex).toFixed(2)
-					cacTaxSubtotal.appendChild( cbcTaxableAmount )
-
-					const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
-					cbcTaxAmount.textContent = operationIndex ? "0.00" : invoice.igvAmount.toFixed(2)
-					cacTaxSubtotal.appendChild(cbcTaxAmount)
-
-					const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
-					cacTaxSubtotal.appendChild(cacTaxCategory)
-					{
-						const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
-						cacTaxCategory.appendChild(cacTaxScheme)
-						{
-							const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-							cbcID.setAttribute("schemeName", "Codigo de tributos")
-							cbcID.setAttribute("schemeAgencyName", "PE:SUNAT")
-							cbcID.setAttribute("schemeURI", "urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05")
-							cbcID.textContent = taxSchemeId
-							cacTaxScheme.appendChild(cbcID)
-
-							const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-							cbcName.textContent = taxSchemeName
-							cacTaxScheme.appendChild(cbcName)
-
-							const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
-							cbcTaxTypeCode.textContent = taxTypeCode
-							cacTaxScheme.appendChild(cbcTaxTypeCode)
-						}
-					}
-				}
+				const taxValue = (i === 0) ? invoice.igvAmount : 0
+				cacTaxTotal.appendChild(createSubtotal(amount, taxValue, TAX_CONFIG[i]))
 			}
 		}
+
+		fragment.appendChild(cacTaxTotal)
+		return fragment
 	}
 
 	static generateTotal(invoice) {
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+		const currencyId = invoice.getCurrencyId()
+
 		if (invoice.getTypeCode() == 8) {
-			const cacRequestedMonetaryTotal = invoice.xmlDocument.createElement("cac:RequestedMonetaryTotal")
-			invoice.xmlDocument.documentElement.appendChild(cacRequestedMonetaryTotal)
+			const cacRequestedMonetaryTotal = doc.createElement("cac:RequestedMonetaryTotal")
 			{
-				const cbcPayableAmount = invoice.xmlDocument.createElement("cbc:PayableAmount")
-				cbcPayableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				const cbcPayableAmount = doc.createElement("cbc:PayableAmount")
+				cbcPayableAmount.setAttribute("currencyID", currencyId)
 				cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
 				cacRequestedMonetaryTotal.appendChild(cbcPayableAmount)
 			}
-			return;
+			fragment.appendChild(cacRequestedMonetaryTotal)
+			return fragment
 		}
 
-		const cacLegalMonetaryTotal = invoice.xmlDocument.createElement("cac:LegalMonetaryTotal")
-		invoice.xmlDocument.documentElement.appendChild(cacLegalMonetaryTotal)
+		const cacLegalMonetaryTotal = doc.createElement("cac:LegalMonetaryTotal")
 		{
-			const cbcLineExtensionAmount = invoice.xmlDocument.createElement("cbc:LineExtensionAmount")
-			cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			const cbcLineExtensionAmount = doc.createElement("cbc:LineExtensionAmount")
+			cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
 			cbcLineExtensionAmount.textContent = invoice.lineExtensionAmount.toFixed(2)
-			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
 
-			const cbcTaxInclusiveAmount = invoice.xmlDocument.createElement("cbc:TaxInclusiveAmount")
-			cbcTaxInclusiveAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			const cbcTaxInclusiveAmount = doc.createElement("cbc:TaxInclusiveAmount")
+			cbcTaxInclusiveAmount.setAttribute("currencyID", currencyId)
 			cbcTaxInclusiveAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
-			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
 
-			const cbcPayableAmount  = invoice.xmlDocument.createElement("cbc:PayableAmount")
-			cbcPayableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+			const cbcPayableAmount  = doc.createElement("cbc:PayableAmount")
+			cbcPayableAmount.setAttribute("currencyID", currencyId)
 			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2) // That is not the correct amount
+
+			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
+			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
 			cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
 		}
+		fragment.appendChild(cacLegalMonetaryTotal)
+
+		return fragment
 	}
 
 	static generateLines(invoice) {
-		let itemIndex = 0 // for ID
-		for(const item of invoice.items) { //Items
-			const cacInvoiceLine = invoice.xmlDocument.createElement(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31 ? "cac:DespatchLine" : `cac:${invoice.name}Line`)
-			invoice.xmlDocument.documentElement.appendChild(cacInvoiceLine)
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
 
-			const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-			cbcID.textContent = ++itemIndex
-			cacInvoiceLine.appendChild(cbcID)
+		const items = invoice.items
+		const typeCode = invoice.getTypeCode()
+		const isDespatch = (typeCode == 9 || typeCode == 31)
+		// Despatch has not currency
+		const currencyId = !isDespatch ? invoice.getCurrencyId() : ""
 
-			// Dynamic name for that node
-			const quantityNodeName = (invoice.getTypeCode() == 1 || invoice.getTypeCode() == 3) ? "cbc:InvoicedQuantity" :
-				invoice.getTypeCode() == 7 ? "cbc:CreditedQuantity" :
-				invoice.getTypeCode() == 8 ? "cbc:DebitedQuantity" :
-				invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31 ? "cbc:DeliveredQuantity" :
+		const lineNodeName = isDespatch ? "cac:DespatchLine" : `cac:${invoice.name}Line`
+		const quantityNodeName = (typeCode == 1 || typeCode == 3) ? "cbc:InvoicedQuantity" :
+				typeCode == 7 ? "cbc:CreditedQuantity" :
+				typeCode == 8 ? "cbc:DebitedQuantity" :
+				isDespatch ? "cbc:DeliveredQuantity" :
 				"cbc:Quantity" // it's error
 
-			const cbcInvoicedQuantity = invoice.xmlDocument.createElement(quantityNodeName)
+		// Static map for avoiding switch(true)
+		const TAX_DATA = {
+			VAT_1000: { id: "1000", name: "IGV", type: "VAT" },
+			VAT_9997: { id: "9997", name: "EXO", type: "VAT" },
+			FRE_9998: { id: "9998", name: "INA", type: "FRE" },
+			OTH_9999: { id: "9999", name: "OTROS CONCEPTOS DE PAGO", type: "OTH" }
+		}
+
+		let itemIndex = 0 // for ID
+		for(const item of items) { //Items
+			const cacInvoiceLine = doc.createElement(lineNodeName)
+			// We are appending it to fragment at end of loop
+
+			const cbcID = doc.createElement("cbc:ID")
+			cbcID.textContent = ++itemIndex // Starting with 1
+			cacInvoiceLine.appendChild(cbcID)
+
+			const cbcInvoicedQuantity = doc.createElement(quantityNodeName)
 			cbcInvoicedQuantity.setAttribute("unitCode", item.getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
 			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
-			if ( (invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
-				const cacOrderLineReference = invoice.xmlDocument.createElement("cac:OrderLineReference")
-				cacInvoiceLine.appendChild(cacOrderLineReference)
+			if (isDespatch) {
+				const cacOrderLineReference = doc.createElement("cac:OrderLineReference")
 
-				const cbcLineID = invoice.xmlDocument.createElement("cbc:LineID")
+				const cbcLineID = doc.createElement("cbc:LineID")
 				cbcLineID.textContent = itemIndex // TODO: check if is incoming this data for using that value
+
 				cacOrderLineReference.appendChild(cbcLineID)
+				cacInvoiceLine.appendChild(cacOrderLineReference)
 			}
 			else {
-				const cbcLineExtensionAmount = invoice.xmlDocument.createElement("cbc:LineExtensionAmount")
-				cbcLineExtensionAmount.setAttribute("currencyID", invoice.getCurrencyId())
+				const cbcLineExtensionAmount = doc.createElement("cbc:LineExtensionAmount")
+				cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
 				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
 				cacInvoiceLine.appendChild(cbcLineExtensionAmount)
 
 				{ //PricingReference
-					const cacPricingReference = invoice.xmlDocument.createElement("cac:PricingReference")
-					cacInvoiceLine.appendChild(cacPricingReference)
-
-					const cacAlternativeConditionPrice = invoice.xmlDocument.createElement("cac:AlternativeConditionPrice")
-					cacPricingReference.appendChild(cacAlternativeConditionPrice)
-
-					const cbcPriceAmount = invoice.xmlDocument.createElement("cbc:PriceAmount")
-					cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					const cacPricingReference = doc.createElement("cac:PricingReference")
+					const cacAlternativeConditionPrice = doc.createElement("cac:AlternativeConditionPrice")
+					const cbcPriceAmount = doc.createElement("cbc:PriceAmount")
+					cbcPriceAmount.setAttribute("currencyID", currencyId)
 					cbcPriceAmount.textContent = item.getPricingReferenceAmount(true, 10)
-					cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
-
-					const cbcPriceTypeCode = invoice.xmlDocument.createElement("cbc:PriceTypeCode")
+					const cbcPriceTypeCode = doc.createElement("cbc:PriceTypeCode")
 					cbcPriceTypeCode.textContent = "01"
+
+					cacAlternativeConditionPrice.appendChild(cbcPriceAmount)
 					cacAlternativeConditionPrice.appendChild(cbcPriceTypeCode)
+					cacPricingReference.appendChild(cacAlternativeConditionPrice)
+					cacInvoiceLine.appendChild(cacPricingReference)
 				}
 
 				{ //TaxTotal
-					const cacTaxTotal = invoice.xmlDocument.createElement("cac:TaxTotal")
+					const cacTaxTotal = doc.createElement("cac:TaxTotal")
 					cacInvoiceLine.appendChild(cacTaxTotal)
 
-					const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-					cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
+					cbcTaxAmount.setAttribute("currencyID", currencyId)
 					cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
 					cacTaxTotal.appendChild(cbcTaxAmount)
 
 					//Assign data according taxability
-					let taxTypeCode
-					let taxSchemeId
-					let taxSchemeName
-					switch(true) {
-						case (item.getExemptionReasonCode() < 20): { // "gravado"
-							taxTypeCode = "VAT"
-							taxSchemeId = "1000"
-							taxSchemeName = "IGV"
-							break
-						}
-						case (item.getExemptionReasonCode() < 30): { // "exonerado"
-							taxTypeCode = "VAT"
-							taxSchemeId = "9997"
-							taxSchemeName = "EXO"
-							break
-						}
-						case (item.getExemptionReasonCode() < 40): { // "inafecto"
-							taxTypeCode = "FRE"
-							taxSchemeId = "9998"
-							taxSchemeName = "INA"
-							break
-						}
-						default: {
-							taxTypeCode = "OTH"
-							taxSchemeId = "9999"
-							taxSchemeName = "OTROS CONCEPTOS DE PAGO"
-						}
+					const exCode = item.getExemptionReasonCode()
+					let taxInfo = TAX_DATA.OTH_9999
+					if (exCode < 20) {
+						taxInfo = TAX_DATA.VAT_1000
+					} else if (exCode < 30) {
+						taxInfo = TAX_DATA.VAT_9997
+					} else if (exCode < 40) {
+						taxInfo = TAX_DATA.FRE_9998
 					}
 
 					if (item.getIscAmount() > 0) { //ISC
-						const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
+						const cacTaxSubtotal = doc.createElement("cac:TaxSubtotal")
 						cacTaxTotal.appendChild(cacTaxSubtotal)
 
-						const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
-						cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						const cbcTaxableAmount = doc.createElement("cbc:TaxableAmount")
+						cbcTaxableAmount.setAttribute("currencyID", currencyId)
 						cbcTaxableAmount.textContent = item.getLineExtensionAmount(true)
 						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-						const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-						cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
+						cbcTaxAmount.setAttribute("currencyID", currencyId)
 						cbcTaxAmount.textContent = item.getIscAmount(true)
 						cacTaxSubtotal.appendChild(cbcTaxAmount)
 
-						const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
+						const cacTaxCategory = doc.createElement("cac:TaxCategory")
 						cacTaxSubtotal.appendChild(cacTaxCategory)
 						{
-							const cbcPercent = invoice.xmlDocument.createElement("cbc:Percent")
+							const cbcPercent = doc.createElement("cbc:Percent")
 							cbcPercent.textContent = item.getIscPercentage()
 							cacTaxCategory.appendChild(cbcPercent)
 
-							const cbcTierRange = invoice.xmlDocument.createElement("cbc:TierRange")
+							const cbcTierRange = doc.createElement("cbc:TierRange")
 							cbcTierRange.textContent = "01"
 							cacTaxCategory.appendChild(cbcTierRange)
 
-							const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
+							const cacTaxScheme = doc.createElement("cac:TaxScheme")
 							cacTaxCategory.appendChild(cacTaxScheme)
 							{
-								const cbcID = invoice.xmlDocument.createElement("cbc:ID")
+								const cbcID = doc.createElement("cbc:ID")
 								cbcID.textContent = "2000"
 								cacTaxScheme.appendChild(cbcID)
 
-								const cbcName = invoice.xmlDocument.createElement("cbc:Name")
+								const cbcName = doc.createElement("cbc:Name")
 								cbcName.textContent = "ISC"
 								cacTaxScheme.appendChild(cbcName)
 
-								const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
+								const cbcTaxTypeCode = doc.createElement("cbc:TaxTypeCode")
 								cbcTaxTypeCode.textContent = "EXC"
 								cacTaxScheme.appendChild(cbcTaxTypeCode)
 							}
@@ -1010,43 +1131,43 @@ class NodesGenerator {
 					}
 
 					{
-						const cacTaxSubtotal = invoice.xmlDocument.createElement("cac:TaxSubtotal")
+						const cacTaxSubtotal = doc.createElement("cac:TaxSubtotal")
 						cacTaxTotal.appendChild(cacTaxSubtotal)
 
-						const cbcTaxableAmount = invoice.xmlDocument.createElement("cbc:TaxableAmount")
-						cbcTaxableAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						const cbcTaxableAmount = doc.createElement("cbc:TaxableAmount")
+						cbcTaxableAmount.setAttribute("currencyID", currencyId)
 						cbcTaxableAmount.textContent = item.getTaxableIgvAmount(true)
 						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
-						const cbcTaxAmount = invoice.xmlDocument.createElement("cbc:TaxAmount")
-						cbcTaxAmount.setAttribute("currencyID", invoice.getCurrencyId())
+						const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
+						cbcTaxAmount.setAttribute("currencyID", currencyId)
 						cbcTaxAmount.textContent = item.getIgvAmount(true)
 						cacTaxSubtotal.appendChild(cbcTaxAmount)
 
-						const cacTaxCategory = invoice.xmlDocument.createElement("cac:TaxCategory")
+						const cacTaxCategory = doc.createElement("cac:TaxCategory")
 						cacTaxSubtotal.appendChild(cacTaxCategory)
 						{
-							const cbcPercent = invoice.xmlDocument.createElement("cbc:Percent")
+							const cbcPercent = doc.createElement("cbc:Percent")
 							cbcPercent.textContent = item.getIgvPercentage()
 							cacTaxCategory.appendChild(cbcPercent)
 
-							const cbcTaxExemptionReasonCode = invoice.xmlDocument.createElement("cbc:TaxExemptionReasonCode")
+							const cbcTaxExemptionReasonCode = doc.createElement("cbc:TaxExemptionReasonCode")
 							cbcTaxExemptionReasonCode.textContent = item.getExemptionReasonCode()
 							cacTaxCategory.appendChild(cbcTaxExemptionReasonCode)
 
-							const cacTaxScheme = invoice.xmlDocument.createElement("cac:TaxScheme")
+							const cacTaxScheme = doc.createElement("cac:TaxScheme")
 							cacTaxCategory.appendChild(cacTaxScheme)
 							{
-								const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-								cbcID.textContent = taxSchemeId
+								const cbcID = doc.createElement("cbc:ID")
+								cbcID.textContent = taxInfo.id
 								cacTaxScheme.appendChild(cbcID)
 
-								const cbcName = invoice.xmlDocument.createElement("cbc:Name")
-								cbcName.textContent = taxSchemeName
+								const cbcName = doc.createElement("cbc:Name")
+								cbcName.textContent = taxInfo.name
 								cacTaxScheme.appendChild(cbcName)
 
-								const cbcTaxTypeCode = invoice.xmlDocument.createElement("cbc:TaxTypeCode")
-								cbcTaxTypeCode.textContent = taxTypeCode
+								const cbcTaxTypeCode = doc.createElement("cbc:TaxTypeCode")
+								cbcTaxTypeCode.textContent = taxInfo.type
 								cacTaxScheme.appendChild(cbcTaxTypeCode)
 							}
 						}
@@ -1055,65 +1176,81 @@ class NodesGenerator {
 			}
 
 			{ //Item
-				const cacItem = invoice.xmlDocument.createElement("cac:Item")
+				const cacItem = doc.createElement("cac:Item")
 				cacInvoiceLine.appendChild(cacItem)
 
-				const cbcDescription = invoice.xmlDocument.createElement("cbc:Description")
-				cbcDescription.appendChild( invoice.xmlDocument.createCDATASection(item.getDescription()) )
+				const cbcDescription = doc.createElement("cbc:Description")
+				cbcDescription.appendChild( doc.createCDATASection(item.getDescription()) )
 				cacItem.appendChild(cbcDescription)
 
-				if(item.getCode()) {
-					const cacSellersItemIdentification = invoice.xmlDocument.createElement("cac:SellersItemIdentification")
+				const itemCode = item.getCode()
+				if(itemCode) {
+					const cacSellersItemIdentification = doc.createElement("cac:SellersItemIdentification")
 					cacItem.appendChild(cacSellersItemIdentification)
 
-					const cbcID = invoice.xmlDocument.createElement("cbc:ID")
-					cbcID.textContent = item.getCode()
+					const cbcID = dod.createElement("cbc:ID")
+					cbcID.textContent = itemCode
 					cacSellersItemIdentification.appendChild(cbcID)
 				}
 
-				if (item.getClassificationCode()) {
-					const cacCommodityClassification = invoice.xmlDocument.createElement("cac:CommodityClassification")
+				const itemClassificationCode = item.getClassificationCode()
+				if (itemClassificationCode) {
+					const cacCommodityClassification = doc.createElement("cac:CommodityClassification")
 					cacItem.appendChild(cacCommodityClassification)
 
-					const cbcItemClassificationCode = invoice.xmlDocument.createElement("cbc:ItemClassificationCode")
+					const cbcItemClassificationCode = doc.createElement("cbc:ItemClassificationCode")
 					cbcItemClassificationCode.setAttribute("listID", "UNSPSC")
 					cbcItemClassificationCode.setAttribute("listAgencyName", "GS1 US")
 					cbcItemClassificationCode.setAttribute("listName", "Item Classification")
-					cbcItemClassificationCode.textContent = item.getClassificationCode()
+					cbcItemClassificationCode.textContent = itemClassificationCode
 					cacCommodityClassification.appendChild(cbcItemClassificationCode)
 				}
 			}
 
-			if ( !(invoice.getTypeCode() == 9 || invoice.getTypeCode() == 31)) {
+			if (!isDespatch) {
 				{ //Price
-					const cacPrice = invoice.xmlDocument.createElement("cac:Price")
+					const cacPrice = doc.createElement("cac:Price")
 					cacInvoiceLine.appendChild(cacPrice)
 
-					const cbcPriceAmount = invoice.xmlDocument.createElement("cbc:PriceAmount")
-					cbcPriceAmount.setAttribute("currencyID", invoice.getCurrencyId())
+					const cbcPriceAmount = doc.createElement("cbc:PriceAmount")
+					cbcPriceAmount.setAttribute("currencyID", currencyId)
 					cbcPriceAmount.textContent = item.getUnitValue(true, 10)
 					cacPrice.appendChild(cbcPriceAmount)
 				}
 			}
+
+			fragment.appendChild(cacInvoiceLine)
 		}
+
+		return fragment
 	}
 
 	static generateDiscrepancy(note) {
-		const cacDiscrepancyResponse = note.xmlDocument.createElement("cac:DiscrepancyResponse")
-		note.xmlDocument.documentElement.appendChild(cacDiscrepancyResponse)
+		const doc = note.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching
+		const documentReference = note.getDocumentReference()
+		const responseCode = note.getResponseCode(true)
+		const description = note.getDescription()
+
+		const cacDiscrepancyResponse = doc.createElement("cac:DiscrepancyResponse")
 		{
-			const cbcReferenceID = note.xmlDocument.createElement("cbc:ReferenceID")
-			cbcReferenceID.textContent = note.getDocumentReference()
+			const cbcReferenceID = doc.createElement("cbc:ReferenceID")
+			cbcReferenceID.textContent = documentReference
 			cacDiscrepancyResponse.appendChild(cbcReferenceID)
 
-			const cbcResponseCode = note.xmlDocument.createElement("cbc:ResponseCode")
-			cbcResponseCode.textContent = note.getResponseCode(true)
+			const cbcResponseCode = doc.createElement("cbc:ResponseCode")
+			cbcResponseCode.textContent = responseCode
 			cacDiscrepancyResponse.appendChild(cbcResponseCode)
 
-			const cbcDescription = note.xmlDocument.createElement("cbc:Description")
-			cbcDescription.textContent = note.getDescription()
+			const cbcDescription = doc.createElement("cbc:Description")
+			cbcDescription.textContent = description
 			cacDiscrepancyResponse.appendChild(cbcDescription)
 		}
+		fragment.appendChild(cacDiscrepancyResponse)
+
+		return fragment
 	}
 }
 

@@ -92,31 +92,39 @@ class Note extends Sale {
 	toXml() {
 		this.createXmlWrapper();
 
-		NodesGenerator.generateHeader(this)
+		// Master fragment for the body
+		const bodyFragment = this.xmlDocument.createDocumentFragment()
 
-		NodesGenerator.generateIdentity(this)
+		bodyFragment.appendChild(NodesGenerator.generateUblExtensions(this))
 
-		NodesGenerator.generateDates(this)
+		bodyFragment.appendChild(NodesGenerator.generateHeader(this))
 
-		NodesGenerator.generateNotes(this)
+		bodyFragment.appendChild(NodesGenerator.generateIdentity(this))
 
-		NodesGenerator.generateCurrencyCode(this)
+		bodyFragment.appendChild(NodesGenerator.generateDates(this))
 
-		NodesGenerator.generateDiscrepancy(this)
+		bodyFragment.appendChild(NodesGenerator.generateNotes(this))
 
-		NodesGenerator.generateReference(this)
+		bodyFragment.appendChild(NodesGenerator.generateCurrencyCode(this))
 
-		NodesGenerator.generateSignature(this)
+		bodyFragment.appendChild(NodesGenerator.generateDiscrepancy(this))
 
-		NodesGenerator.generateSupplier(this)
+		bodyFragment.appendChild(NodesGenerator.generateReference(this))
 
-		NodesGenerator.generateCustomer(this)
+		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
 
-		NodesGenerator.generateTaxes(this)
+		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))
 
-		NodesGenerator.generateTotal(this)
+		bodyFragment.appendChild(NodesGenerator.generateCustomer(this))
 
-		NodesGenerator.generateLines(this)
+		bodyFragment.appendChild(NodesGenerator.generateTaxes(this))
+
+		bodyFragment.appendChild(NodesGenerator.generateTotal(this))
+
+		bodyFragment.appendChild(NodesGenerator.generateLines(this))
+
+		// The real insertion to the real DOM
+		this.xmlDocument.documentElement.appendChild(bodyFragment)
 	}
 
 	/**

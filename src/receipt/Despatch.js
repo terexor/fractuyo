@@ -176,25 +176,33 @@ class Despatch extends Receipt {
 	toXml() {
 		this.createXmlWrapper();
 
-		NodesGenerator.generateHeader(this)
+		// Master fragment for the body
+		const bodyFragment = this.xmlDocument.createDocumentFragment()
 
-		NodesGenerator.generateIdentity(this)
+		bodyFragment.appendChild(NodesGenerator.generateUblExtensions(this))
 
-		NodesGenerator.generateDates(this)
+		bodyFragment.appendChild(NodesGenerator.generateHeader(this))
 
-		NodesGenerator.generateTypeCode(this)
+		bodyFragment.appendChild(NodesGenerator.generateIdentity(this))
 
-		NodesGenerator.generateNotes(this)
+		bodyFragment.appendChild(NodesGenerator.generateDates(this))
 
-		NodesGenerator.generateSignature(this)
+		bodyFragment.appendChild(NodesGenerator.generateTypeCode(this))
 
-		NodesGenerator.generateSupplier(this)
+		bodyFragment.appendChild(NodesGenerator.generateNotes(this))
 
-		NodesGenerator.generateCustomer(this)
+		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
 
-		NodesGenerator.generateShipment(this)
+		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))
 
-		NodesGenerator.generateLines(this)
+		bodyFragment.appendChild(NodesGenerator.generateCustomer(this))
+
+		bodyFragment.appendChild(NodesGenerator.generateShipment(this))
+
+		bodyFragment.appendChild(NodesGenerator.generateLines(this))
+
+		// The real insertion to the real DOM
+		this.xmlDocument.documentElement.appendChild(bodyFragment)
 	}
 
 	getQrData() {
