@@ -7,18 +7,27 @@ class Taxpayer extends Person {
 	#certDer
 	#keyDer
 
+	/** @type {string} */
 	#solUser
+	/** @type {string} */
 	#solPass
 
+	/** @type {string} */
 	#solId
+	/** @type {string} */
 	#solSecret
 
+	/** @type {string} */
 	#deductionsAccount
 
+	/** @type {string|null} */
 	#web
+	/** @type {string|null} */
 	#email
+	/** @type {string|null} */
 	#telephone
 
+	/** @type {string} */
 	#tradeName
 
 	/**
@@ -34,7 +43,7 @@ class Taxpayer extends Person {
 
 		if (typeof Buffer !== 'undefined') {
 			// for Node.js, use Buffer.from
-			return [ pem, Buffer.from(pem, 'base64') ]
+			return [pem, Buffer.from(pem, 'base64')]
 		}
 		else if (typeof window !== 'undefined' && typeof window.atob === 'function') {
 			// in browser
@@ -46,7 +55,7 @@ class Taxpayer extends Person {
 				bytes[i] = binaryString.charCodeAt(i)
 			}
 
-			return [ pem, bytes.buffer ]
+			return [pem, bytes.buffer]
 		}
 		else {
 			throw new Error('El entorno no es compatible con esta función.')
@@ -57,10 +66,12 @@ class Taxpayer extends Person {
 	 * @return int -1 when now is out of range of validity or major than -1 for remaining days
 	 */
 	setCert(c) {
-		[ this.#certPem, this.#certDer ] = Taxpayer.transformPemToDer(c)
+		[this.#certPem, this.#certDer] = Taxpayer.transformPemToDer(c)
 
 		const asn1 = asn1js.fromBER(this.#certDer)
+		// @ts-ignore: Deep ASN.1 parsing is correct at runtime but difficult for TS to trace
 		const notBefore = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[0]
+		// @ts-ignore: Deep ASN.1 parsing is correct at runtime but difficult for TS to trace
 		const notAfter = asn1.result.valueBlock.value[0].valueBlock.value[4].valueBlock.value[1]
 
 		const timeNotBefore = Date.UTC(
@@ -81,11 +92,11 @@ class Taxpayer extends Person {
 		)
 
 		const now = Date.now()
-		if(now < timeNotBefore || now > timeNotAfter) {
+		if (now < timeNotBefore || now > timeNotAfter) {
 			return -1
 		}
 		else {
-			return Math.round( ( timeNotAfter - now ) / (1000 * 60 * 60 * 24) )
+			return Math.round((timeNotAfter - now) / (1000 * 60 * 60 * 24))
 		}
 	}
 
@@ -109,9 +120,12 @@ class Taxpayer extends Person {
 
 	setKey(k) {
 		let keyPem // never used
-		[ keyPem, this.#keyDer ] = Taxpayer.transformPemToDer(k)
+		[keyPem, this.#keyDer] = Taxpayer.transformPemToDer(k)
 	}
 
+	/**
+	 * @param {string} su - Secondary user in Sunat SOL
+	 */
 	setSolUser(su) {
 		this.#solUser = su
 	}
@@ -120,6 +134,9 @@ class Taxpayer extends Person {
 		return this.#solUser
 	}
 
+	/**
+	 * @param {string} sp - Password of secondary user in Sunat SOL
+	 */
 	setSolPass(sp) {
 		this.#solPass = sp
 	}
@@ -128,6 +145,9 @@ class Taxpayer extends Person {
 		return this.#solPass
 	}
 
+	/**
+	 * @param {string} id - Client ID in Sunat SOL for generate token
+	 */
 	setSolId(id) {
 		this.#solId = id
 	}
@@ -136,6 +156,9 @@ class Taxpayer extends Person {
 		return this.#solId
 	}
 
+	/**
+	 * @param {string} secret - Secret of application in Sunat SOL for generate token
+	 */
 	setSolSecret(secret) {
 		this.#solSecret = secret
 	}
@@ -154,20 +177,29 @@ class Taxpayer extends Person {
 		return this.#deductionsAccount
 	}
 
+	/**
+	 * @param {string} w - Website address
+	 */
 	setWeb(w) {
-		if(w && w.length != 0) {
+		if (w && w.length != 0) {
 			this.#web = w
 		}
 	}
 
+	/**
+	 * @param {string} em - Email address
+	 */
 	setEmail(em) {
-		if(em && em.length != 0) {
+		if (em && em.length != 0) {
 			this.#email = em
 		}
 	}
 
+	/**
+	 * @param {string} t - Telephone number
+	 */
 	setTelephone(t) {
-		if(t && t.length != 0) {
+		if (t && t.length != 0) {
 			this.#telephone = t
 		}
 	}
@@ -184,6 +216,9 @@ class Taxpayer extends Person {
 		return this.#telephone
 	}
 
+	/**
+	 * @param {string} tn - Trade name
+	 */
 	setTradeName(tn) {
 		this.#tradeName = tn
 	}
@@ -192,6 +227,9 @@ class Taxpayer extends Person {
 		return this.#tradeName
 	}
 
+	/**
+	 * Clear all taxpayer's sensitive data and others member fields
+	 */
 	clearData() {
 		this.#certPem = this.#certDer = this.#keyDer = this.#solId = this.#solSecret = this.#solUser = this.#solPass = this.#web = this.#email = this.#telephone = this.#deductionsAccount = null
 	}

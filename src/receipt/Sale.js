@@ -7,7 +7,13 @@ import Identification from "../person/Identification.js"
 import Address from "../person/Address.js"
 
 class Sale extends Receipt {
+	/**
+	 * ISO 4217 currency code.
+	 * @type {string}
+	 */
 	#currencyId
+
+	/** @type {number} */
 	#igvPercentage
 
 	/*
@@ -19,7 +25,19 @@ class Sale extends Receipt {
 	#igvAmount = 0
 	#iscAmount = 0
 	#icbpAmount = 0
+
+	/**
+	 * @type {Float64Array}
+	 */
 	#operationAmounts = new Float64Array(4) // zero-filling [0, 0, 0, 0]
+
+	/**
+	 * Empty hook to be overridden by subclasses. Invoice overrides it.
+	 * @param {Date} date - The due date.
+	 */
+	setDueDate(date) {
+		// Empty
+	}
 
 	constructor(taxpayer, customer, name) {
 		super(taxpayer, customer, name)
@@ -73,18 +91,34 @@ class Sale extends Receipt {
 		this.#icbpAmount = amount
 	}
 
+	/**
+	 * Access to operation amounts array stored in 4 cells.
+	 * @param {number} index - from 0 to 3
+	 * @returns {number} - Value of operation amount.
+	 */
 	getOperationAmount(index) {
 		return this.#operationAmounts[index]
 	}
 
+	/**
+	 * Store an operation amount in cell of the array.
+	 * @param {number} index - from 0 to 3
+	 * @param {number} amount - Value of operation amount.
+	 */
 	setOperationAmount(index, amount) {
 		this.#operationAmounts[index] = amount
 	}
 
+	/**
+	 * @param {string} cid - ISO 4217 currency code.
+	 */
 	setCurrencyId(cid) {
 		this.#currencyId = cid
 	}
 
+	/**
+	 * @returns {string}
+	 */
 	getCurrencyId() {
 		return this.#currencyId
 	}
@@ -92,11 +126,15 @@ class Sale extends Receipt {
 	/**
 	 * Sunat requires that the IGV rate must be the same across all items in an invoice.
 	 * It must correspond to a valid rate.
+	 * @param {number} percentage - IGV percentage.
 	 */
 	set igvPercentage(percentage) {
 		this.#igvPercentage = percentage
 	}
 
+	/**
+	 * @returns {number} - IGV percentage.
+	 */
 	get igvPercentage() {
 		return this.#igvPercentage
 	}
@@ -125,20 +163,20 @@ class Sale extends Receipt {
 		this.#iscAmount += item.getIscAmount()
 
 		//Assign data according taxability
-		switch(true) {
+		switch (true) {
 			case (item.getExemptionReasonCode() < 20):
-				this.#operationAmounts[0] += item.getLineExtensionAmount();break
+				this.#operationAmounts[0] += item.getLineExtensionAmount(); break
 			case (item.getExemptionReasonCode() < 30):
-				this.#operationAmounts[1] += item.getLineExtensionAmount();break
+				this.#operationAmounts[1] += item.getLineExtensionAmount(); break
 			case (item.getExemptionReasonCode() < 40):
-				this.#operationAmounts[2] += item.getLineExtensionAmount();break
+				this.#operationAmounts[2] += item.getLineExtensionAmount(); break
 			default:
 				this.#operationAmounts[3] += item.getLineExtensionAmount()
 		}
 	}
 
 	/**
-	 * Use it if maybe you are have edited an item or removed.
+	 * Use it if maybe you have edited an item or removed.
 	 */
 	recalcMounts() {
 		// Cleaning values
@@ -154,19 +192,23 @@ class Sale extends Receipt {
 			this.#iscAmount += item.getIscAmount()
 
 			//Assign data according taxability
-			switch(true) {
+			switch (true) {
 				case (item.getExemptionReasonCode() < 20):
-					this.#operationAmounts[0] += item.getLineExtensionAmount();break
+					this.#operationAmounts[0] += item.getLineExtensionAmount(); break
 				case (item.getExemptionReasonCode() < 30):
-					this.#operationAmounts[1] += item.getLineExtensionAmount();break
+					this.#operationAmounts[1] += item.getLineExtensionAmount(); break
 				case (item.getExemptionReasonCode() < 40):
-					this.#operationAmounts[2] += item.getLineExtensionAmount();break
+					this.#operationAmounts[2] += item.getLineExtensionAmount(); break
 				default:
 					this.#operationAmounts[3] += item.getLineExtensionAmount()
 			}
 		}
 	}
 
+	/**
+	 * Gets the QR data that is header of this document separated by pipes.
+	 * @returns {string}
+	 */
 	getQrData() {
 		return this.getTaxpayer().getIdentification().getNumber()
 			+ '|' + this.getId(true).replaceAll('-', '|')
@@ -226,11 +268,11 @@ class Sale extends Receipt {
 
 		const issueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "IssueDate")[0]?.textContent;
 		let dateParts = issueDate.split('-'); // split in year, month and day
-		this.setIssueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+		this.setIssueDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
 		const dueDate = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "DueDate")[0]?.textContent;
 		if (dueDate) { // Because sometimes there isn't
 			dateParts = dueDate.split('-'); // split in year, month and day
-			this.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+			this.setDueDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
 		}
 
 		{
@@ -249,12 +291,11 @@ class Sale extends Receipt {
 			{
 				const registrationAddress = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
 
-				const address = new Address()
+				const address = new Address(registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "")
 				address.ubigeo = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || ""
 				address.city = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "CityName")[0]?.textContent || ""
 				address.district = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "District")[0]?.textContent || ""
 				address.subentity = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Subentity")[0]?.textContent || ""
-				address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || ""
 
 				taxpayer.setAddress(address)
 			}
@@ -284,8 +325,7 @@ class Sale extends Receipt {
 					const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
 
 					if (registrationAddress) {
-						const address = new Address();
-						address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "";
+						const address = new Address(registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "");
 
 						customer.setAddress(address);
 					}

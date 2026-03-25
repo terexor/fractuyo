@@ -65,13 +65,17 @@ class Invoice extends Sale {
 		}
 	}
 
+	/**
+	 * Set order reference identity.
+	 * @param {string} reference - Order reference identity up to 20 characters without spaces.
+	 */
 	setOrderReference(reference) {
-		if( ( typeof reference === "string" || reference instanceof String ) && reference.length > 0 ) {
-			if( /\s/g.test(reference) ) {
+		if ((typeof reference === "string") && reference.length > 0) {
+			if (/\s/g.test(reference)) {
 				throw new Error("La referencia numérica no debe contener espacios.")
 			}
-			if(reference.length > 20) {
-				throw new Error("La referencia numérica no debe tener 20 caracteres como máximo.")
+			if (reference.length > 20) {
+				throw new Error("La referencia numérica debe tener 20 caracteres como máximo.")
 			}
 			this.#orderReference = reference
 		}
@@ -94,10 +98,10 @@ class Invoice extends Sale {
 	}
 
 	setOrderReferenceText(referenceText) {
-		if(!this.#orderReference) {
+		if (!this.#orderReference) {
 			throw new Error("Asignar previamente la identidad de referencia.")
 		}
-		if( ( typeof referenceText === "string" || referenceText instanceof String ) && referenceText.length > 0 ) {
+		if ((typeof referenceText === "string" || referenceText instanceof String) && referenceText.length > 0) {
 			this.#orderReferenceText = referenceText
 		}
 	}
@@ -199,9 +203,9 @@ class Invoice extends Sale {
 	validate(validateNumeration) {
 		super.validate(validateNumeration)
 
-		switch(this.getTypeCode()) {
+		switch (this.getTypeCode()) {
 			case 1: // for "factura"
-				if(this.getCustomer().getIdentification().getType() != 6) {
+				if (this.getCustomer().getIdentification().getType() != 6) {
 					throw new Error("El cliente debe tener RUC.")
 				}
 			case 3: // for "boleta"
@@ -210,13 +214,13 @@ class Invoice extends Sale {
 				}
 		}
 
-		if(this.#sharesAmount) {
+		if (this.#sharesAmount) {
 			if (this.hasDetraction()) {
 				if (this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detraction.getAmount()).toFixed(2)) {
 					throw new Error("La suma de las cuotas difiere del total menos detracción.")
 				}
 			}
-			else if(this.#sharesAmount.toFixed(2) != this.taxInclusiveAmount.toFixed(2)) {
+			else if (this.#sharesAmount.toFixed(2) != this.taxInclusiveAmount.toFixed(2)) {
 				throw new Error("La suma de las cuotas difiere del total.")
 			}
 		}
@@ -295,17 +299,17 @@ class Invoice extends Sale {
 		// All items. Always present.
 		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "InvoiceLine")
 		for (let i = 0; i < items.length; i++) {
-			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
-			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent || "" )
+			const item = new Item(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "")
+			item.setQuantity(parseFloat(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.textContent))
 			item.setUnitValue(
-				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
+				parseFloat(items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent),
 				false
 			)
-			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.getAttribute("unitCode") || "" )
+			item.setUnitCode(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "InvoicedQuantity")[0]?.getAttribute("unitCode") || "")
 
 			// Warning because there are many tags with same name
-			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
-			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
+			item.setIgvPercentage(parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent))
+			item.setExemptionReasonCode(parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent))
 
 			item.calcMounts()
 			this.addItem(item, true)
@@ -328,7 +332,7 @@ class Invoice extends Sale {
 							// capture date and amount
 							share.setAmount(paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent)
 							const dateParts = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentDueDate")[0].textContent.split('-') // split in year, month and day
-							share.setDueDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+							share.setDueDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
 							this.addShare(share)
 						}
 					}

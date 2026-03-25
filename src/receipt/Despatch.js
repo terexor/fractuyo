@@ -78,7 +78,7 @@ class Despatch extends Receipt {
 	}
 
 	setStartDate(date) {
-		if(date) {
+		if (date) {
 			this.#startDate = date
 		}
 		else {
@@ -302,12 +302,11 @@ class Despatch extends Receipt {
 			{
 				const registrationAddress = accountingSupplierParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
 
-				const address = new Address()
+				const address = new Address(registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "")
 				address.ubigeo = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent || ""
 				address.city = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "CityName")[0]?.textContent || ""
 				address.district = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "District")[0]?.textContent || ""
 				address.subentity = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Subentity")[0]?.textContent || ""
-				address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || ""
 
 				taxpayer.setAddress(address)
 			}
@@ -334,8 +333,7 @@ class Despatch extends Receipt {
 				const registrationAddress = accountingCustomerParty.getElementsByTagNameNS(Receipt.namespaces.cac, "RegistrationAddress")[0]
 
 				if (registrationAddress) {
-					const address = new Address();
-					address.line = registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent;
+					const address = new Address(registrationAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "");
 
 					customer.setAddress(address);
 				}
@@ -346,9 +344,9 @@ class Despatch extends Receipt {
 
 		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "DespatchLine");
 		for (let i = 0; i < items.length; i++) {
-			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
-			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.textContent || "" )
-			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.getAttribute("unitCode") || "" )
+			const item = new Item(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "")
+			item.setQuantity(parseFloat(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.textContent))
+			item.setUnitCode(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "DeliveredQuantity")[0]?.getAttribute("unitCode") || "")
 
 			this.addItem(item)
 		}
@@ -360,7 +358,7 @@ class Despatch extends Receipt {
 
 			const startDate = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "StartDate")[0].textContent
 			let dateParts = startDate.split('-'); // split in year, month and day
-			this.setStartDate(new Date(dateParts[0], dateParts[1] - 1, dateParts[2]))
+			this.setStartDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
 
 			// look for if vehicle is M1 or L
 			const specialInstruction = shipment.getElementsByTagNameNS(Receipt.namespaces.cbc, "SpecialInstructions")[0]?.textContent
@@ -386,20 +384,20 @@ class Despatch extends Receipt {
 
 			{ // delivery address
 				const deliveryAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DeliveryAddress")[0]
-				const address = new Address()
+				const address = new Address(deliveryAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "")
 				address.ubigeo = deliveryAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent
-				address.line = deliveryAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0].textContent
 				this.setDeliveryAddress(address)
 			}
 
 			{ // despatch address
 				const despatchAddress = shipment.getElementsByTagNameNS(Receipt.namespaces.cac, "DespatchAddress")[0]
-				const address = new Address()
+				const address = new Address(despatchAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0]?.textContent || "")
 				address.ubigeo = despatchAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent
-				address.line = despatchAddress.getElementsByTagNameNS(Receipt.namespaces.cbc, "Line")[0].textContent
 				this.setDespatchAddress(address)
 			}
 		}
+
+		return xmlDoc
 	}
 }
 

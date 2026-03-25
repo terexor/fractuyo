@@ -25,7 +25,6 @@ class XmlSigner {
 				{ id: "terexoris", uri: "", hash: "SHA-256", transforms: ["enveloped", canonMethod] }
 			],
 			x509: [taxpayer.getCertPem()],
-			signerRole: { claimed: ["Taxpayer"] },
 			/*
 			 * It exists, but Sunat does not handle big numbers (20 bytes) in serial numbers so was removed.
 			 * Structure can be found in http://www.datypic.com/sc/ubl21/e-xades_SigningCertificate.html

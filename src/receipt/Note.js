@@ -135,21 +135,21 @@ class Note extends Sale {
 		const xmlDoc = super.fromXml(xmlContent)
 
 		// Now about note
-		const [ lineNodeName, quantityNodeName ] = this.getTypeCode() == 7 ? [ "CreditNoteLine", "CreditedQuantity" ] : [ "DebitNoteLine", "DebitedQuantity" ]
+		const [lineNodeName, quantityNodeName] = this.getTypeCode() == 7 ? ["CreditNoteLine", "CreditedQuantity"] : ["DebitNoteLine", "DebitedQuantity"]
 
 		const items = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, lineNodeName);
 		for (let i = 0; i < items.length; i++) {
-			const item = new Item( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "" )
-			item.setQuantity( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.textContent || "" )
+			const item = new Item(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Description")[0]?.textContent || "")
+			item.setQuantity(parseFloat(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.textContent))
 			item.setUnitValue(
-				items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent,
+				parseFloat(items[i].getElementsByTagNameNS(Receipt.namespaces.cac, "Price")[0]?.getElementsByTagNameNS(Receipt.namespaces.cbc, "PriceAmount")[0]?.textContent),
 				false
 			)
-			item.setUnitCode( items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.getAttribute("unitCode") || "" )
+			item.setUnitCode(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, quantityNodeName)[0]?.getAttribute("unitCode") || "")
 
 			// Warning because there are many tags with same name
-			item.setIgvPercentage( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent) )
-			item.setExemptionReasonCode( parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent) )
+			item.setIgvPercentage(parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Percent")[0]?.textContent))
+			item.setExemptionReasonCode(parseInt(items[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxExemptionReasonCode")[0]?.textContent))
 
 			item.calcMounts();
 			this.addItem(item, true)

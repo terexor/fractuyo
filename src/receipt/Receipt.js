@@ -6,37 +6,67 @@ import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
 import SoapEnvelope from "./xml/SoapEnvelope.js"
 import Endpoint from "../webservice/Endpoint.js"
 
+/** @typedef {import("./Item.js").default} Item */
+/** @typedef {import("../person/Taxpayer.js").default} Taxpayer */
+/** @typedef {import("../person/Person.js").default} Person */
+
 class Receipt {
 	static #xmllintInstance // validator for XML
 
+	/** @type {string} */
 	#name
 
+	/** @type {Taxpayer} */
 	#taxpayer
+
+	/** @type {Person} */
 	#customer
 
+	/** @type {string} */
 	#serie
+
+	/** @type {number} */
 	#numeration
+
+	/** @type {number} */
 	#typeCode
 
+	/** @type {Date} */
 	#issueDate
 
+	/** @type {string} */
 	#ublVersion = "2.1"
+
+	/** @type {string} */
 	#customizationId = "2.0"
 
+	/** @type {string} */
 	#hash
 
+	/** @type {Array<Item>} */
 	#items = Array()
 
+	/**
+	 * @param {string} ublVersion
+	 */
 	setUblVersion(ublVersion) {
 		this.#ublVersion = ublVersion
 	}
 
+	/**
+	 * @param {Taxpayer} taxpayer - The taxpayer.
+	 * @param {Person} customer - The customer.
+	 * @param {string} name - The name of the document.
+	 */
 	constructor(taxpayer, customer, name) {
 		this.#taxpayer = taxpayer
 		this.#customer = customer
 		this.#name = name
 	}
 
+	/**
+	 * @param {string} name - The name of the document.
+	 */
 	setName(name) {
 		this.#name = name
 	}
@@ -62,16 +92,19 @@ class Receipt {
 
 	/**
 	 * Format serie and number: F000-00000001
+	 * @param {boolean} withType - Include type code.
+	 * @param {boolean} compacted - Compact format.
+	 * @returns {string}
 	 */
 	getId(withType = false, compacted = false) {
-		if(this.#serie == undefined || this.#numeration == undefined) {
+		if (this.#serie == undefined || this.#numeration == undefined) {
 			throw new Error("Serie o número incompletos.")
 		}
 
 		// Pre-format numeration as string
 		const numStr = compacted ? String(this.#numeration) : String(this.#numeration).padStart(8, '0')
 
-		if(withType) {
+		if (withType) {
 			const type = String(this.#typeCode).padStart(2, '0')
 			return `${type}-${this.#serie}-${numStr}`
 		}
@@ -79,42 +112,69 @@ class Receipt {
 		return `${this.#serie}-${numStr}`
 	}
 
+	/**
+	 * Set serie and number at once.
+	 * @param {string} serie - The serie of the document.
+	 * @param {number} numeration - The numeration of the document.
+	 */
 	setId(serie, numeration) {
 		this.setSerie(serie)
 		this.setNumeration(numeration)
 	}
 
+	/**
+	 * @param {string} serie - The serie of the document with 4 characters.
+	 */
 	setSerie(serie) {
-		if(serie.length != 4) {
+		if (serie.length != 4) {
 			throw new Error("Serie inconsistente")
 		}
 		this.#serie = serie
 	}
 
+	/**
+	 * @returns {string} The serie of the document.
+	 */
 	getSerie() {
 		return this.#serie
 	}
 
+	/**
+	 * @param {number} number - The numeration of the document from 1 to 99999999.
+	 */
 	setNumeration(number) {
-		if(number > 0x5F5E0FF) {
+		if (number > 0x5F5E0FF) {
 			throw new Error("Numeración supera el límite.")
 		}
 		this.#numeration = number
 	}
 
+	/**
+	 * Unset serie and number to set an anonymous document.
+	 */
 	unsetId() {
 		this.#serie = undefined
 		this.#numeration = undefined
 	}
 
+	/**
+	 * @returns {number} The numeration of the document.
+	 */
 	getNumeration() {
 		return this.#numeration
 	}
 
+	/**
+	 * @param {number} code - The type code of the document.
+	 */
 	setTypeCode(code) {
 		this.#typeCode = code
 	}
 
+	/**
+	 * @param {boolean} withFormat - Format the type code.
+	 * @returns {number | string} The type code of the document.
+	 */
 	getTypeCode(withFormat = false) {
 		if (withFormat) {
 			return String(this.#typeCode).padStart(2, '0')
@@ -122,8 +182,11 @@ class Receipt {
 		return this.#typeCode
 	}
 
+	/**
+	 * @param {Date} date - The issue date of the document.
+	 */
 	setIssueDate(date) {
-		if(date) {
+		if (date) {
 			this.#issueDate = date
 		}
 		else {
@@ -131,65 +194,97 @@ class Receipt {
 		}
 	}
 
+	/**
+	 * @returns {Date} The issue date of the document.
+	 */
 	getIssueDate() {
 		return this.#issueDate
 	}
 
+	/**
+	 * @returns {Taxpayer} The taxpayer set in constructor.
+	 */
 	getTaxpayer() {
 		return this.#taxpayer
 	}
 
 	/**
 	 * Replace the taxpayer.
+	 * @param {Taxpayer} taxpayer - The new taxpayer.
 	 */
 	setTaxpayer(taxpayer) {
 		this.#taxpayer = taxpayer
 	}
 
+	/**
+	 * @returns {Person} The customer set in constructor.
+	 */
 	getCustomer() {
 		return this.#customer
 	}
 
+	/**
+	 * @returns {string} The UBL version.
+	 */
 	getUblVersion() {
 		return this.#ublVersion
 	}
 
+	/**
+	 * @returns {string} The customization ID.
+	 */
 	getCustomizationId() {
 		return this.#customizationId
 	}
 
+	/**
+	 * @param {string} hash - The cryptographic hash of the document.
+	 */
 	setHash(hash) {
 		this.#hash = hash
 	}
 
+	/**
+	 * @returns {string} The cryptographic hash of the document.
+	 */
 	getHash() {
 		return this.#hash
 	}
 
+	/**
+	 * @param {Item} item - The item to add.
+	 */
 	addItem(item) {
 		this.#items.push(item)
 	}
 
 	/**
 	 * Recreate items array without an item.
-	 * @param index in array.
+	 * @param {number} index - The index of the item to remove.
 	 */
 	removeItem(index) {
 		this.#items = [...this.#items.slice(0, index), ...this.#items.slice(index + 1)]
 	}
 
+	/**
+	 * Clear all items setting the array of items to empty.
+	 */
 	clearItems() {
 		this.#items = [];
 	}
 
+	/**
+	 * @returns {Array<Item>} The items of the document.
+	 */
 	get items() {
 		return this.#items
 	}
 
-	get taxpayer() {
-		return this.#taxpayer
-	}
-
+	/**
+	 * Finalize the document signing it.
+	 * @param {SubtleCrypto} cryptoSubtle - The crypto subtle to use for signing.
+	 * @param {string} canonMethod - The canonicalization method to use for signing.
+	 */
 	async finalize(cryptoSubtle, canonMethod = "c14n") {
 		if (this.xmlDocument == undefined) {
 			throw new Error("Documento XML no existe.")
@@ -218,6 +313,8 @@ class Receipt {
 
 	/**
 	 * @deprecated Use finalize() instead for better performance and architecture.
+	 * @param {SubtleCrypto} cryptoSubtle - The crypto subtle to use for signing.
+	 * @param {string} canonMethod - The canonicalization method to use for signing.
 	 */
 	async sign(cryptoSubtle, canonMethod = "c14n") {
 		// Just calling the real method
@@ -225,25 +322,33 @@ class Receipt {
 	}
 
 	/**
-	 * @param type according JSZip API.
-	 * @param xmlString that is raw XML.
-	 * @return A ZIP file containing XML.
+	 * Create a ZIP file containing XML. Default type is base64.
+	 * @param {"base64" | "string" | "text" | "binarystring" | "array" | "uint8array" | "arraybuffer" | "blob" | "nodebuffer"} type - according JSZip API.
+	 * @param {string} [xmlString] - that is raw XML.
+	 * @return {Promise<any>} A ZIP file containing XML.
 	 */
 	async createZip(type = "base64", xmlString) {
 		const zip = new JSZip()
 		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
-			( xmlString ?? (new XMLSerializer().serializeToString(this.xmlDocument)) ) // if there is xmlString then use it
+			(xmlString ?? (new XMLSerializer().serializeToString(this.xmlDocument))) // if there is xmlString then use it
 		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
-		return zip.generateAsync({type: type}).then(zipb64 => {
+		return zip.generateAsync({ type: type }).then(zipb64 => {
 			return zipb64
 		})
 	}
 
+	/**
+	 * Handle answer that is in a ZIP file.
+	 * @param {string} zipStream - The zip file.
+	 * @param {boolean} isBase64 - Whether the zip file is base64.
+	 * @param {boolean} compacted - Whether the document is compacted.
+	 * @returns {Promise<[number, string]>} The proof of the document.
+	 */
 	async handleProof(zipStream, isBase64 = true, compacted = false) {
 		const zip = new JSZip()
 
-		return zip.loadAsync(zipStream, {base64: isBase64}).then(async (zip) => {
+		return zip.loadAsync(zipStream, { base64: isBase64 }).then(async (zip) => {
 			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true, compacted)}.xml`).async("string").then(async (data) => {
 				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
@@ -252,15 +357,20 @@ class Receipt {
 
 				if (codes.length > 0) {
 					const description = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "Description")[0]?.textContent ?? "Sin descripción"
-					return [ parseInt(codes[0].textContent), description ] // 0 when everthing is really OK
+					return [parseInt(codes[0].textContent), description] // 0 when everthing is really OK
 				}
 				else { // error
-					return [ -1, "No se encontró respuesta." ] // we have problems
+					return [-1, "No se encontró respuesta."] // we have problems
 				}
 			})
 		})
 	}
 
+	/**
+	 * Declare the document sending it to server.
+	 * @param {string} zipStream - The zip file.
+	 * @returns {Promise<string>} The proof of the document.
+	 */
 	async declare(zipStream) {
 		const soapXmlDocument = SoapEnvelope.generateSendBill(this, this.#taxpayer, zipStream)
 
@@ -288,13 +398,19 @@ class Receipt {
 		}
 	}
 
+	/**
+	 * Convert the document to XML string.
+	 * It includes signature node if the document was finalized.
+	 * @returns {string} The XML string.
+	 */
 	toString() {
 		return (new XMLSerializer().serializeToString(this.xmlDocument))
 	}
 
 	/**
 	 * Validate own XML against XSD.
-	 * @param {Array} xsdContentArray.
+	 * @param {string} mainXsdContent - Main XSD content.
+	 * @param {Array<string>} importedXsdContents - Array of imported XSD contents.
 	 * @returns {Promise<boolean>} - false if there are errors.
 	 */
 	async validateXmlWithXsd(mainXsdContent, importedXsdContents) {
@@ -304,17 +420,17 @@ class Receipt {
 		}
 
 		const result = await Receipt.#xmllintInstance({
-				xml: [{
-					fileName: this.getId() + ".xml",
-					contents: (new XMLSerializer().serializeToString(this.xmlDocument))
-				}],
-				schema: mainXsdContent,
-				preload: importedXsdContents
+			xml: [{
+				fileName: this.getId() + ".xml",
+				contents: (new XMLSerializer().serializeToString(this.xmlDocument))
+			}],
+			schema: mainXsdContent,
+			preload: importedXsdContents
 		})
-		.catch(function (e) {
-			console.error(e)
-			return false
-		})
+			.catch(function (e) {
+				console.error(e)
+				return false
+			})
 
 		if (result.valid) {
 			return true
@@ -327,10 +443,11 @@ class Receipt {
 
 	/**
 	 * Parse receipt header.
+	 * @param {string} xmlContent - The XML content of the document.
 	 * @return xmlDoc parsed.
 	 */
 	fromXml(xmlContent) {
-		const xmlDoc = new DOMParser().parseFromString(xmlContent, "text/xml")
+		const xmlDoc = new DOMParser().parseFromString(xmlContent, "application/xml")
 
 		const id = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]?.textContent // Everybody has identity
 		const [serie, numeration] = id.split('-')
@@ -370,6 +487,11 @@ class Receipt {
 		}
 	)
 
+	/**
+	 * Helper to remove CDATA tags from a string.
+	 * @param {string} cdata - The string to remove CDATA tags from.
+	 * @returns {string} The string without CDATA tags.
+	 */
 	static removeCdataTag(cdata) {
 		return cdata.trim().replace(/^(\/\/\s*)?<!\[CDATA\[|(\/\/\s*)?\]\]>$/g, '').trim()
 	}
@@ -384,10 +506,12 @@ class Receipt {
 		const month = date.getMonth() + 1
 		const year = date.getFullYear()
 
-		return year + "-" + ( (month < 10 ? "0" : "") + month ) + "-" + ( (day < 10 ? "0" : "") + day )
+		return year + "-" + ((month < 10 ? "0" : "") + month) + "-" + ((day < 10 ? "0" : "") + day)
 	}
 
 	/**
+	 * Helper to print a time of a date.
+	 * @param {Date} date - The date to handle time.
 	 * @return time as string in format HH:MM:SS
 	 */
 	static displayTime(date) {
@@ -395,11 +519,16 @@ class Receipt {
 		const min = date.getMinutes()
 		const sec = date.getSeconds()
 
-		return ( (hour < 10 ? "0" : "") + hour ) + ":" + ( (min < 10 ? "0" : "") + min ) + ":" + ( (sec < 10 ? "0" : "") + sec )
+		return ((hour < 10 ? "0" : "") + hour) + ":" + ((min < 10 ? "0" : "") + min) + ":" + ((sec < 10 ? "0" : "") + sec)
 	}
 
 	/**
-	 * @param amount is a decimal number.
+	 * Helper to convert an amount to words.
+	 * @param {number} amount - The amount to convert to words.
+	 * @param {string} junctor - The junctor to use.
+	 * @param {string} tail - The tail to use.
+	 * @param {number} decimals - The number of decimals to use.
+	 * @returns {string} The amount in words.
 	 */
 	static amountToWords(amount, junctor, tail, decimals = 2) {
 		if (amount == 0.0) {

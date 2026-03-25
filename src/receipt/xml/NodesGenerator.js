@@ -116,7 +116,7 @@ class NodesGenerator {
 		}
 
 		cbcNote.setAttribute("languageLocaleID", "1000")
-		cbcNote.appendChild( doc.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())) )
+		cbcNote.appendChild(doc.createCDATASection(Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())))
 		fragment.appendChild(cbcNote)
 
 		if ((typeCode == 1 || typeCode == 3) && invoice.hasDetraction()) {
@@ -248,7 +248,7 @@ class NodesGenerator {
 		// Dynamic name for that node
 		const supplierNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingSupplierParty" :
 			(typeCode == 9 || typeCode == 31) ? "cac:DespatchSupplierParty" :
-			"cac:SupplierParty" // it's error
+				"cac:SupplierParty" // it's error
 
 		const cacAccountingSupplierParty = doc.createElement(supplierNodeName)
 
@@ -270,14 +270,14 @@ class NodesGenerator {
 		cacParty.appendChild(cacPartyName)
 
 		const cbcName = doc.createElement("cbc:Name")
-		cbcName.appendChild( doc.createCDATASection(taxpayer.getTradeName()) )
+		cbcName.appendChild(doc.createCDATASection(taxpayer.getTradeName()))
 		cacPartyName.appendChild(cbcName)
 
 		const cacPartyLegalEntity = doc.createElement("cac:PartyLegalEntity")
 		cacParty.appendChild(cacPartyLegalEntity)
 		{
 			const cbcRegistrationName = doc.createElement("cbc:RegistrationName")
-			cbcRegistrationName.appendChild( doc.createCDATASection(taxpayer.getName()) )
+			cbcRegistrationName.appendChild(doc.createCDATASection(taxpayer.getName()))
 			cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
 			const cacRegistrationAddress = doc.createElement("cac:RegistrationAddress")
@@ -311,7 +311,7 @@ class NodesGenerator {
 				cacRegistrationAddress.appendChild(cacAddressLine)
 
 				const cbcLine = doc.createElement("cbc:Line")
-				cbcLine.appendChild( doc.createCDATASection(address.line) )
+				cbcLine.appendChild(doc.createCDATASection(address.line))
 				cacAddressLine.appendChild(cbcLine)
 
 				const cacCountry = doc.createElement("cac:Country")
@@ -369,8 +369,8 @@ class NodesGenerator {
 
 		// Dynamic name for that node
 		const customerNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingCustomerParty" :
-		(typeCode == 9 || typeCode == 31) ? "cac:DeliveryCustomerParty" :
-		"cac:CustomerParty" // it's error
+			(typeCode == 9 || typeCode == 31) ? "cac:DeliveryCustomerParty" :
+				"cac:CustomerParty" // it's error
 
 		const cacAccountingCustomerParty = doc.createElement(customerNodeName)
 
@@ -393,7 +393,7 @@ class NodesGenerator {
 		cacParty.appendChild(cacPartyLegalEntity)
 
 		const cbcRegistrationName = doc.createElement("cbc:RegistrationName")
-		cbcRegistrationName.appendChild( doc.createCDATASection(customer?.getName() ?? "Nemo") )
+		cbcRegistrationName.appendChild(doc.createCDATASection(customer?.getName() ?? "Nemo"))
 		cacPartyLegalEntity.appendChild(cbcRegistrationName)
 
 		if (address?.line) {
@@ -404,7 +404,7 @@ class NodesGenerator {
 			cacRegistrationAddress.appendChild(cacAddressLine)
 
 			const cbcLine = doc.createElement("cbc:Line")
-			cbcLine.appendChild( doc.createCDATASection(address.line) )
+			cbcLine.appendChild(doc.createCDATASection(address.line))
 			cacAddressLine.appendChild(cbcLine)
 		}
 
@@ -743,7 +743,7 @@ class NodesGenerator {
 			cbcPaymentPercent.textContent = detraction.getPercentage()
 			cacPaymentTerms.appendChild(cbcPaymentPercent)
 
-			const cbcAmount  = doc.createElement("cbc:Amount")
+			const cbcAmount = doc.createElement("cbc:Amount")
 			cbcAmount.setAttribute("currencyID", currencyId)
 			cbcAmount.textContent = detraction.getAmount().toFixed(2)
 			cacPaymentTerms.appendChild(cbcAmount)
@@ -936,7 +936,7 @@ class NodesGenerator {
 
 			if (invoice.iscAmount > 0) { //ISC
 				cacTaxTotal.appendChild(
-					createSubtotal(invoice.getOperationAmount(0), iscAmount, { id: "2000", name: "ISC", type: "EXC" })
+					createSubtotal(invoice.getOperationAmount(0), invoice.iscAmount, { id: "2000", name: "ISC", type: "EXC" })
 				)
 			}
 
@@ -983,7 +983,7 @@ class NodesGenerator {
 			cbcTaxInclusiveAmount.setAttribute("currencyID", currencyId)
 			cbcTaxInclusiveAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
 
-			const cbcPayableAmount  = doc.createElement("cbc:PayableAmount")
+			const cbcPayableAmount = doc.createElement("cbc:PayableAmount")
 			cbcPayableAmount.setAttribute("currencyID", currencyId)
 			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2) // That is not the correct amount
 
@@ -1008,10 +1008,10 @@ class NodesGenerator {
 
 		const lineNodeName = isDespatch ? "cac:DespatchLine" : `cac:${invoice.name}Line`
 		const quantityNodeName = (typeCode == 1 || typeCode == 3) ? "cbc:InvoicedQuantity" :
-				typeCode == 7 ? "cbc:CreditedQuantity" :
+			typeCode == 7 ? "cbc:CreditedQuantity" :
 				typeCode == 8 ? "cbc:DebitedQuantity" :
-				isDespatch ? "cbc:DeliveredQuantity" :
-				"cbc:Quantity" // it's error
+					isDespatch ? "cbc:DeliveredQuantity" :
+						"cbc:Quantity" // it's error
 
 		// Static map for avoiding switch(true)
 		const TAX_DATA = {
@@ -1022,7 +1022,7 @@ class NodesGenerator {
 		}
 
 		let itemIndex = 0 // for ID
-		for(const item of items) { //Items
+		for (const item of items) { //Items
 			const cacInvoiceLine = doc.createElement(lineNodeName)
 			// We are appending it to fragment at end of loop
 
@@ -1034,7 +1034,7 @@ class NodesGenerator {
 			cbcInvoicedQuantity.setAttribute("unitCode", item.getUnitCode())
 			cbcInvoicedQuantity.setAttribute("unitCodeListID", "UN/ECE rec 20")
 			cbcInvoicedQuantity.setAttribute("unitCodeListAgencyName", "United Nations Economic Commission for Europe")
-			cbcInvoicedQuantity.textContent = item.getQuantity(true, 10)
+			cbcInvoicedQuantity.textContent = item.getQuantity().toFixed(10)
 			cacInvoiceLine.appendChild(cbcInvoicedQuantity)
 
 			if (isDespatch) {
@@ -1049,7 +1049,7 @@ class NodesGenerator {
 			else {
 				const cbcLineExtensionAmount = doc.createElement("cbc:LineExtensionAmount")
 				cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
-				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount(true)
+				cbcLineExtensionAmount.textContent = item.getLineExtensionAmount().toFixed(2)
 				cacInvoiceLine.appendChild(cbcLineExtensionAmount)
 
 				{ //PricingReference
@@ -1057,7 +1057,7 @@ class NodesGenerator {
 					const cacAlternativeConditionPrice = doc.createElement("cac:AlternativeConditionPrice")
 					const cbcPriceAmount = doc.createElement("cbc:PriceAmount")
 					cbcPriceAmount.setAttribute("currencyID", currencyId)
-					cbcPriceAmount.textContent = item.getPricingReferenceAmount(true, 10)
+					cbcPriceAmount.textContent = item.getPricingReferenceAmount().toFixed(10)
 					const cbcPriceTypeCode = doc.createElement("cbc:PriceTypeCode")
 					cbcPriceTypeCode.textContent = "01"
 
@@ -1073,7 +1073,7 @@ class NodesGenerator {
 
 					const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
 					cbcTaxAmount.setAttribute("currencyID", currencyId)
-					cbcTaxAmount.textContent = item.getTaxTotalAmount(true)
+					cbcTaxAmount.textContent = item.getTaxTotalAmount().toFixed(2)
 					cacTaxTotal.appendChild(cbcTaxAmount)
 
 					//Assign data according taxability
@@ -1093,12 +1093,12 @@ class NodesGenerator {
 
 						const cbcTaxableAmount = doc.createElement("cbc:TaxableAmount")
 						cbcTaxableAmount.setAttribute("currencyID", currencyId)
-						cbcTaxableAmount.textContent = item.getLineExtensionAmount(true)
+						cbcTaxableAmount.textContent = item.getLineExtensionAmount().toFixed(2)
 						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
 						const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
 						cbcTaxAmount.setAttribute("currencyID", currencyId)
-						cbcTaxAmount.textContent = item.getIscAmount(true)
+						cbcTaxAmount.textContent = item.getIscAmount().toFixed(2)
 						cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 						const cacTaxCategory = doc.createElement("cac:TaxCategory")
@@ -1136,12 +1136,12 @@ class NodesGenerator {
 
 						const cbcTaxableAmount = doc.createElement("cbc:TaxableAmount")
 						cbcTaxableAmount.setAttribute("currencyID", currencyId)
-						cbcTaxableAmount.textContent = item.getTaxableIgvAmount(true)
+						cbcTaxableAmount.textContent = item.getTaxableIgvAmount().toFixed(2)
 						cacTaxSubtotal.appendChild(cbcTaxableAmount)
 
 						const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
 						cbcTaxAmount.setAttribute("currencyID", currencyId)
-						cbcTaxAmount.textContent = item.getIgvAmount(true)
+						cbcTaxAmount.textContent = item.getIgvAmount().toFixed(2)
 						cacTaxSubtotal.appendChild(cbcTaxAmount)
 
 						const cacTaxCategory = doc.createElement("cac:TaxCategory")
@@ -1180,15 +1180,15 @@ class NodesGenerator {
 				cacInvoiceLine.appendChild(cacItem)
 
 				const cbcDescription = doc.createElement("cbc:Description")
-				cbcDescription.appendChild( doc.createCDATASection(item.getDescription()) )
+				cbcDescription.appendChild(doc.createCDATASection(item.getDescription()))
 				cacItem.appendChild(cbcDescription)
 
 				const itemCode = item.getCode()
-				if(itemCode) {
+				if (itemCode) {
 					const cacSellersItemIdentification = doc.createElement("cac:SellersItemIdentification")
 					cacItem.appendChild(cacSellersItemIdentification)
 
-					const cbcID = dod.createElement("cbc:ID")
+					const cbcID = doc.createElement("cbc:ID")
 					cbcID.textContent = itemCode
 					cacSellersItemIdentification.appendChild(cbcID)
 				}
@@ -1214,7 +1214,7 @@ class NodesGenerator {
 
 					const cbcPriceAmount = doc.createElement("cbc:PriceAmount")
 					cbcPriceAmount.setAttribute("currencyID", currencyId)
-					cbcPriceAmount.textContent = item.getUnitValue(true, 10)
+					cbcPriceAmount.textContent = item.getUnitValue().toFixed(10)
 					cacPrice.appendChild(cbcPriceAmount)
 				}
 			}

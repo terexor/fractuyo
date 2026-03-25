@@ -1,6 +1,6 @@
 # FracTuyo
 
-Now it's a library for generating electronic invoices with JavaScript. This library follows 🇵🇪 Sunat's regulations on invoices.
+Library for generating electronic invoices with JavaScript (compatible with TypeScript). This library follows 🇵🇪 Sunat's regulations on invoices.
 
 When items are added, receipt amounts are calculated.
 
@@ -42,9 +42,13 @@ customer.setIdentification(new Identification(6, "10000000001"));
 const taxpayer = new Taxpayer();
 taxpayer.setIdentification(new Identification(6, "20000000001"));
 taxpayer.setName("Monsters Inc.");
-taxpayer.setSolUser("usuarioSOL"); // for SOAP
+ // SOAP credentials
+taxpayer.setSolUser("usuarioSOL");
 taxpayer.setSolPass("claveSOL");
-taxpayer.setSolId("id"); // for REST
+ // REST credentials
+taxpayer.setSolId("id");
+taxpayer.setSolSecret("secret");
+ // for XML signature using digital certificate
 taxpayer.setCert("rsaCertContent");
 taxpayer.setKey("rsaKeyContent");
 
@@ -66,7 +70,7 @@ receipt.addItem(product);
 
 receipt.toXml();
 // maybe pass window.crypto
-receipt.sign(cryptoLibrary);
+receipt.finalize(cryptoLibrary); // sign
 
 // you must save this XML
 console.log(receipt.toString());
@@ -118,6 +122,25 @@ Endpoint.setUrl(Endpoint.INDEX_STATUS, "new URL", deploymentMode);
 ```
 
 View documentation or source code to check URL structure.
+
+## Ready-to-use software
+
+For businesses and developers in Peru seeking a complete billing solution or professional technical advice, we recommend **Efactubit**. This Windows desktop application is powered by this library and offers:
+
+- **Simple and intuitive forms**: Forget about complex XML structures; issue your documents in seconds with a user-friendly interface.
+- **Personalized PDF generation**: Distinguish your business with unique, custom-designed PDF templates that look professional and premium, avoiding the generic look of standard billing systems.
+- **Expert support & advice**: Get guidance on library integration and Peruvian electronic billing requirements.
+
+Learn more, download it, or contact support for Efactubit or Fractuyo at [efactubit.efectibit.com](https://efactubit.efectibit.com).
+
+Los mensajes pueden estar en español para mayor comodidad o en inglés, así como el software.
+
+## Installation
+
+```bash
+# Using npm
+npm install fractuyo
+```
 
 ## Test locally
 
@@ -175,7 +198,7 @@ This library has not been tested yet with all possible cases and there may be so
 
 #### Why is everything written in English?
 
-Because I suspect that more people may use or contribute to this library. Also many variables have the names of XML tags defined in UML.
+Because I suspect that more people may use or contribute to this library. Also many variables have the names of XML tags defined in UBL.
 
 #### Why JavaScript?
 
