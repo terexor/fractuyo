@@ -1,6 +1,6 @@
 {
 	"name": "fractuyo",
-	"version": "0.5.5",
+	"version": "0.5.6",
 	"description": "Generates electronic invoices and other tax documents compliant with Sunat (Peru) standards.",
 	"main": "dist/fractuyo.min.js",
 	"type": "module",
@@ -68,7 +68,8 @@
 		"asn1js": "^3.0.5",
 		"jszip": "^3.10.1",
 		"written-number": "^0.11.1",
-		"xmldsigjs": "^2.6.1",
+		"xmldsigjs": "2.6.1",
+		"xml-core": "1.1.5",
 		"xmllint-wasm": "^4.0.2"
 	},
 	"devDependencies": {
