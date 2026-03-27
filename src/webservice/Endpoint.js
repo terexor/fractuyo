@@ -146,7 +146,7 @@ class Endpoint {
 	}
 
 	static async fetchSend(body, receipt) {
-		const url = Endpoint.getUrl(Endpoint.INDEX_SEND).concat(`${receipt.taxpayer.getIdentification().getNumber()}-${receipt.getId(true)}`)
+		const url = Endpoint.getUrl(Endpoint.INDEX_SEND).concat(`${receipt.getTaxpayer().getIdentification().getNumber()}-${receipt.getId(true)}`)
 
 		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",

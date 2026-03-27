@@ -51,7 +51,7 @@ class Rest {
 
 		return {
 			"archivo" : {
-				"nomArchivo": `${receipt.taxpayer.getIdentification().getNumber()}-${receipt.getId(true)}.zip`,
+				"nomArchivo": `${receipt.getTaxpayer().getIdentification().getNumber()}-${receipt.getId(true)}.zip`,
 				"hashZip": hexChars.join(''), // in documentation looks like base64 but documentation is bad
 				"arcGreZip": zipStream
 			}
