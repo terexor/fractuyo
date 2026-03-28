@@ -65,6 +65,7 @@ test.serial("creating despatch", (tester) => {
 	despatch.setNote("Sending on time")
 	despatch.setStartDate(new Date())
 	despatch.setUnitCode("KGM")
+	despatch.setUnitQuantity(1)
 	despatch.setWeight(4)
 	despatch.setHandlingCode(1)
 	despatch.usingLightVehicle(false)
@@ -76,6 +77,11 @@ test.serial("creating despatch", (tester) => {
 		carrier.setIdentification(new Identification(6, "20000000001"))
 		despatch.setCarrier(carrier)
 	}
+
+	const despatchAddress = new Address()
+	despatchAddress.line = "Partida 4300"
+	despatchAddress.ubigeo = "230000"
+	despatch.setDespatchAddress(despatchAddress)
 
 	const deliveryAddress = new Address()
 	deliveryAddress.line = "An address in Peru"

@@ -14,6 +14,8 @@ class Despatch extends Receipt {
 	#unitCode // maybe kgm
 	#weight // value of unit code
 
+	#unitQuantity // quantity of "bultos" or "pallets"
+
 	#startDate
 
 	#deliveryAddress
@@ -75,6 +77,14 @@ class Despatch extends Receipt {
 
 	getWeight() {
 		return this.#weight
+	}
+
+	setUnitQuantity(unitQuantity) {
+		this.#unitQuantity = unitQuantity
+	}
+
+	getUnitQuantity() {
+		return this.#unitQuantity
 	}
 
 	setStartDate(date) {
