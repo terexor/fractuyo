@@ -440,7 +440,7 @@ class NodesGenerator {
 			cbcGrossWeightMeasure.textContent = despatch.getWeight()
 			cacShipment.appendChild(cbcGrossWeightMeasure)
 
-			if(despatch.getUnitQuantity()) {
+			if (despatch.getUnitQuantity()) {
 				const cbcTotalTransportHandlingUnitQuantity = doc.createElement("cbc:TotalTransportHandlingUnitQuantity")
 				cbcTotalTransportHandlingUnitQuantity.textContent = despatch.getUnitQuantity()
 				cacShipment.appendChild(cbcTotalTransportHandlingUnitQuantity)
