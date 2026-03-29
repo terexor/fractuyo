@@ -53,10 +53,10 @@ taxpayer.setCert("rsaCertContent");
 taxpayer.setKey("rsaKeyContent");
 
 const receipt = new Invoice(taxpayer, customer);
-invoice.setCurrencyId("USD");
-invoice.setTypeCode(1); // factura
-invoice.setSerie("F000");
-invoice.setNumeration(19970601);
+receipt.setCurrencyId("USD");
+receipt.setTypeCode(1); // factura
+receipt.setSerie("F000");
+receipt.setNumeration(19970601);
 
 const product = new Item("Description");
 product.setIgvPercentage(18);
@@ -99,7 +99,7 @@ import { Endpoint } from "fractuyo";
 
 The generation of documents up to the inclusion of the electronic signature is identical in both deployment mode and test mode.
 
-By default, the test endpoints are assigned, and you can switch to the production endpoint by using the following code (before declaring):
+By default, the test endpoints are assigned, and you can switch to the production endpoint by using the following code (in any place, just once before sending out because is static):
 
 ```javascript
 const receipt = new Invoice(taxpayer, customer);

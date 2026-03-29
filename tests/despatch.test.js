@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
-import { Vehicle, Package, Port, Endpoint, Despatch, Item, Person, Driver, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Vehicle, Package, Port, Endpoint, Despatch, Item, DocumentReference, Person, Driver, Taxpayer, Identification, Address } from '../src/fractuyo.js'
 
 let customer
 let taxpayer
@@ -45,7 +45,7 @@ test.serial("creating persons", tester => {
 	try {
 		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
 		taxpayer.setCert(cert)
-		const key =  fs.readFileSync("./tests/key.pem", "utf8")
+		const key = fs.readFileSync("./tests/key.pem", "utf8")
 		taxpayer.setKey(key)
 	}
 	catch (err) {
@@ -69,6 +69,13 @@ test.serial("creating despatch", (tester) => {
 	despatch.setWeight(4)
 	despatch.setHandlingCode(1)
 	despatch.usingLightVehicle(false)
+
+	// Adding an invoice reference
+	const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
+	additionalDocumentReference.setId("F000-19970601")
+	additionalDocumentReference.setTypeCode(1)
+	additionalDocumentReference.setIssuerId("20606829265") // Same as taxpayer or simply don't call it for reusing
+	despatch.addDocumentReference(additionalDocumentReference)
 
 	// When is "transportista" set as true
 	if (false) {
@@ -126,7 +133,7 @@ test.serial("signing despatch", async tester => {
 	despatch.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await despatch.sign(subtle)
+	const isSigned = await despatch.finalize(subtle)
 
 	tester.true(isSigned)
 
@@ -188,8 +195,8 @@ test.serial("presenting despatch", async tester => {
 
 		const zipStream = await despatch.createZip()
 		const serverJsonStream = await despatch.declare(zipStream)
-		const serverZipStream = await despatch.handleTicket(serverJsonStream.numTicket);
-		const [ serverCode, serverDescription ] = await despatch.handleProof(serverZipStream.arcCdr, true, true);
+		const serverZipStream = await despatch.handleTicket(serverJsonStream.numTicket)
+		const [serverCode, serverDescription] = await despatch.handleProof(serverZipStream.arcCdr, true, true)
 
 		tester.is(serverCode, 0)
 	}

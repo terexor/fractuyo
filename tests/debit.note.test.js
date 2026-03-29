@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
-import { Note, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
+import { Note, Item, DocumentReference, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js';
 
 let customer
 let taxpayer
@@ -41,7 +41,7 @@ test.serial("creating persons", tester => {
 	try {
 		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
 		taxpayer.setCert(cert)
-		const key =  fs.readFileSync("./tests/key.pem", "utf8")
+		const key = fs.readFileSync("./tests/key.pem", "utf8")
 		taxpayer.setKey(key)
 	}
 	catch (err) {
@@ -59,9 +59,12 @@ test.serial("creating note", tester => {
 	debitNote.setSerie("F000")
 	debitNote.setNumeration(97)
 	debitNote.setResponseCode(1)
-	debitNote.setDocumentReference("F000-19970601")
-	debitNote.setDocumentReferenceTypeCode(1)
 	debitNote.setDescription("Testing library to eliminate invoice")
+
+	const billingReference = new DocumentReference(DocumentReference.BILLING)
+	billingReference.setId("F000-19970601")
+	billingReference.setTypeCode(1)
+	debitNote.addDocumentReference(billingReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
@@ -85,7 +88,7 @@ test.serial("signing note", async tester => {
 	debitNote.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await debitNote.sign(subtle)
+	const isSigned = await debitNote.finalize(subtle)
 
 	tester.true(isSigned)
 
@@ -143,7 +146,7 @@ test.serial("presenting note", async tester => {
 	try {
 		const zipStream = await debitNote.createZip()
 		const serverZipStream = await debitNote.declare(zipStream)
-		const [ serverCode, serverDescription ] = await debitNote.handleProof(serverZipStream)
+		const [serverCode, serverDescription] = await debitNote.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}

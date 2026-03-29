@@ -5,6 +5,8 @@ import Despatch from "./receipt/Despatch.js";
 import Item from "./receipt/Item.js";
 import Share from "./receipt/Share.js";
 import Charge from "./receipt/Charge.js";
+import DocumentReference from "./receipt/DocumentReference.js";
+import PrepaidPaymentReference from "./receipt/PrepaidPaymentReference.js";
 
 import Person from "./person/Person.js";
 import Driver from "./person/Driver.js";
@@ -26,6 +28,8 @@ export {
 	Item,
 	Share,
 	Charge,
+	DocumentReference,
+	PrepaidPaymentReference,
 	Person,
 	Driver,
 	Taxpayer,

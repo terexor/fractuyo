@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
-import { Invoice, Item, Share, Charge, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js'
+import { Invoice, Item, Share, Charge, DocumentReference, Person, Taxpayer, Identification, Address } from '../src/fractuyo.js'
 
 let customer
 let taxpayer
@@ -41,7 +41,7 @@ test.serial("creating persons", tester => {
 	try {
 		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
 		taxpayer.setCert(cert)
-		const key =  fs.readFileSync("./tests/key.pem", "utf8")
+		const key = fs.readFileSync("./tests/key.pem", "utf8")
 		taxpayer.setKey(key)
 	}
 	catch (err) {
@@ -61,6 +61,12 @@ test.serial("creating invoice", (tester) => {
 	invoice.setNumeration(19970601)
 	invoice.setOrderReference("test-002")
 	invoice.setOrderReferenceText("Testing library to generate invoice")
+
+	// Adding an invoice reference
+	const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
+	additionalDocumentReference.setId("F000-19950729")
+	additionalDocumentReference.setTypeCode(1)
+	invoice.addDocumentReference(additionalDocumentReference)
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
@@ -84,7 +90,7 @@ test.serial("signing invoice", async tester => {
 	invoice.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await invoice.sign(subtle)
+	const isSigned = await invoice.finalize(subtle)
 
 	tester.true(isSigned)
 
@@ -142,7 +148,7 @@ test.serial("presenting invoice", async tester => {
 	try {
 		const zipStream = await invoice.createZip()
 		const serverZipStream = await invoice.declare(zipStream)
-		const [ serverCode, serverDescription ] = await invoice.handleProof(serverZipStream)
+		const [serverCode, serverDescription] = await invoice.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}

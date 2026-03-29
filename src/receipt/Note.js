@@ -1,17 +1,37 @@
 import Item from "./Item.js"
 import Receipt from "./Receipt.js"
 import Sale from "./Sale.js"
+import DocumentReference from "./DocumentReference.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
+
+/**
+ * @typedef {import("../person/Taxpayer.js").default} Taxpayer
+ * @typedef {import("../person/Person.js").default} Customer
+ */
 
 class Note extends Sale {
 	#description
 	#responseCode // type for this note
 
+	/**
+	 * @deprecated
+	 */
 	#documentReference
+	/**
+	 * @deprecated
+	 */
 	#documentReferenceTypeCode
 
 	/**
-	 * @param isCredit must be boolean to choose between credit as true or false for debit.
+	 * Used in Credit note to hold just one invoice reference.
+	 * @type {DocumentReference}
+	 */
+	#billingDocumentReference
+
+	/**
+	 * @param {Taxpayer} taxpayer
+	 * @param {Customer} customer - Generic person
+	 * @param {boolean} isCredit - Must be boolean to choose between credit as true or false for debit.
 	 */
 	constructor(taxpayer, customer, isCredit) {
 		if (isCredit != undefined) {
@@ -54,18 +74,56 @@ class Note extends Sale {
 		return this.#responseCode
 	}
 
+	/**
+	 * Add a document reference and when it is billing reference, set it only once.
+	 * @param {DocumentReference} documentReference
+	 */
+	addDocumentReference(documentReference) {
+		if (documentReference.getReferenceType() == DocumentReference.BILLING) {
+			this.#billingDocumentReference = documentReference
+			return
+		}
+
+		super.addDocumentReference(documentReference)
+	}
+
+	/**
+	 * @returns {DocumentReference}
+	 */
+	get billingDocumentReference() {
+		return this.#billingDocumentReference
+	}
+
+	/**
+	 * Set identifier of document reference like F000-12345678.
+	 * @deprecated
+	 * @param {string} reference
+	 */
 	setDocumentReference(reference) {
 		this.#documentReference = reference
 	}
 
+	/**
+	 * @deprecated
+	 * @returns {string}
+	 */
 	getDocumentReference() {
 		return this.#documentReference
 	}
 
+	/**
+	 * @deprecated
+	 * @param {number} code
+	 */
 	setDocumentReferenceTypeCode(code) {
 		this.#documentReferenceTypeCode = code
 	}
 
+	/**
+	 * @deprecated
+	 * @param {boolean} withFormat
+	 * @returns {string}
+	 */
 	getDocumentReferenceTypeCode(withFormat = false) {
 		if (withFormat) {
 			return String(this.#documentReferenceTypeCode).padStart(2, '0')

@@ -36,7 +36,7 @@ test.serial("creating persons", tester => {
 	try {
 		const cert = fs.readFileSync("./tests/cert.pem", "utf8")
 		taxpayer.setCert(cert)
-		const key =  fs.readFileSync("./tests/key.pem", "utf8")
+		const key = fs.readFileSync("./tests/key.pem", "utf8")
 		taxpayer.setKey(key)
 	}
 	catch (err) {
@@ -77,7 +77,7 @@ test.serial("signing invoice", async tester => {
 	invoice.toXml()
 
 	const { subtle } = globalThis.crypto // from Node API
-	const isSigned = await invoice.sign(subtle)
+	const isSigned = await invoice.finalize(subtle)
 
 	tester.true(isSigned)
 
@@ -135,7 +135,7 @@ test.serial("presenting invoice", async tester => {
 	try {
 		const zipStream = await invoice.createZip()
 		const serverZipStream = await invoice.declare(zipStream)
-		const [ serverCode, serverDescription ] = await invoice.handleProof(serverZipStream)
+		const [serverCode, serverDescription] = await invoice.handleProof(serverZipStream)
 
 		tester.is(serverCode, 0)
 	}

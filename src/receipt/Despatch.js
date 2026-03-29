@@ -201,6 +201,8 @@ class Despatch extends Receipt {
 
 		bodyFragment.appendChild(NodesGenerator.generateNotes(this))
 
+		bodyFragment.appendChild(NodesGenerator.generateAdditionalDocumentReferences(this))
+
 		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
 
 		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))

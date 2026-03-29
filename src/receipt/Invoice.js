@@ -252,6 +252,8 @@ class Invoice extends Sale {
 
 		bodyFragment.appendChild(NodesGenerator.generateReference(this))
 
+		bodyFragment.appendChild(NodesGenerator.generateAdditionalDocumentReferences(this))
+
 		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
 
 		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))

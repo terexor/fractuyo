@@ -164,7 +164,21 @@ class NodesGenerator {
 			return fragment
 		}
 
-		if ((typeCode == 7 || typeCode == 8)) { // for note
+		if ((typeCode == 7 || typeCode == 8)) { // for notes
+			// caching
+			let billingDocumentReferenceId
+			let billingDocumentReferenceTypeCode
+			if (invoice.billingDocumentReference) {
+				const billingDocumentReference = invoice.billingDocumentReference
+				billingDocumentReferenceId = billingDocumentReference.getId()
+				billingDocumentReferenceTypeCode = billingDocumentReference.getTypeCode(true)
+			} else {
+				// Compatibility with old versions
+				// This block must be removed when deprecated method is removed
+				billingDocumentReferenceId = invoice.getDocumentReference()
+				billingDocumentReferenceTypeCode = invoice.getDocumentReferenceTypeCode(true)
+			}
+
 			const cacBillingReference = doc.createElement("cac:BillingReference")
 			fragment.appendChild(cacBillingReference)
 			{
@@ -172,11 +186,11 @@ class NodesGenerator {
 				cacBillingReference.appendChild(cacInvoiceDocumentReference)
 				{
 					const cbcID = doc.createElement("cbc:ID")
-					cbcID.textContent = invoice.getDocumentReference()
+					cbcID.textContent = billingDocumentReferenceId
 					cacInvoiceDocumentReference.appendChild(cbcID)
 
 					const cbcDocumentTypeCode = doc.createElement("cbc:DocumentTypeCode")
-					cbcDocumentTypeCode.textContent = invoice.getDocumentReferenceTypeCode(true)
+					cbcDocumentTypeCode.textContent = billingDocumentReferenceTypeCode
 					cacInvoiceDocumentReference.appendChild(cbcDocumentTypeCode)
 				}
 			}
@@ -232,6 +246,56 @@ class NodesGenerator {
 		}
 
 		fragment.appendChild(cacSignature)
+		return fragment
+	}
+
+	static generateAdditionalDocumentReferences(receipt) {
+		const doc = receipt.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		// caching
+		const additionalDocumentReferences = receipt.additionalDocumentReferences
+		if (!additionalDocumentReferences || additionalDocumentReferences.length == 0) {
+			// If we don't have additional document references, we don't need to generate this node or nodes
+			return fragment
+		}
+		const typeCode = receipt.getTypeCode()
+		const isNotDespatch = !(typeCode == 9 || typeCode == 31)
+		// resolving own RUC here to avoid jumps
+		const ruc = receipt.getTaxpayer().getIdentification().getNumber()
+
+		for (const additionalDocumentReference of additionalDocumentReferences) {
+			const cacAdditionalDocumentReference = doc.createElement("cac:AdditionalDocumentReference")
+			fragment.appendChild(cacAdditionalDocumentReference)
+
+			const cbcId = doc.createElement("cbc:ID")
+			cbcId.textContent = additionalDocumentReference.getId()
+			cacAdditionalDocumentReference.appendChild(cbcId)
+
+			const cbcDocumentTypeCode = doc.createElement("cbc:DocumentTypeCode")
+			cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
+			cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
+
+			// Just for invoice and notes, do nothing else
+			if (isNotDespatch) {
+				continue
+			}
+
+			const cacIssuerParty = doc.createElement("cac:IssuerParty")
+			{
+				const cacPartyIdentification = doc.createElement("cac:PartyIdentification")
+				cacIssuerParty.appendChild(cacPartyIdentification)
+				{
+					const cbcPartyID = doc.createElement("cbc:ID")
+					cbcPartyID.setAttribute("schemeID", "6")
+					// If issuerId is not set, use own RUC
+					cbcPartyID.textContent = additionalDocumentReference.getIssuerId() || ruc
+					cacPartyIdentification.appendChild(cbcPartyID)
+				}
+			}
+			cacAdditionalDocumentReference.appendChild(cacIssuerParty)
+		}
+
 		return fragment
 	}
 

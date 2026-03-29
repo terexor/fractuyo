@@ -6,6 +6,8 @@ import { DOMImplementation, DOMParser } from "@xmldom/xmldom"
 import SoapEnvelope from "./xml/SoapEnvelope.js"
 import Endpoint from "../webservice/Endpoint.js"
 
+import DocumentReference from "./DocumentReference.js"
+
 /** @typedef {import("./Item.js").default} Item */
 /** @typedef {import("../person/Taxpayer.js").default} Taxpayer */
 /** @typedef {import("../person/Person.js").default} Person */
@@ -45,6 +47,30 @@ class Receipt {
 
 	/** @type {Array<Item>} */
 	#items = Array()
+
+	/**
+	 * Used to hold many despatche references.
+	 * @type {Array<DocumentReference>}
+	 */
+	#despatchDocumentReferences = Array()
+
+	/**
+	 * Used to hold many contract references as water, electricity, gas, etc.
+	 * @type {Array<DocumentReference>}
+	 */
+	#contractDocumentReferences = Array()
+
+	/**
+	 * Used to hold many additional document references.
+	 * @type {Array<DocumentReference>}
+	 */
+	#additionalDocumentReferences = Array()
+
+	/**
+	 * Used to hold many prepaid payment references.
+	 * @type {Array<DocumentReference>}
+	 */
+	#prepaidPaymentReferences = Array()
 
 	/**
 	 * @param {string} ublVersion
@@ -278,6 +304,58 @@ class Receipt {
 	 */
 	get items() {
 		return this.#items
+	}
+
+	/**
+	 * Add document reference according internal type code.
+	 * Stores documents in its own array by its reference type.
+	 * @param {DocumentReference} documentReference
+	 */
+	addDocumentReference(documentReference) {
+		switch (documentReference.getReferenceType()) {
+			case DocumentReference.ADDITIONAL:
+				this.#additionalDocumentReferences.push(documentReference);
+				break;
+			case DocumentReference.DESPATCH:
+				this.#despatchDocumentReferences.push(documentReference);
+				break;
+			case DocumentReference.CONTRACT:
+				this.#contractDocumentReferences.push(documentReference);
+				break;
+			case DocumentReference.PREPAID_PAYMENT:
+				this.#prepaidPaymentReferences.push(documentReference);
+				break;
+			default:
+				throw new Error("Invalid document reference type.");
+		}
+	}
+
+	/**
+	 * @returns {Array<DocumentReference>}
+	 */
+	get additionalDocumentReferences() {
+		return this.#additionalDocumentReferences;
+	}
+
+	/**
+	 * @returns {Array<DocumentReference>}
+	 */
+	get despatchDocumentReferences() {
+		return this.#despatchDocumentReferences;
+	}
+
+	/**
+	 * @returns {Array<DocumentReference>}
+	 */
+	get contractDocumentReferences() {
+		return this.#contractDocumentReferences;
+	}
+
+	/**
+	 * @returns {Array<DocumentReference>}
+	 */
+	get prepaidPaymentReferences() {
+		return this.#prepaidPaymentReferences;
 	}
 
 	/**
