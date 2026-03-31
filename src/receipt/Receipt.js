@@ -12,6 +12,10 @@ import DocumentReference from "./DocumentReference.js"
 /** @typedef {import("../person/Taxpayer.js").default} Taxpayer */
 /** @typedef {import("../person/Person.js").default} Person */
 
+/**
+ * The Receipt class serves as the abstract foundation for all document types in the library.
+ * It implements the core lifecycle of an electronic tax document (CPE), including identity management, XML structure initialization, digital signing, ZIP packaging and transmission to SUNAT endpoints.
+ */
 class Receipt {
 	static #xmllintInstance // validator for XML
 
