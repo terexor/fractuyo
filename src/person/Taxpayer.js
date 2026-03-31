@@ -2,6 +2,10 @@ import Person from "./Person.js"
 
 import * as asn1js from "asn1js"
 
+/**
+ * The Taxpayer class extends the Person class to represent a taxpayer, which is a person or entity that is subject to taxation.
+ * It is used to store information about taxpayers, such as certificate, key, contact information and Sunat SOL credentials.
+ */
 class Taxpayer extends Person {
 	#certPem
 	#certDer
