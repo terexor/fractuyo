@@ -36,6 +36,9 @@ importers:
       ava:
         specifier: ^6.1.3
         version: 6.4.1
+      docdash:
+        specifier: ^2.0.2
+        version: 2.0.2
       esbuild:
         specifier: ^0.27.4
         version: 0.27.4
@@ -546,6 +549,9 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
+
+  docdash@2.0.2:
+    resolution: {integrity: sha512-3SDDheh9ddrwjzf6dPFe1a16M6ftstqTNjik2+1fx46l24H9dD2osT2q9y+nBEC1wWz4GIqA48JmicOLQ0R8xA==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -1721,6 +1727,10 @@ snapshots:
   delayed-stream@1.0.0: {}
 
   detect-libc@2.1.2: {}
+
+  docdash@2.0.2:
+    dependencies:
+      '@jsdoc/salty': 0.2.11
 
   dunder-proto@1.0.1:
     dependencies:
