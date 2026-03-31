@@ -1,5 +1,9 @@
 import { SignedXml } from "xmldsigjs"
 
+/**
+ * Static class that signs an XML document.
+ * It is used by Receipt to sign the XML document at finalization of XML generation.
+ */
 class XmlSigner {
 	// Constant to reuse it
 	static #RSA_PARAMS = Object.freeze({
