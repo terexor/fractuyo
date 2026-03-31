@@ -28,17 +28,17 @@ class Identification {
 	}
 
 	static validateDocumentNumber(documentType, number) {
-		switch(documentType) {
+		switch (documentType) {
 			case 0:
 				return true
 			case 1://DNI o libreta electoral
 				//longitud: 8: exacta
 				//caracter: numérico
-				return ( number != null && number.length === 8 && !isNaN(number) )
+				return (number != null && number.length === 8 && !isNaN(number))
 			case 4:
 				//longitud: 12: máxima
 				//caracter: alfanumérico
-				return ( number != null && number.length < 13 )
+				return (number != null && number.length < 13)
 			case 6:
 				return Identification.validateRuc(number)
 			default:
@@ -47,10 +47,10 @@ class Identification {
 	}
 
 	static validateRuc(ruc) {
-		if ( ruc.length != 11 ||  parseInt(ruc) < 11 ) {
+		if (ruc.length != 11 || parseInt(ruc) < 11) {
 			return false
 		}
-		if ( ! ["10", "15", "17", "20"].includes( ruc.substring(0, 2) ) ) {
+		if (!["10", "15", "17", "20"].includes(ruc.substring(0, 2))) {
 			return false
 		}
 
@@ -63,10 +63,10 @@ class Identification {
 				currentFactor = 2
 			}
 
-			sum += currentFactor * parseInt( ruc.charAt(i) )
+			sum += currentFactor * parseInt(ruc.charAt(i))
 		}
 
-		if ( ( 11 - ( sum % 11 ) ) % 10 == parseInt(ruc.charAt(10)) ) {
+		if ((11 - (sum % 11)) % 10 == parseInt(ruc.charAt(10))) {
 			return true
 		}
 
