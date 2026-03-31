@@ -125,7 +125,7 @@ class Endpoint {
 
 		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
-			headers: {"Content-Type": "text/xml;charset=UTF-8"},
+			headers: { "Content-Type": "text/xml;charset=UTF-8" },
 			body: body
 		})
 		const responseText = await response.text()
@@ -138,7 +138,7 @@ class Endpoint {
 
 		const response = await Endpoint.#fetchFunction(url, {
 			method: "GET",
-			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token}
+			headers: { "Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token }
 		})
 		const responseJson = await response.json()
 
@@ -150,7 +150,7 @@ class Endpoint {
 
 		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
-			headers: {"Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token},
+			headers: { "Content-Type": "application/json", "Authorization": "Bearer " + Endpoint.#token },
 			body: body
 		})
 		const responseJson = await response.json()
@@ -165,7 +165,7 @@ class Endpoint {
 
 		const response = await Endpoint.#fetchFunction(url, {
 			method: "POST",
-			headers: {"Content-Type": "application/x-www-form-urlencoded"},
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
 			body: data
 		})
 		const responseJson = await response.json()
