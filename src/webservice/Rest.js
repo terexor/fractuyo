@@ -1,5 +1,8 @@
 import { Application } from "xmldsigjs"
 
+/**
+ * Static class that is used to generate content for REST web services.
+ */
 class Rest {
 	/**
 	 * @returns URLSearchParams
