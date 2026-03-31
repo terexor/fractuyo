@@ -6,6 +6,10 @@ import Person from "../person/Person.js"
 import Identification from "../person/Identification.js"
 import Address from "../person/Address.js"
 
+/**
+ * The Sale class is a core component of the library that extends the Receipt base class to add sales-specific functionality for financial documents.
+ * It serves as the foundation for documents such as invoices and credit/debit notes, implementing reactive financial calculations, tax processing, and document validation logic required for commercial transactions.
+ */
 class Sale extends Receipt {
 	/**
 	 * ISO 4217 currency code.
