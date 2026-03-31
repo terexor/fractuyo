@@ -1,3 +1,7 @@
+/**
+ * The Address class represents the address of a person or entity.
+ * It is used to store information about address, such as the line, country, ubigeo, typecode, urbanization, city, subentity and district.
+ */
 class Address {
 	/** @type {string} */
 	#line
