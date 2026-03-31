@@ -1,3 +1,7 @@
+/**
+ * The Person class represents a person or entity that can be a customer or supplier.
+ * It is used to store information about persons, such as their name, address and identification.
+ */
 class Person {
 	#name
 	#address
@@ -8,7 +12,7 @@ class Person {
 	}
 
 	setName(n) {
-		if(n.length > 0) {
+		if (n.length > 0) {
 			this.#name = n
 		}
 	}
