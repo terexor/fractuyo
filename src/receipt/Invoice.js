@@ -192,6 +192,10 @@ class Invoice extends Sale {
 		return this.#detraction
 	}
 
+	/**
+	 * Checks if detraction is applicable
+	 * @returns {boolean} True if detraction is applicable, false otherwise.
+	 */
 	hasDetraction() {
 		return this.#detraction != null && this.#detraction.getAmount() > 0.0
 	}
