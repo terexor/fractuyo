@@ -11,6 +11,10 @@ class Detraction {
 
 	#financialAccount
 
+	/**
+	 * Set percentage to apply.
+	 * @param {number} percentage - Value from 0 to 100
+	 */
 	setPercentage(percentage) {
 		if (percentage >= 0 && percentage <= 100) {
 			this.#percentage = percentage
@@ -25,6 +29,10 @@ class Detraction {
 		return this.#percentage
 	}
 
+	/**
+	 * Set 3-digit code from SUNAT Catalog No. 54
+	 * @param {string} code - Detraction code
+	 */
 	setCode(code) {
 		if (code.length == 3) {
 			this.#code = code
@@ -39,6 +47,10 @@ class Detraction {
 		return this.#amount
 	}
 
+	/**
+	 * Set Bank account number for the deposit.
+	 * @param {string} account - Bank account number
+	 */
 	setFinancialAccount(account) {
 		this.#financialAccount = account
 	}
