@@ -1,5 +1,9 @@
 import Rest from "./Rest.js"
 
+/**
+ * The Endpoint class is a static class that is used to set the endpoints of the web services.
+ * Here you can set mode for test or deployment, and set URLs for each service.
+ */
 class Endpoint {
 	// true for deployment; false for test
 	static #mode = false
