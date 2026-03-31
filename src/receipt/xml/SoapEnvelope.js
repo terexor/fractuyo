@@ -1,5 +1,9 @@
 import { DOMImplementation } from "@xmldom/xmldom"
 
+/**
+ * The SoapEnvelope class is a utility class that is used to generate the SOAP envelope of an XML document.
+ * It is used by the derived classes of Receipt to generate the SOAP envelope of an XML document according to Sunat's requirements.
+ */
 class SoapEnvelope {
 	/**
 	 * Generates body of method sendBill.
