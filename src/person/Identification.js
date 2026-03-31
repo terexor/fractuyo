@@ -1,3 +1,7 @@
+/**
+ * The Identification class represents the identification of a person or entity.
+ * It is used to store information about identification, such as the type and number.
+ */
 class Identification {
 	#number
 	#type
