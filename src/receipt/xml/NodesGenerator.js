@@ -1,6 +1,11 @@
 import Receipt from "../Receipt.js"
 import PrepaidPaymentReference from "../PrepaidPaymentReference.js"
 
+/**
+ * The NodesGenerator class is a utility class that is used to generate the nodes of an XML document.
+ * It is used by the derived classes of Receipt to generate the nodes of an XML document.
+ * All statics methods return fragments of XML document parts.
+ */
 class NodesGenerator {
 	/**
 	 * Space for appending signature.
