@@ -1,4 +1,4 @@
-import {Application} from "xmldsigjs"
+import { Application } from "xmldsigjs"
 
 class Rest {
 	/**
@@ -50,7 +50,7 @@ class Rest {
 		}
 
 		return {
-			"archivo" : {
+			"archivo": {
 				"nomArchivo": `${receipt.getTaxpayer().getIdentification().getNumber()}-${receipt.getId(true)}.zip`,
 				"hashZip": hexChars.join(''), // in documentation looks like base64 but documentation is bad
 				"arcGreZip": zipStream
