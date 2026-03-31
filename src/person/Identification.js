@@ -12,7 +12,8 @@ class Identification {
 
 	/**
 	 * Set document number according type
-	 * @var t integer type according catalog 06
+	 * @param {string} type - according catalog 06
+	 * @param {string} number - document number
 	 */
 	setIdentity(type, number) {
 		if (Identification.validateDocumentNumber(parseInt(type, 16), number)) {
