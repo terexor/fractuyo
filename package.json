@@ -28,7 +28,8 @@
 		"test:invoice:detraction": "ava ./tests/invoice.detraction.test.js",
 		"test:despatch": "ava ./tests/despatch.*",
 		"test:credit": "ava ./tests/credit.*",
-		"test:debit": "ava ./tests/debit.*"
+		"test:debit": "ava ./tests/debit.*",
+		"jsdoc": "jsdoc -c jsdoc.json"
 	},
 	"repository": {
 		"type": "git",
