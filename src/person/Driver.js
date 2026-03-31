@@ -1,5 +1,9 @@
 import Person from "./Person.js"
 
+/**
+ * The Driver class extends the Person class to represent a driver.
+ * It is used to store information about drivers, such as their license and surname.
+ */
 class Driver extends Person {
 	#license
 
