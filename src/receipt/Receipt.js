@@ -425,7 +425,7 @@ class Receipt {
 	 * @param {string} zipStream - The zip file.
 	 * @param {boolean} isBase64 - Whether the zip file is base64.
 	 * @param {boolean} compacted - Whether the document is compacted.
-	 * @returns {Promise<[number, string]>} The proof of the document.
+	 * @returns {Promise<Array<number|string>>} The proof of the document.
 	 */
 	async handleProof(zipStream, isBase64 = true, compacted = false) {
 		const zip = new JSZip()
