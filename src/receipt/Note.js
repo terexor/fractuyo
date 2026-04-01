@@ -169,6 +169,8 @@ class Note extends Sale {
 
 		bodyFragment.appendChild(NodesGenerator.generateReference(this))
 
+		bodyFragment.appendChild(NodesGenerator.generateDespatchDocumentReferences(this))
+
 		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
 
 		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))
