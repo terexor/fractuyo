@@ -22,6 +22,7 @@ class Sale extends Receipt {
 	#lineExtensionAmount = 0
 	#taxTotalAmount = 0
 	#taxInclusiveAmount = 0
+	#payableAmount = 0
 	#igvAmount = 0
 	#iscAmount = 0
 	#icbpAmount = 0
