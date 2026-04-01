@@ -299,6 +299,32 @@ class NodesGenerator {
 		return fragment
 	}
 
+	static generateDespatchDocumentReferences(receipt) {
+		const doc = receipt.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		const despatchDocumentReferences = receipt.despatchDocumentReferences
+		if (!despatchDocumentReferences || despatchDocumentReferences.length == 0) {
+			// If we don't have despatch document references, we don't need to generate this node or nodes
+			return fragment
+		}
+
+		for (const despatchDocumentReference of despatchDocumentReferences) {
+			const cacDespatchDocumentReference = doc.createElement("cac:DespatchDocumentReference")
+			fragment.appendChild(cacDespatchDocumentReference)
+
+			const cbcId = doc.createElement("cbc:ID")
+			cbcId.textContent = despatchDocumentReference.getId()
+			cacDespatchDocumentReference.appendChild(cbcId)
+
+			const cbcDocumentTypeCode = doc.createElement("cbc:DocumentTypeCode")
+			cbcDocumentTypeCode.textContent = despatchDocumentReference.getTypeCode(true)
+			cacDespatchDocumentReference.appendChild(cbcDocumentTypeCode)
+		}
+
+		return fragment
+	}
+
 	static generateSupplier(invoice) { //Supplier (current taxpayer)
 		const doc = invoice.xmlDocument
 		const fragment = doc.createDocumentFragment()
