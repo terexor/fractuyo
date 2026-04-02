@@ -221,6 +221,9 @@ class Sale extends Receipt {
 			}
 		}
 
+		this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
+	}
+
 	/**
 	 * @param {DocumentReference} documentReference
 	 */
