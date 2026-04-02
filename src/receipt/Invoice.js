@@ -266,6 +266,8 @@ class Invoice extends Sale {
 
 		bodyFragment.appendChild(NodesGenerator.generatePaymentTerms(this))
 
+		bodyFragment.appendChild(NodesGenerator.generatePrepaidPayment(this))
+
 		bodyFragment.appendChild(NodesGenerator.generateCharge(this))
 
 		bodyFragment.appendChild(NodesGenerator.generateTaxes(this))
