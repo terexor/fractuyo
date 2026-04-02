@@ -93,7 +93,7 @@ test.serial("creating invoice", (tester) => {
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
-	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|18.00|118.00|2024-09-13|6|20545314437")
+	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|180.00|830.00|2024-09-13|6|20545314437")
 })
 
 test.serial("signing invoice", async tester => {
