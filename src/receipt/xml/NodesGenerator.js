@@ -1105,18 +1105,25 @@ class NodesGenerator {
 			const cbcLineExtensionAmount = doc.createElement("cbc:LineExtensionAmount")
 			cbcLineExtensionAmount.setAttribute("currencyID", currencyId)
 			cbcLineExtensionAmount.textContent = invoice.lineExtensionAmount.toFixed(2)
+			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
 
 			const cbcTaxInclusiveAmount = doc.createElement("cbc:TaxInclusiveAmount")
 			cbcTaxInclusiveAmount.setAttribute("currencyID", currencyId)
 			cbcTaxInclusiveAmount.textContent = invoice.taxInclusiveAmount.toFixed(2)
+			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
+
+			if (invoice.prepaidAmount > 0) {
+				const cbcPrepaidAmount = doc.createElement("cbc:PrepaidAmount")
+				cbcPrepaidAmount.setAttribute("currencyID", currencyId)
+				cbcPrepaidAmount.textContent = invoice.prepaidAmount.toFixed(2)
+				cacLegalMonetaryTotal.appendChild(cbcPrepaidAmount)
+			}
 
 			const cbcPayableAmount = doc.createElement("cbc:PayableAmount")
 			cbcPayableAmount.setAttribute("currencyID", currencyId)
 			cbcPayableAmount.textContent = invoice.payableAmount.toFixed(2)
-
-			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
-			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
 			cacLegalMonetaryTotal.appendChild(cbcPayableAmount)
+
 		}
 		fragment.appendChild(cacLegalMonetaryTotal)
 
