@@ -1,4 +1,5 @@
 import Receipt from "./Receipt.js"
+import DocumentReference from "./DocumentReference.js"
 import Item from "./Item.js"
 import Share from "./Share.js"
 import Taxpayer from "../person/Taxpayer.js"
