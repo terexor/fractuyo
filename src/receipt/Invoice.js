@@ -216,12 +216,12 @@ class Invoice extends Sale {
 
 		if (this.#sharesAmount) {
 			if (this.hasDetraction()) {
-				if (this.#sharesAmount.toFixed(2) != (this.taxInclusiveAmount - this.#detraction.getAmount()).toFixed(2)) {
-					throw new Error("La suma de las cuotas difiere del total menos detracción.")
+				if (this.#sharesAmount.toFixed(2) != (this.payableAmount - this.#detraction.getAmount()).toFixed(2)) {
+					throw new Error("La suma de las cuotas difiere del total por pagar menos detracción.")
 				}
 			}
-			else if (this.#sharesAmount.toFixed(2) != this.taxInclusiveAmount.toFixed(2)) {
-				throw new Error("La suma de las cuotas difiere del total.")
+			else if (this.#sharesAmount.toFixed(2) != this.payableAmount.toFixed(2)) {
+				throw new Error("La suma de las cuotas difiere del total por pagar.")
 			}
 		}
 
