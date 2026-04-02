@@ -220,6 +220,17 @@ class Sale extends Receipt {
 					this.#operationAmounts[3] += item.getLineExtensionAmount()
 			}
 		}
+
+	/**
+	 * @param {DocumentReference} documentReference
+	 */
+	addDocumentReference(documentReference) {
+		super.addDocumentReference(documentReference)
+
+		if (documentReference.getReferenceType() === DocumentReference.PREPAID_PAYMENT) {
+			this.#prepaidAmount += documentReference.getAmount()
+			this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
+		}
 	}
 
 	/**
