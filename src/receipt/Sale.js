@@ -67,6 +67,21 @@ class Sale extends Receipt {
 
 	set taxInclusiveAmount(amount) {
 		this.#taxInclusiveAmount = amount
+
+	get prepaidAmount() {
+		return this.#prepaidAmount
+	}
+
+	set prepaidAmount(amount) {
+		this.#prepaidAmount = amount
+	}
+
+	get payableAmount() {
+		return this.#payableAmount
+	}
+
+	set payableAmount(amount) {
+		this.#payableAmount = amount
 	}
 
 	get igvAmount() {
