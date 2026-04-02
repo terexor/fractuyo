@@ -64,17 +64,19 @@ test.serial("creating invoice", (tester) => {
 
 	// Adding an invoice reference
 	const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
-	additionalDocumentReference.setId("F000-19950729")
+	additionalDocumentReference.setId("F000-19940714")
 	additionalDocumentReference.setTypeCode(1)
 	invoice.addDocumentReference(additionalDocumentReference)
 
 	const prepaidPayment1 = new PrepaidPaymentReference()
-	prepaidPayment1.setId("001")
+	prepaidPayment1.setId("F000-19950728")
+	prepaidPayment1.setTypeCode(2)
 	prepaidPayment1.setAmount(100.00)
 	invoice.addDocumentReference(prepaidPayment1)
 
 	const prepaidPayment2 = new PrepaidPaymentReference()
-	prepaidPayment2.setId("002")
+	prepaidPayment2.setId("F000-19950729")
+	prepaidPayment2.setTypeCode(2)
 	prepaidPayment2.setAmount(250.00)
 	invoice.addDocumentReference(prepaidPayment2)
 
