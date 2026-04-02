@@ -175,6 +175,8 @@ class Sale extends Receipt {
 		this.#lineExtensionAmount += item.getLineExtensionAmount()
 		this.#taxTotalAmount += item.getTaxTotalAmount()
 		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
+		
+		this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
 
 		this.#igvAmount += item.getIgvAmount()
 		this.#iscAmount += item.getIscAmount()
