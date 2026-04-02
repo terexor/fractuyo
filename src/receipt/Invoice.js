@@ -164,10 +164,10 @@ class Invoice extends Sale {
 	}
 
 	/**
-	 * Performs substraction taxInclusiveAmount with detractionAmount.
+	 * Performs substraction payableAmount with detractionAmount.
 	 */
 	getShareableAmount(withFormat = false) {
-		const shareableAmount = this.taxInclusiveAmount - (this.#detraction?.getAmount() ?? 0.0)
+		const shareableAmount = this.payableAmount - (this.#detraction?.getAmount() ?? 0.0)
 		return withFormat ? shareableAmount.toFixed(2) : shareableAmount
 	}
 
