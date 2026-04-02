@@ -984,7 +984,7 @@ class NodesGenerator {
 			const cacPrepaidPayment = doc.createElement("cac:PrepaidPayment")
 			{
 				const cbcID = doc.createElement("cbc:ID")
-				cbcID.textContent = prepaidPayment.getId()
+				cbcID.textContent = String(i + 1)
 				cacPrepaidPayment.appendChild(cbcID)
 
 				const cbcPaidAmount = doc.createElement("cbc:PaidAmount")
