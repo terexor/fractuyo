@@ -967,6 +967,37 @@ class NodesGenerator {
 		return fragment
 	}
 
+	static generatePrepaidPayment(invoice) {
+		const doc = invoice.xmlDocument
+		const fragment = doc.createDocumentFragment()
+
+		const prepaidPayments = invoice.prepaidPaymentReferences
+
+		if (!prepaidPayments) {
+			return fragment
+		}
+
+		const currencyId = invoice.getCurrencyId()
+
+		for (let i = 0; i < prepaidPayments.length; ++i) {
+			const prepaidPayment = prepaidPayments[i]
+			const cacPrepaidPayment = doc.createElement("cac:PrepaidPayment")
+			{
+				const cbcID = doc.createElement("cbc:ID")
+				cbcID.textContent = prepaidPayment.id
+				cacPrepaidPayment.appendChild(cbcID)
+
+				const cbcPrepaidAmount = doc.createElement("cbc:PrepaidAmount")
+				cbcPrepaidAmount.setAttribute("currencyID", currencyId)
+				cbcPrepaidAmount.textContent = prepaidPayment.amount.toFixed(2)
+				cacPrepaidPayment.appendChild(cbcPrepaidAmount)
+			}
+			fragment.appendChild(cacPrepaidPayment)
+		}
+
+		return fragment
+	}
+
 	static generateTaxes(invoice) {
 		const doc = invoice.xmlDocument
 		const fragment = doc.createDocumentFragment()
