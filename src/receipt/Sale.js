@@ -176,7 +176,7 @@ class Sale extends Receipt {
 		this.#lineExtensionAmount += item.getLineExtensionAmount()
 		this.#taxTotalAmount += item.getTaxTotalAmount()
 		this.#taxInclusiveAmount += item.getLineExtensionAmount() + item.getTaxTotalAmount()
-		
+
 		this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
 
 		this.#igvAmount += item.getIgvAmount()
@@ -405,7 +405,7 @@ class Sale extends Receipt {
 			const legalMonetaryTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "LegalMonetaryTotal")[0]
 			this.lineExtensionAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "LineExtensionAmount")[0].textContent)
 			this.taxInclusiveAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxInclusiveAmount")[0].textContent)
-			
+
 			const prepaidAmountNode = legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PrepaidAmount")[0]
 			if (prepaidAmountNode) {
 				this.prepaidAmount = parseFloat(prepaidAmountNode.textContent)
