@@ -1081,7 +1081,7 @@ class NodesGenerator {
 
 			const cbcPayableAmount = doc.createElement("cbc:PayableAmount")
 			cbcPayableAmount.setAttribute("currencyID", currencyId)
-			cbcPayableAmount.textContent = invoice.taxInclusiveAmount.toFixed(2) // That is not the correct amount
+			cbcPayableAmount.textContent = invoice.payableAmount.toFixed(2)
 
 			cacLegalMonetaryTotal.appendChild(cbcLineExtensionAmount)
 			cacLegalMonetaryTotal.appendChild(cbcTaxInclusiveAmount)
