@@ -987,10 +987,10 @@ class NodesGenerator {
 				cbcID.textContent = prepaidPayment.getId()
 				cacPrepaidPayment.appendChild(cbcID)
 
-				const cbcPrepaidAmount = doc.createElement("cbc:PrepaidAmount")
-				cbcPrepaidAmount.setAttribute("currencyID", currencyId)
-				cbcPrepaidAmount.textContent = prepaidPayment.getAmount().toFixed(2)
-				cacPrepaidPayment.appendChild(cbcPrepaidAmount)
+				const cbcPaidAmount = doc.createElement("cbc:PaidAmount")
+				cbcPaidAmount.setAttribute("currencyID", currencyId)
+				cbcPaidAmount.textContent = prepaidPayment.getAmount().toFixed(2)
+				cacPrepaidPayment.appendChild(cbcPaidAmount)
 			}
 			fragment.appendChild(cacPrepaidPayment)
 		}
