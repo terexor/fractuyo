@@ -1,5 +1,6 @@
 import Receipt from "./Receipt.js"
 import DocumentReference from "./DocumentReference.js"
+import PrepaidPaymentReference from "./PrepaidPaymentReference.js"
 import Item from "./Item.js"
 import Share from "./Share.js"
 import Taxpayer from "../person/Taxpayer.js"
@@ -233,7 +234,7 @@ class Sale extends Receipt {
 	addDocumentReference(documentReference) {
 		super.addDocumentReference(documentReference)
 
-		if (documentReference.getReferenceType() === DocumentReference.PREPAID_PAYMENT) {
+		if (documentReference instanceof PrepaidPaymentReference) {
 			this.#prepaidAmount += documentReference.getAmount()
 			this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
 		}
