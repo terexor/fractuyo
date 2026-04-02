@@ -23,6 +23,7 @@
 		"test": "ava --serial",
 		"test:benchmark": "ava ./tests/invoice.benchmark.test.js",
 		"test:invoice": "ava ./tests/invoice.test.js",
+		"test:invoice:prepaid": "ava ./tests/invoice.prepaid.test.js",
 		"test:invoice:boleta": "ava ./tests/invoice.boleta.test.js",
 		"test:invoice:detraction": "ava ./tests/invoice.detraction.test.js",
 		"test:despatch": "ava ./tests/despatch.*",
