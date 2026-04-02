@@ -404,7 +404,15 @@ class Sale extends Receipt {
 			const legalMonetaryTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "LegalMonetaryTotal")[0]
 			this.lineExtensionAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "LineExtensionAmount")[0].textContent)
 			this.taxInclusiveAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxInclusiveAmount")[0].textContent)
-			// missing payable amount
+			
+			const prepaidAmountNode = legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PrepaidAmount")[0]
+			if (prepaidAmountNode) {
+				this.prepaidAmount = parseFloat(prepaidAmountNode.textContent)
+			}
+			const payableAmountNode = legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PayableAmount")[0]
+			if (payableAmountNode) {
+				this.payableAmount = parseFloat(payableAmountNode.textContent)
+			}
 		}
 
 		return xmlDoc
