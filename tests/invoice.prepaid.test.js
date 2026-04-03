@@ -72,14 +72,14 @@ test.serial("creating invoice", (tester) => {
 	prepaidPayment1.setId("F000-19950728")
 	prepaidPayment1.setTypeCode(2)
 	prepaidPayment1.setAmount(118.00)
-	prepaidPayment1.setBaseAmount(100.00)
+	prepaidPayment1.setTaxAmount(18.00)
 	invoice.addDocumentReference(prepaidPayment1)
 
 	const prepaidPayment2 = new PrepaidPaymentReference()
 	prepaidPayment2.setId("F000-19950729")
 	prepaidPayment2.setTypeCode(2)
 	prepaidPayment2.setAmount(118.00)
-	prepaidPayment2.setBaseAmount(100.00)
+	prepaidPayment2.setTaxAmount(18.00)
 	invoice.addDocumentReference(prepaidPayment2)
 
 	const product = new Item("This is description for item")
