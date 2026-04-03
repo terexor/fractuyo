@@ -1,4 +1,5 @@
 import Receipt from "../Receipt.js"
+import PrepaidPaymentReference from "../PrepaidPaymentReference.js"
 
 class NodesGenerator {
 	/**
@@ -253,31 +254,54 @@ class NodesGenerator {
 		const doc = receipt.xmlDocument
 		const fragment = doc.createDocumentFragment()
 
-		// caching
-		const additionalDocumentReferences = receipt.additionalDocumentReferences
-		if (!additionalDocumentReferences || additionalDocumentReferences.length == 0) {
-			// If we don't have additional document references, we don't need to generate this node or nodes
+		const allReferences = []
+		if (receipt.additionalDocumentReferences) {
+			for (const r of receipt.additionalDocumentReferences) {
+				allReferences.push(r)
+			}
+		}
+
+		// Also include prepayments as AdditionalDocumentReference (type 02)
+		const prepaidReferences = receipt.prepaidPaymentReferences
+		if (prepaidReferences) {
+			for (const r of prepaidReferences) {
+				allReferences.push(r)
+			}
+		}
+
+		if (allReferences.length == 0) {
 			return fragment
 		}
+
 		const typeCode = receipt.getTypeCode()
 		const isNotDespatch = !(typeCode == 9 || typeCode == 31)
-		// resolving own RUC here to avoid jumps
 		const ruc = receipt.getTaxpayer().getIdentification().getNumber()
 
-		for (const additionalDocumentReference of additionalDocumentReferences) {
+		let prepaidIdx = 1
+
+		for (const docRef of allReferences) {
+			const isPrepaid = docRef instanceof PrepaidPaymentReference
+
 			const cacAdditionalDocumentReference = doc.createElement("cac:AdditionalDocumentReference")
 			fragment.appendChild(cacAdditionalDocumentReference)
 
 			const cbcId = doc.createElement("cbc:ID")
-			cbcId.textContent = additionalDocumentReference.getId()
+			cbcId.textContent = docRef.getId()
 			cacAdditionalDocumentReference.appendChild(cbcId)
 
 			const cbcDocumentTypeCode = doc.createElement("cbc:DocumentTypeCode")
-			cbcDocumentTypeCode.textContent = additionalDocumentReference.getTypeCode(true)
+			const code = docRef.getTypeCode(true)
+			cbcDocumentTypeCode.textContent = code ? code : (isPrepaid ? "02" : "")
 			cacAdditionalDocumentReference.appendChild(cbcDocumentTypeCode)
 
-			// Just for invoice and notes, do nothing else
-			if (isNotDespatch) {
+			if (isPrepaid) {
+				const cbcDocumentStatusCode = doc.createElement("cbc:DocumentStatusCode")
+				cbcDocumentStatusCode.textContent = String(prepaidIdx++)
+				cacAdditionalDocumentReference.appendChild(cbcDocumentStatusCode)
+			}
+
+			// Just for invoice and notes, do nothing else, UNLESS it's prepaid (which needs IssuerParty)
+			if (isNotDespatch && !isPrepaid) {
 				continue
 			}
 
@@ -289,7 +313,7 @@ class NodesGenerator {
 					const cbcPartyID = doc.createElement("cbc:ID")
 					cbcPartyID.setAttribute("schemeID", "6")
 					// If issuerId is not set, use own RUC
-					cbcPartyID.textContent = additionalDocumentReference.getIssuerId() || ruc
+					cbcPartyID.textContent = docRef.getIssuerId() || ruc
 					cacPartyIdentification.appendChild(cbcPartyID)
 				}
 			}
@@ -928,41 +952,44 @@ class NodesGenerator {
 		const doc = invoice.xmlDocument
 		const fragment = doc.createDocumentFragment()
 
-		// caching
-		const discount = invoice.getDiscount()
-
-		if (!discount) {
+		const allowanceCharges = invoice.getAllowanceCharges()
+		if (!allowanceCharges || allowanceCharges.length == 0) {
 			return fragment
 		}
 
-		// more caching
 		const currencyId = invoice.getCurrencyId()
 
-		const cacAllowanceCharge = doc.createElement("cac:AllowanceCharge")
-		{
-			const cbcChargeIndicator = doc.createElement("cbc:ChargeIndicator")
-			cbcChargeIndicator.textContent = String(discount.indicator) // to print "true" or "false"
-			cacAllowanceCharge.appendChild(cbcChargeIndicator)
+		for (const discount of allowanceCharges) {
+			const cacAllowanceCharge = doc.createElement("cac:AllowanceCharge")
+			{
+				const cbcChargeIndicator = doc.createElement("cbc:ChargeIndicator")
+				cbcChargeIndicator.textContent = String(discount.indicator)
+				cacAllowanceCharge.appendChild(cbcChargeIndicator)
 
-			const cbcAllowanceChargeReasonCode = doc.createElement("cbc:AllowanceChargeReasonCode")
-			cbcAllowanceChargeReasonCode.textContent = discount.getTypeCode()
-			cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
+				const cbcAllowanceChargeReasonCode = doc.createElement("cbc:AllowanceChargeReasonCode")
+				cbcAllowanceChargeReasonCode.textContent = discount.getTypeCode()
+				cacAllowanceCharge.appendChild(cbcAllowanceChargeReasonCode)
 
-			const cbcMultiplierFactorNumeric = doc.createElement("cbc:MultiplierFactorNumeric")
-			cbcMultiplierFactorNumeric.textContent = discount.factor.toFixed(5)
-			cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
+				if (discount.factor != undefined) {
+					const cbcMultiplierFactorNumeric = doc.createElement("cbc:MultiplierFactorNumeric")
+					cbcMultiplierFactorNumeric.textContent = discount.factor.toFixed(5)
+					cacAllowanceCharge.appendChild(cbcMultiplierFactorNumeric)
+				}
 
-			const cbcAmount = doc.createElement("cbc:Amount")
-			cbcAmount.setAttribute("currencyID", currencyId)
-			cbcAmount.textContent = discount.amount.toFixed(2)
-			cacAllowanceCharge.appendChild(cbcAmount)
+				const cbcAmount = doc.createElement("cbc:Amount")
+				cbcAmount.setAttribute("currencyID", currencyId)
+				cbcAmount.textContent = discount.amount.toFixed(2)
+				cacAllowanceCharge.appendChild(cbcAmount)
 
-			const cbcBaseAmount = doc.createElement("cbc:BaseAmount")
-			cbcBaseAmount.setAttribute("currencyID", currencyId)
-			cbcBaseAmount.textContent = discount.baseAmount.toFixed(2)
-			cacAllowanceCharge.appendChild(cbcBaseAmount)
+				if (discount.baseAmount != undefined) {
+					const cbcBaseAmount = doc.createElement("cbc:BaseAmount")
+					cbcBaseAmount.setAttribute("currencyID", currencyId)
+					cbcBaseAmount.textContent = discount.baseAmount.toFixed(2)
+					cacAllowanceCharge.appendChild(cbcBaseAmount)
+				}
+			}
+			fragment.appendChild(cacAllowanceCharge)
 		}
-		fragment.appendChild(cacAllowanceCharge)
 
 		return fragment
 	}
@@ -972,8 +999,7 @@ class NodesGenerator {
 		const fragment = doc.createDocumentFragment()
 
 		const prepaidPayments = invoice.prepaidPaymentReferences
-
-		if (!prepaidPayments) {
+		if (!prepaidPayments || prepaidPayments.length == 0) {
 			return fragment
 		}
 
