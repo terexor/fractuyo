@@ -63,10 +63,10 @@ test.serial("creating invoice", (tester) => {
 	invoice.setOrderReferenceText("Testing library to generate invoice")
 
 	// Adding an invoice reference
-	const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
-	additionalDocumentReference.setId("F000-19940714")
-	additionalDocumentReference.setTypeCode(1)
-	invoice.addDocumentReference(additionalDocumentReference)
+	// const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
+	// additionalDocumentReference.setId("F000-19940714")
+	// additionalDocumentReference.setTypeCode(1)
+	// invoice.addDocumentReference(additionalDocumentReference)
 
 	const prepaidPayment1 = new PrepaidPaymentReference()
 	prepaidPayment1.setId("F000-19950728")
@@ -82,10 +82,6 @@ test.serial("creating invoice", (tester) => {
 	prepaidPayment2.setBaseAmount(100.00)
 	invoice.addDocumentReference(prepaidPayment2)
 
-	tester.is(invoice.getAllowanceCharges().length, 2)
-	tester.is(invoice.getAllowanceCharges()[0].amount, 100.00)
-	tester.is(invoice.getAllowanceCharges()[0].getTypeCode(), "04")
-
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
 	product.setClassificationCode("82101500")
@@ -99,6 +95,10 @@ test.serial("creating invoice", (tester) => {
 	invoice.addItem(product)
 
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
+
+	tester.is(invoice.getAllowanceCharges().length, 2)
+	tester.is(invoice.getAllowanceCharges()[0].amount, 100.00)
+	tester.is(invoice.getAllowanceCharges()[0].getTypeCode(), "04")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
 	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|180.00|944.00|2024-09-13|6|20545314437")
@@ -163,7 +163,7 @@ test.serial("signing invoice", async tester => {
 	}
 })
 
-/*test.serial("presenting invoice", async tester => {
+test.serial("presenting invoice", async tester => {
 	try {
 		const zipStream = await invoice.createZip()
 		const serverZipStream = await invoice.declare(zipStream)
@@ -175,4 +175,4 @@ test.serial("signing invoice", async tester => {
 		console.error(e)
 		tester.fail()
 	}
-})*/
+})
