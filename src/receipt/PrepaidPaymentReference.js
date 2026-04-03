@@ -12,10 +12,10 @@ class PrepaidPaymentReference extends DocumentReference {
 	#amount
 
 	/**
-	 * Base amount of prepayment.
+	 * Tax amount of prepayment.
 	 * @type {number}
 	 */
-	#baseAmount
+	#taxAmount
 
 	constructor() {
 		super(DocumentReference.PREPAID_PAYMENT)
@@ -37,18 +37,25 @@ class PrepaidPaymentReference extends DocumentReference {
 	}
 
 	/**
-	 * Original base amount.
-	 * @param {number} baseAmount
+	 * Tax amount.
+	 * @param {number} taxAmount
 	 */
-	setBaseAmount(baseAmount) {
-		this.#baseAmount = baseAmount
+	setTaxAmount(taxAmount) {
+		this.#taxAmount = taxAmount
+	}
+
+	/**
+	 * @returns {number}
+	 */
+	getTaxAmount() {
+		return this.#taxAmount
 	}
 
 	/**
 	 * @returns {number}
 	 */
 	getBaseAmount() {
-		return this.#baseAmount
+		return this.#amount - this.#taxAmount
 	}
 }
 
