@@ -3,6 +3,7 @@ import Receipt from "./Receipt.js"
 import Share from "./Share.js"
 import Sale from "./Sale.js"
 import Charge from "./Charge.js"
+import PrepaidPaymentReference from "./PrepaidPaymentReference.js"
 import Detraction from "./Detraction.js"
 import NodesGenerator from "./xml/NodesGenerator.js"
 
@@ -20,7 +21,7 @@ class Invoice extends Sale {
 
 	#detraction
 
-	#discount
+	#allowanceCharges = Array()
 
 	getShares() {
 		return this.#shares
@@ -114,15 +115,22 @@ class Invoice extends Sale {
 		// Converting in number
 		discountAmount = parseFloat(discountAmount)
 
+		const index = this.#allowanceCharges.findIndex(c => c.getTypeCode() === "02")
+
 		// Removing discount
 		if (isNaN(discountAmount) || discountAmount <= 0) {
-			this.#discount = undefined
+			if (index !== -1) {
+				this.#allowanceCharges.splice(index, 1)
+			}
 			return
 		}
 
-		if (this.#discount == undefined) {
-			this.#discount = new Charge(false)
-			this.#discount.setTypeCode("02")
+		let discount = index !== -1 ? this.#allowanceCharges[index] : null
+
+		if (!discount) {
+			discount = new Charge(false)
+			discount.setTypeCode("02")
+			this.#allowanceCharges.push(discount)
 		}
 
 		if (fromBase) {
@@ -131,23 +139,47 @@ class Invoice extends Sale {
 		}
 
 		if (direct) {
-			this.#discount.setAmount(discountAmount)
+			discount.setAmount(discountAmount)
 			return
 		}
 
-		this.#discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+		discount.setFactor(discountAmount / this.taxInclusiveAmount, this.lineExtensionAmount)
+	}
+
+	addAllowanceCharge(charge) {
+		this.#allowanceCharges.push(charge)
+	}
+
+	getAllowanceCharges() {
+		return this.#allowanceCharges
+	}
+
+	/**
+	 * @override
+	 */
+	addDocumentReference(documentReference) {
+		super.addDocumentReference(documentReference)
+
+		if (documentReference instanceof PrepaidPaymentReference) {
+			const charge = new Charge(false)
+			charge.setTypeCode("04")
+			charge.setAmount(documentReference.getBaseAmount())
+			this.addAllowanceCharge(charge)
+		}
 	}
 
 	/**
 	 * After setting discount exists factor so recalc setting all amounts.
+	 * NOTE: This currently only considers the main discount (code 02).
 	 */
 	recalcWithDiscountFactor() {
-		if (this.#discount == undefined) {
+		const discount = this.getDiscount()
+		if (discount == undefined) {
 			return
 		}
 
 		//Recalc amounts
-		const factorInverse = 1 - this.#discount.factor
+		const factorInverse = 1 - discount.factor
 		this.igvAmount *= factorInverse
 		this.iscAmount *= factorInverse
 		this.taxTotalAmount *= factorInverse
@@ -160,7 +192,7 @@ class Invoice extends Sale {
 	}
 
 	getDiscount() {
-		return this.#discount
+		return this.#allowanceCharges.find(c => c.getTypeCode() === "02")
 	}
 
 	/**
