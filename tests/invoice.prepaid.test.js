@@ -71,14 +71,20 @@ test.serial("creating invoice", (tester) => {
 	const prepaidPayment1 = new PrepaidPaymentReference()
 	prepaidPayment1.setId("F000-19950728")
 	prepaidPayment1.setTypeCode(2)
-	prepaidPayment1.setAmount(100.00)
+	prepaidPayment1.setAmount(118.00)
+	prepaidPayment1.setBaseAmount(100.00)
 	invoice.addDocumentReference(prepaidPayment1)
 
 	const prepaidPayment2 = new PrepaidPaymentReference()
 	prepaidPayment2.setId("F000-19950729")
 	prepaidPayment2.setTypeCode(2)
-	prepaidPayment2.setAmount(250.00)
+	prepaidPayment2.setAmount(118.00)
+	prepaidPayment2.setBaseAmount(100.00)
 	invoice.addDocumentReference(prepaidPayment2)
+
+	tester.is(invoice.getAllowanceCharges().length, 2)
+	tester.is(invoice.getAllowanceCharges()[0].amount, 100.00)
+	tester.is(invoice.getAllowanceCharges()[0].getTypeCode(), "04")
 
 	const product = new Item("This is description for item")
 	product.setUnitCode("NIU")
@@ -95,7 +101,7 @@ test.serial("creating invoice", (tester) => {
 	tester.is(customer.getIdentification().getNumber(), "20545314437")
 
 	tester.is(invoice.getId(true), "01-F000-19970601")
-	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|180.00|830.00|2024-09-13|6|20545314437")
+	tester.is(invoice.getQrData(), "20606829265|01|F000|19970601|180.00|944.00|2024-09-13|6|20545314437")
 })
 
 test.serial("signing invoice", async tester => {
