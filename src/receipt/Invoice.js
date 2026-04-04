@@ -23,9 +23,8 @@ class Invoice extends Sale {
 
 	#allowanceCharges = Array()
 
-	#totalPrepaidBase = 0
-	#totalPrepaidTax = 0
-	#totalPrepaidAmount = 0
+	#prepaidBaseAmount = 0
+	#prepaidTaxAmount = 0
 
 	getShares() {
 		return this.#shares
@@ -50,15 +49,16 @@ class Invoice extends Sale {
 	}
 
 	recalcPrepaidAmount() {
-		this.#totalPrepaidBase = 0
-		this.#totalPrepaidTax = 0
-		this.#totalPrepaidAmount = 0
+		this.#prepaidBaseAmount = 0
+		this.#prepaidTaxAmount = 0
+		let totalAmount = 0
 
 		for (const ref of this.prepaidPaymentReferences) {
-			this.#totalPrepaidBase += ref.getBaseAmount() || 0
-			this.#totalPrepaidTax += ref.getTaxAmount() || 0
-			this.#totalPrepaidAmount += ref.getAmount() || 0
+			this.#prepaidBaseAmount += ref.getBaseAmount() || 0
+			this.#prepaidTaxAmount += ref.getTaxAmount() || 0
+			totalAmount += ref.getAmount() || 0
 		}
+		this.prepaidAmount = totalAmount // inherited setter from Sale
 	}
 
 	/**
@@ -170,16 +170,12 @@ class Invoice extends Sale {
 		return this.#allowanceCharges
 	}
 
-	totalPrepaidBase() {
-		return this.#totalPrepaidBase
+	get prepaidBaseAmount() {
+		return this.#prepaidBaseAmount
 	}
 
-	totalPrepaidTax() {
-		return this.#totalPrepaidTax
-	}
-
-	totalPrepaidAmount() {
-		return this.#totalPrepaidAmount
+	get prepaidTaxAmount() {
+		return this.#prepaidTaxAmount
 	}
 
 	/**
@@ -197,9 +193,8 @@ class Invoice extends Sale {
 			charge.setAmount(documentReference.getBaseAmount())
 			this.addAllowanceCharge(charge)
 
-			this.#totalPrepaidBase += documentReference.getBaseAmount() || 0
-			this.#totalPrepaidTax += documentReference.getTaxAmount() || 0
-			this.#totalPrepaidAmount += documentReference.getAmount() || 0
+			this.#prepaidBaseAmount += documentReference.getBaseAmount() || 0
+			this.#prepaidTaxAmount += documentReference.getTaxAmount() || 0
 		}
 	}
 
