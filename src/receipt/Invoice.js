@@ -23,6 +23,10 @@ class Invoice extends Sale {
 
 	#allowanceCharges = Array()
 
+	#totalPrepaidBase = 0
+	#totalPrepaidTax = 0
+	#totalPrepaidAmount = 0
+
 	getShares() {
 		return this.#shares
 	}
@@ -43,6 +47,18 @@ class Invoice extends Sale {
 
 	getSharesAmount() {
 		return this.#sharesAmount
+	}
+
+	recalcPrepaidAmount() {
+		this.#totalPrepaidBase = 0
+		this.#totalPrepaidTax = 0
+		this.#totalPrepaidAmount = 0
+
+		for (const ref of this.prepaidPaymentReferences) {
+			this.#totalPrepaidBase += ref.getBaseAmount() || 0
+			this.#totalPrepaidTax += ref.getTaxAmount() || 0
+			this.#totalPrepaidAmount += ref.getAmount() || 0
+		}
 	}
 
 	/**
@@ -154,6 +170,18 @@ class Invoice extends Sale {
 		return this.#allowanceCharges
 	}
 
+	totalPrepaidBase() {
+		return this.#totalPrepaidBase
+	}
+
+	totalPrepaidTax() {
+		return this.#totalPrepaidTax
+	}
+
+	totalPrepaidAmount() {
+		return this.#totalPrepaidAmount
+	}
+
 	/**
 	 * Adds a document reference to the invoice.
 	 * If the document reference is a prepaid payment reference, it will also add a charge to the invoice.
@@ -168,6 +196,10 @@ class Invoice extends Sale {
 			charge.setTypeCode("04")
 			charge.setAmount(documentReference.getBaseAmount())
 			this.addAllowanceCharge(charge)
+
+			this.#totalPrepaidBase += documentReference.getBaseAmount() || 0
+			this.#totalPrepaidTax += documentReference.getTaxAmount() || 0
+			this.#totalPrepaidAmount += documentReference.getAmount() || 0
 		}
 	}
 
