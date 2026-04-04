@@ -284,7 +284,6 @@ class Despatch extends Receipt {
 			throw new Error(`Error #${responseText.error.numError} - ${responseText.error.desError}`)
 			
 		}
-		console.log({responseText})
 		return responseText
 	}
 
