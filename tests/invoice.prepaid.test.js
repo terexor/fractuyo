@@ -59,15 +59,16 @@ test.serial("creating invoice", (tester) => {
 	invoice.setTypeCode(1)
 	invoice.setSerie("F000")
 	invoice.setNumeration(19970601)
-	invoice.setOrderReference("test-002")
+	invoice.setOrderReference("test-009")
 	invoice.setOrderReferenceText("Testing library to generate invoice")
 
-	// Adding an invoice reference
-	// const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
-	// additionalDocumentReference.setId("F000-19940714")
-	// additionalDocumentReference.setTypeCode(1)
-	// invoice.addDocumentReference(additionalDocumentReference)
+	// Adding a generic invoice reference
+	const additionalDocumentReference = new DocumentReference(DocumentReference.ADDITIONAL)
+	additionalDocumentReference.setId("F000-19940714")
+	additionalDocumentReference.setTypeCode(1)
+	invoice.addDocumentReference(additionalDocumentReference)
 
+	// Adding prepaid payments references
 	const prepaidPayment1 = new PrepaidPaymentReference()
 	prepaidPayment1.setId("F000-19950728")
 	prepaidPayment1.setTypeCode(2)
@@ -106,7 +107,6 @@ test.serial("creating invoice", (tester) => {
 
 test.serial("signing invoice", async tester => {
 	invoice.toXml()
-	console.log(invoice.toString())
 
 	const { subtle } = globalThis.crypto // from Node API
 	const isSigned = await invoice.finalize(subtle)
