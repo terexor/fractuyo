@@ -178,6 +178,20 @@ class Invoice extends Sale {
 		return this.#prepaidTaxAmount
 	}
 
+	get netTaxTotalAmount() {
+		return this.taxTotalAmount - this.prepaidTaxAmount
+	}
+
+	get netIgvAmount() {
+		return this.igvAmount - this.prepaidTaxAmount
+	}
+
+	getNetOperationAmount(index) {
+		const amount = this.getOperationAmount(index)
+		return (index === 0) ? amount - this.prepaidBaseAmount : amount
+	}
+
+
 	/**
 	 * Adds a document reference to the invoice.
 	 * If the document reference is a prepaid payment reference, it will also add a charge to the invoice.

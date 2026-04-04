@@ -63,6 +63,10 @@ class Sale extends Receipt {
 		this.#taxTotalAmount = amount
 	}
 
+	get netTaxTotalAmount() {
+		return this.#taxTotalAmount
+	}
+
 	get taxInclusiveAmount() {
 		return this.#taxInclusiveAmount
 	}
@@ -97,6 +101,10 @@ class Sale extends Receipt {
 		this.#igvAmount = amount
 	}
 
+	get netIgvAmount() {
+		return this.igvAmount
+	}
+
 	get iscAmount() {
 		return this.#iscAmount
 	}
@@ -119,6 +127,10 @@ class Sale extends Receipt {
 	 * @returns {number} - Value of operation amount.
 	 */
 	getOperationAmount(index) {
+		return this.#operationAmounts[index]
+	}
+
+	getNetOperationAmount(index) {
 		return this.#operationAmounts[index]
 	}
 
