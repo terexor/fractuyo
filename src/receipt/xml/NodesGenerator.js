@@ -1039,10 +1039,16 @@ class NodesGenerator {
 
 		const cacTaxTotal = doc.createElement("cac:TaxTotal")
 		{
-			// TaxAmount Global
+			// TaxAmount Global (Net)
 			const cbcTaxAmount = doc.createElement("cbc:TaxAmount")
 			cbcTaxAmount.setAttribute("currencyID", currencyId)
-			cbcTaxAmount.textContent = invoice.taxTotalAmount.toFixed(2)
+
+			let totalTaxCompensated = invoice.taxTotalAmount
+			if (invoice.prepaidTaxAmount) {
+				totalTaxCompensated -= invoice.prepaidTaxAmount
+			}
+
+			cbcTaxAmount.textContent = totalTaxCompensated.toFixed(2)
 			cacTaxTotal.appendChild(cbcTaxAmount)
 
 			// Inline function to generate subtotals
@@ -1095,12 +1101,19 @@ class NodesGenerator {
 
 			//Assign data according taxability
 			for (let i = 0; i < 4; i++) {
-				const amount = invoice.getOperationAmount(i)
+				let amount = invoice.getOperationAmount(i)
 				if (amount <= 0) {
 					continue
 				}
 
-				const taxValue = (i === 0) ? invoice.igvAmount : 0
+				let taxValue = (i === 0) ? invoice.igvAmount : 0
+
+				// Apply netting only for Gravado (index 0) if there are prepayments
+				if (i === 0 && invoice.prepaidBaseAmount) {
+					amount -= invoice.prepaidBaseAmount
+					taxValue -= invoice.prepaidTaxAmount
+				}
+
 				cacTaxTotal.appendChild(createSubtotal(amount, taxValue, TAX_CONFIG[i]))
 			}
 		}
