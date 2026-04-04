@@ -155,6 +155,9 @@ class Invoice extends Sale {
 	}
 
 	/**
+	 * Adds a document reference to the invoice.
+	 * If the document reference is a prepaid payment reference, it will also add a charge to the invoice.
+	 * @param {DocumentReference} documentReference
 	 * @override
 	 */
 	addDocumentReference(documentReference) {
