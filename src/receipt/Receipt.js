@@ -462,17 +462,16 @@ class Receipt {
 		if (faultNode) {
 			throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
 		}
-		else {
-			// Maybe it is a successful answer
-			const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
+		
+		// Maybe it is a successful answer
+		const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
 
-			if (responseNode) {
-				const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
-				return applicationResponse
-			}
-			else {
-				throw new Error("Respuesta inesperada.")
-			}
+		if (responseNode) {
+			const applicationResponse = responseNode.getElementsByTagName("applicationResponse")[0].textContent
+			return applicationResponse
+		}
+		else {
+			throw new Error("Respuesta inesperada.")
 		}
 	}
 
