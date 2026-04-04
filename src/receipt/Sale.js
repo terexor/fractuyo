@@ -69,6 +69,8 @@ class Sale extends Receipt {
 
 	set taxInclusiveAmount(amount) {
 		this.#taxInclusiveAmount = amount
+		this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
+	}
 
 	get prepaidAmount() {
 		return this.#prepaidAmount
@@ -76,6 +78,7 @@ class Sale extends Receipt {
 
 	set prepaidAmount(amount) {
 		this.#prepaidAmount = amount
+		this.#payableAmount = this.#taxInclusiveAmount - this.#prepaidAmount
 	}
 
 	get payableAmount() {
