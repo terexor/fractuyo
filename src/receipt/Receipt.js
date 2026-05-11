@@ -427,20 +427,24 @@ class Receipt {
 		const zip = new JSZip()
 
 		return zip.loadAsync(zipStream, { base64: isBase64 }).then(async (zip) => {
-			return zip.file(`R-${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true, compacted)}.xml`).async("string").then(async (data) => {
-				const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
+			const xmlFiles = zip.file(/\.xml$/i);
+			if (xmlFiles.length > 0) {
+				return xmlFiles[0].async("string").then(async (data) => {
+					const xmlDoc = new DOMParser().parseFromString(data, "application/xml")
 
-				// Go directly to node <cbc:ResponseCode>
-				const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
+					// Go directly to node <cbc:ResponseCode>
+					const codes = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "ResponseCode")
 
-				if (codes.length > 0) {
-					const description = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "Description")[0]?.textContent ?? "Sin descripción"
-					return [parseInt(codes[0].textContent), description] // 0 when everthing is really OK
-				}
-				else { // error
-					return [-1, "No se encontró respuesta."] // we have problems
-				}
-			})
+					if (codes.length > 0) {
+						const description = xmlDoc.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2", "Description")[0]?.textContent ?? "Sin descripción"
+						return [parseInt(codes[0].textContent), description] // 0 when everthing is really OK
+					}
+					else { // error
+						return [-1, "No se encontró respuesta."] // we have problems
+					}
+				});
+			}
+			return [-1, "No se encontró archivo XML en la constancia."];
 		})
 	}
 
