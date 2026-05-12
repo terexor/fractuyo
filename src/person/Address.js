@@ -90,6 +90,7 @@ class Address {
 	 * @param {string} line
 	 */
 	set line(line) {
+		line = line?.trim()
 		if ((typeof line === "string") && line.length > 0) {
 			this.#line = line
 		}
