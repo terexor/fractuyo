@@ -318,7 +318,7 @@ class Invoice extends Sale {
 		}
 
 		{ // check if there are shares
-			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms") // always exists
+			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
 			for (let i = 0; i < paymentTerms.length; ++i) {
 				if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent == "FormaPago") {
 					// If there is Credito means that next siblings are amounts
@@ -349,7 +349,7 @@ class Invoice extends Sale {
 			if (allowanceCharge) {
 				const chargeIndicator = allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "ChargeIndicator")[0].textContent === "true"
 				if (!chargeIndicator) { // it's discount
-					this.setDiscount(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent, false, true)
+					this.setDiscount(Number(allowanceCharge.getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent), false, true)
 				}
 			}
 		}
