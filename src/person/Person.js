@@ -8,7 +8,8 @@ class Person {
 	}
 
 	setName(n) {
-		if(n.length > 0) {
+		n = n?.trim()
+		if (n && n.length > 0) {
 			this.#name = n
 		}
 	}
