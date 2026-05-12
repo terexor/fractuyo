@@ -320,23 +320,16 @@ class Invoice extends Sale {
 		{ // check if there are shares
 			const paymentTerms = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "PaymentTerms")
 			for (let i = 0; i < paymentTerms.length; ++i) {
-				if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent == "FormaPago") {
-					// If there is Credito means that next siblings are amounts
-					if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentMeansID")[0].textContent == "Credito") {
-						++i; // set index to next sibling
-						// iterate posible remaining shares
-						for (; i < paymentTerms.length; ++i) {
-							// if FormaPago is not found, means we don't have any share
-							if (paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0].textContent != "FormaPago") {
-								break
-							}
-							const share = new Share()
-							// capture date and amount
-							share.setAmount(paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent)
-							const dateParts = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentDueDate")[0].textContent.split('-') // split in year, month and day
-							share.setDueDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
-							this.addShare(share)
-						}
+				const idNode = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "ID")[0]
+				if (idNode && idNode.textContent == "FormaPago") {
+					const paymentMeansIDNode = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentMeansID")[0]
+					if (paymentMeansIDNode && paymentMeansIDNode.textContent.startsWith("Cuota")) {
+						const share = new Share()
+						// capture date and amount
+						share.setAmount(Number(paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "Amount")[0].textContent))
+						const dateParts = paymentTerms[i].getElementsByTagNameNS(Receipt.namespaces.cbc, "PaymentDueDate")[0].textContent.split('-') // split in year, month and day
+						share.setDueDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])))
+						this.addShare(share)
 					}
 				}
 			}
