@@ -55,6 +55,19 @@ class TagsGenerator {
 
 		return `${issueDateTag}${issueTimeTag}${dueDateTag}`
 	}
+
+	static generateTypeCode(invoice) {
+		const typeCode = invoice.getTypeCode()
+
+		// Detraction only for B2B or B2C
+		let listIdAttr = ''
+		if (typeCode == 1 || typeCode == 3) {
+			const listID = invoice.hasDetraction() ? '1001' : '0101'
+			listIdAttr = ` listID="${listID}"` // initial space for separation of tag
+		}
+
+		return `<cbc:${invoice.name}TypeCode${listIdAttr}>${invoice.getTypeCode(true)}</cbc:${invoice.name}TypeCode>`
+	}
 }
 
 export default TagsGenerator
