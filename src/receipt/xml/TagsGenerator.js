@@ -14,6 +14,28 @@ class TagsGenerator {
 	static generateLowerWrapper(document) {
 		return `</${document.name}>`
 	}
+
+	/**
+	 * Space for appending signature.
+	 */
+	static generateUblExtensions(document) {
+		return `\
+<ext:UBLExtensions>
+	<ext:UBLExtension>
+		<ext:ExtensionContent></ext:ExtensionContent>
+	</ext:UBLExtension>
+</ext:UBLExtensions>`
+	}
+
+	static generateHeader(invoice) {
+		return `\
+<cbc:UBLVersionID>${invoice.getUblVersion()}</cbc:UBLVersionID>
+<cbc:CustomizationID>${invoice.getCustomizationId()}</cbc:CustomizationID>`
+	}
+
+	static generateIdentity(invoice) {
+		return `<cbc:ID>${invoice.getId()}</cbc:ID>`
+	}
 }
 
 export default TagsGenerator
