@@ -16,6 +16,9 @@ class Receipt {
 	static #xmllintInstance // validator for XML
 
 	/** @type {string} */
+	#xmlString = ""
+
+	/** @type {string} */
 	#name
 
 	/** @type {Taxpayer} */
@@ -106,6 +109,14 @@ class Receipt {
 		this.xmlDocument.documentElement.setAttribute("xmlns:cbc", Receipt.namespaces.cbc)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ds", Receipt.namespaces.ds)
 		this.xmlDocument.documentElement.setAttribute("xmlns:ext", Receipt.namespaces.ext)
+	}
+
+	get xmlString() {
+		return this.#xmlString
+	}
+
+	set xmlString(xmlStr) {
+		this.#xmlString = xmlStr
 	}
 
 	get name() {
