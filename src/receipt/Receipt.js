@@ -376,18 +376,29 @@ class Receipt {
 	 */
 	async finalize(cryptoSubtle, canonMethod = "c14n") {
 		try {
-			this.xmlDocument = Parse(this.#xmlString) // Construction of XML document
+			const xmlDocForSigning = Parse(this.#xmlString) // Construction of XML document
 
 			// Getting signature using extarnal signer
 			const signatureNode = await XmlSigner.getSignedNode(
 				cryptoSubtle,
-				this.xmlDocument,
+				xmlDocForSigning,
 				this.#taxpayer,
 				canonMethod
-			);
+			)
 
-			const xmlEl = this.xmlDocument.getElementsByTagNameNS("urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2", "ExtensionContent")[0]
-			xmlEl.appendChild(signatureNode)
+			const serializer = new XMLSerializer()
+			const signatureString = serializer.serializeToString(signatureNode)
+
+			// Just insertion of signature literal
+			const targetTag = "<ext:ExtensionContent></ext:ExtensionContent>"
+			const signedTag = `<ext:ExtensionContent>${signatureString}</ext:ExtensionContent>`
+
+			// Halt everything
+			if (!this.#xmlString.includes(targetTag)) {
+				throw new Error("No se encontró contenedor <ext:ExtensionContent></ext:ExtensionContent>.")
+			}
+
+			this.#xmlString = this.#xmlString.replace(targetTag, signedTag)
 
 			return true
 		} catch (e) {
@@ -473,7 +484,7 @@ class Receipt {
 		if (faultNode) {
 			throw new Error(faultNode.getElementsByTagName("faultstring")[0].textContent)
 		}
-		
+
 		// Maybe it is a successful answer
 		const responseNode = xmlDoc.getElementsByTagName("br:sendBillResponse")[0]
 
