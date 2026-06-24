@@ -92,6 +92,11 @@ class TagsGenerator {
 
 		return notesXml
 	}
+
+	static generateCurrencyCode(invoice) {
+		// Return the DocumentCurrencyCode tag with the currency ID directly as a string
+		return `<cbc:DocumentCurrencyCode>${invoice.getCurrencyId()}</cbc:DocumentCurrencyCode>`
+	}
 }
 
 export default TagsGenerator
