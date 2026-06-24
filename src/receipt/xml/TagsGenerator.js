@@ -68,6 +68,30 @@ class TagsGenerator {
 
 		return `<cbc:${invoice.name}TypeCode${listIdAttr}>${invoice.getTypeCode(true)}</cbc:${invoice.name}TypeCode>`
 	}
+
+	static generateNotes(invoice) {
+		const typeCode = invoice.getTypeCode()
+
+		// Handle despatch type codes
+		if (typeCode == 9 || typeCode == 31) {
+			const noteText = invoice.getNote()
+			if (!noteText) {
+				return '' // Return empty string if no note is provided
+			}
+			return `<cbc:Note><![CDATA[${noteText}]]></cbc:Note>`
+		}
+
+		// Default note with amount converted to words
+		const amountWords = Receipt.amountToWords(invoice.taxInclusiveAmount, "con", invoice.getCurrencyId())
+		let notesXml = `<cbc:Note languageLocaleID="1000"><![CDATA[${amountWords}]]></cbc:Note>`
+
+		// Append detraction note if applicable
+		if ((typeCode == 1 || typeCode == 3) && invoice.hasDetraction()) {
+			notesXml += `\n<cbc:Note languageLocaleID="2006"><![CDATA[Operación sujeta a detracción]]></cbc:Note>`
+		}
+
+		return notesXml
+	}
 }
 
 export default TagsGenerator
