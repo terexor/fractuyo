@@ -36,6 +36,25 @@ class TagsGenerator {
 	static generateIdentity(invoice) {
 		return `<cbc:ID>${invoice.getId()}</cbc:ID>`
 	}
+
+	static generateDates(invoice) {
+		const issueDate = invoice.getIssueDate()
+		const typeCode = invoice.getTypeCode()
+
+		const issueDateTag = `<cbc:IssueDate>${Receipt.displayDate(issueDate)}</cbc:IssueDate>`
+		const issueTimeTag = `<cbc:IssueTime>${Receipt.displayTime(issueDate)}</cbc:IssueTime>`
+
+		// Conditional to append due date
+		let dueDateTag = ''
+		if (typeCode == 1 && invoice.getShares().length == 0) {
+			const dueDate = invoice.getDueDate()
+			if (dueDate) {
+				dueDateTag = `\n<cbc:DueDate>${Receipt.displayDate(dueDate)}</cbc:DueDate>`
+			}
+		}
+
+		return `${issueDateTag}${issueTimeTag}${dueDateTag}`
+	}
 }
 
 export default TagsGenerator
