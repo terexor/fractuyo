@@ -376,7 +376,7 @@ class Receipt {
 	 */
 	async finalize(cryptoSubtle, canonMethod = "c14n") {
 		try {
-			this.xmlDocument = Parse(this.xmlString) // Construction of XML document
+			this.xmlDocument = Parse(this.#xmlString) // Construction of XML document
 
 			// Getting signature using extarnal signer
 			const signatureNode = await XmlSigner.getSignedNode(
@@ -492,7 +492,7 @@ class Receipt {
 	 * @returns {string} The XML string.
 	 */
 	toString() {
-		return (new XMLSerializer().serializeToString(this.xmlDocument))
+		return this.#xmlString
 	}
 
 	/**
