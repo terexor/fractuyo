@@ -375,12 +375,8 @@ class Receipt {
 	 * @param {string} canonMethod - The canonicalization method to use for signing.
 	 */
 	async finalize(cryptoSubtle, canonMethod = "c14n") {
-		if (this.xmlDocument == undefined) {
-			throw new Error("Documento XML no existe.")
-		}
-
 		try {
-			this.xmlDocument = Parse(this.xmlDocument.toString()) // Without this, signature will be wrong
+			this.xmlDocument = Parse(this.xmlString) // Construction of XML document
 
 			// Getting signature using extarnal signer
 			const signatureNode = await XmlSigner.getSignedNode(
