@@ -549,6 +549,60 @@ class TagsGenerator {
 	<cbc:BaseAmount currencyID="${currencyId}">${discount.baseAmount.toFixed(2)}</cbc:BaseAmount>
 </cac:AllowanceCharge>`
 	}
+
+	static generateTaxes(invoice) {
+		const currencyId = invoice.getCurrencyId()
+
+		// Map config to avoid structural switches or complex conditionals
+		const TAX_CONFIG = [
+			{ id: "1000", name: "IGV", type: "VAT" }, // Index 0: Gravado
+			{ id: "9997", name: "EXO", type: "VAT" }, // Index 1: Exonerado
+			{ id: "9998", name: "INA", type: "FRE" }, // Index 2: Inafecto
+			{ id: "9999", name: "OTROS CONCEPTOS DE PAGO", type: "OTH" }
+		]
+
+		// Inline string generator for individual tax subtotals
+		const createSubtotalString = (taxableValue, taxValue, schemeData) => `
+		<cac:TaxSubtotal>
+			<cbc:TaxableAmount currencyID="${currencyId}">${taxableValue.toFixed(2)}</cbc:TaxableAmount>
+			<cbc:TaxAmount currencyID="${currencyId}">${taxValue.toFixed(2)}</cbc:TaxAmount>
+			<cac:TaxCategory>
+				<cac:TaxScheme>
+					<cbc:ID schemeName="Codigo de tributos" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo05">${schemeData.id}</cbc:ID>
+					<cbc:Name>${schemeData.name}</cbc:Name>
+					<cbc:TaxTypeCode>${schemeData.type}</cbc:TaxTypeCode>
+				</cac:TaxScheme>
+			</cac:TaxCategory>
+		</cac:TaxSubtotal>`
+
+		let subtotalBlocks = ''
+
+		// 1. Process ISC (Selective Consumption Tax) if applicable
+		if (invoice.iscAmount > 0) {
+			subtotalBlocks += createSubtotalString(
+				invoice.getOperationAmount(0),
+				invoice.iscAmount,
+				{ id: "2000", name: "ISC", type: "EXC" }
+			)
+		}
+
+		// 2. Loop through the system tax configuration catalog
+		for (let i = 0; i < 4; i++) {
+			const amount = invoice.getOperationAmount(i)
+			if (amount <= 0) {
+				continue
+			}
+
+			const taxValue = (i === 0) ? invoice.igvAmount : 0
+			subtotalBlocks += createSubtotalString(amount, taxValue, TAX_CONFIG[i])
+		}
+
+		// 3. Wrap everything inside the core TaxTotal master element
+		return `\
+<cac:TaxTotal>
+	<cbc:TaxAmount currencyID="${currencyId}">${invoice.taxTotalAmount.toFixed(2)}</cbc:TaxAmount>${subtotalBlocks}
+</cac:TaxTotal>`
+	}
 }
 
 export default TagsGenerator
