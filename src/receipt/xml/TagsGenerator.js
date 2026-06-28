@@ -483,6 +483,49 @@ class TagsGenerator {
 	<cbc:Amount currencyID="${currencyId}">${detraction.getAmount().toFixed(2)}</cbc:Amount>
 </cac:PaymentTerms>`
 	}
+
+	static generatePaymentTerms(invoice) {
+		// Cache essential attributes
+		const shares = invoice.getShares()
+		const currencyId = invoice.getCurrencyId()
+
+		// Handle Cash Payment condition
+		if (shares.length == 0) {
+			return `\
+<cac:PaymentTerms>
+	<cbc:ID>FormaPago</cbc:ID>
+	<cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
+</cac:PaymentTerms>`
+		}
+
+		// Or handle Credit Payment header (XOR)
+		let creditAmount = invoice.taxInclusiveAmount
+		if (invoice.hasDetraction()) {
+			creditAmount -= invoice.getDetraction().getAmount()
+		}
+
+		const creditHeaderTag = `\
+	<cac:PaymentTerms>
+		<cbc:ID>FormaPago</cbc:ID>
+		<cbc:PaymentMeansID>Credito</cbc:PaymentMeansID>
+		<cbc:Amount currencyID="${currencyId}">${creditAmount.toFixed(2)}</cbc:Amount>
+	</cac:PaymentTerms>`
+
+		// Map individual credit shares/installments using rapid string joining
+		const sharesTags = shares.map((share, index) => {
+			const shareId = `Cuota${String(index + 1).padStart(3, '0')}`
+			return `
+	<cac:PaymentTerms>
+		<cbc:ID>FormaPago</cbc:ID>
+		<cbc:PaymentMeansID>${shareId}</cbc:PaymentMeansID>
+		<cbc:Amount currencyID="${currencyId}">${share.getAmount(true)}</cbc:Amount>
+		<cbc:PaymentDueDate>${Receipt.displayDate(share.getDueDate())}</cbc:PaymentDueDate>
+	</cac:PaymentTerms>`
+		}).join('')
+
+		// Return the complete credit block sequence
+		return `${creditHeaderTag}${sharesTags}`
+	}
 }
 
 export default TagsGenerator
