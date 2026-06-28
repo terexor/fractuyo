@@ -170,6 +170,45 @@ class TagsGenerator {
 	</cac:DigitalSignatureAttachment>
 </cac:Signature>`
 	}
+
+	static generateAdditionalDocumentReferences(receipt) {
+		const additionalDocumentReferences = receipt.additionalDocumentReferences
+
+		// Return empty string if there are no additional document references
+		if (!additionalDocumentReferences || additionalDocumentReferences.length == 0) {
+			return ''
+		}
+
+		// caching
+		const typeCode = receipt.getTypeCode()
+		const isNotDespatch = !(typeCode == 9 || typeCode == 31)
+		const ruc = receipt.getTaxpayer().getIdentification().getNumber()
+
+		// Map through each reference and map it to a string template
+		return additionalDocumentReferences.map(ref => {
+			const id = ref.getId()
+			const docTypeCode = ref.getTypeCode(true)
+
+			// Render IssuerParty block only for despatch guides (typeCode 9 or 31)
+			let issuerPartyTag = ''
+			if (!isNotDespatch) {
+				// If issuerId is not set, use own RUC
+				const issuerId = ref.getIssuerId() || ruc
+				issuerPartyTag = `
+<cac:IssuerParty>
+	<cac:PartyIdentification>
+		<cbc:ID schemeID="6">${issuerId}</cbc:ID>
+	</cac:PartyIdentification>
+</cac:IssuerParty>`
+			}
+
+			return `\
+<cac:AdditionalDocumentReference>
+	<cbc:ID>${id}</cbc:ID>
+	<cbc:DocumentTypeCode>${docTypeCode}</cbc:DocumentTypeCode>${issuerPartyTag}
+</cac:AdditionalDocumentReference>`
+		}).join('\n')
+	}
 }
 
 export default TagsGenerator
