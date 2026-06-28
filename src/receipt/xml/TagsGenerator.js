@@ -749,6 +749,21 @@ class TagsGenerator {
 </${lineNodeName}>`
 		}).join('\n')
 	}
+
+	static generateDiscrepancy(note) {
+		// Cache main discrepancy references
+		const documentReference = note.getDocumentReference()
+		const responseCode = note.getResponseCode(true)
+		const description = note.getDescription()
+
+		// Return the structured DiscrepancyResponse block as a flat string token
+		return `\
+<cac:DiscrepancyResponse>
+	<cbc:ReferenceID>${documentReference}</cbc:ReferenceID>
+	<cbc:ResponseCode>${responseCode}</cbc:ResponseCode>
+	<cbc:Description>${description}</cbc:Description>
+</cac:DiscrepancyResponse>`
+	}
 }
 
 export default TagsGenerator
