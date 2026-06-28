@@ -425,8 +425,8 @@ class Receipt {
 	 */
 	async createZip(type = "base64", xmlString) {
 		const zip = new JSZip()
-		const xmlDocumentContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
-			(xmlString ?? (new XMLSerializer().serializeToString(this.xmlDocument))) // if there is xmlString then use it
+		// if there is xmlString then use it else the XML string created recently
+		const xmlDocumentContent = xmlString ?? this.#xmlString
 		zip.file(`${this.#taxpayer.getIdentification().getNumber()}-${this.getId(true)}.xml`, xmlDocumentContent)
 
 		return zip.generateAsync({ type: type }).then(zipb64 => {
