@@ -309,6 +309,152 @@ class TagsGenerator {
 	</cac:Party>
 </${customerNodeName}>`
 	}
+
+	static generateShipment(despatch) {
+		// Cache main objects and structural arrays
+		const carrier = despatch.getCarrier()
+		const vehicles = despatch.getVehicles()
+		const drivers = despatch.getDrivers()
+		const containers = despatch.getPackages()
+
+		// 1. Core measurements and flags
+		const unitQuantityTag = despatch.getUnitQuantity()
+			? `\n\t<cbc:TotalTransportHandlingUnitQuantity>${despatch.getUnitQuantity()}</cbc:TotalTransportHandlingUnitQuantity>`
+			: ''
+
+		const specialInstructionsTag = (!carrier && despatch.inLightVehicle())
+			? '\n\t<cbc:SpecialInstructions>SUNAT_Envio_IndicadorTrasladoVehiculoM1L</cbc:SpecialInstructions>'
+			: ''
+
+		// 2. Carrier block structure
+		let carrierPartyTag = ''
+		if (carrier) {
+			carrierPartyTag = `
+			<cac:CarrierParty>
+				<cac:PartyIdentification>
+					<cbc:ID schemeID="6">${carrier.getIdentification().getNumber()}</cbc:ID>
+				</cac:PartyIdentification>
+				<cac:PartyLegalEntity>
+					<cbc:RegistrationName><![CDATA[${carrier.getName()}]]></cbc:RegistrationName>
+				</cac:PartyLegalEntity>
+			</cac:CarrierParty>`
+		}
+
+		// 3. Drivers array collection mapping
+		const driversTags = drivers.map((driver, index) => {
+			const jobTitle = index == 0 ? 'Principal' : 'Secundario'
+			return `
+			<cac:DriverPerson>
+				<cbc:ID schemeID="${driver.getIdentification().getType()}" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">${driver.getIdentification().getNumber()}</cbc:ID>
+				<cbc:FirstName>${driver.getName()}</cbc:FirstName>
+				<cbc:FamilyName>${driver.getFamilyName()}</cbc:FamilyName>
+				<cbc:JobTitle>${jobTitle}</cbc:JobTitle>
+				<cac:IdentityDocumentReference>
+					<cbc:ID>${driver.getLicense()}</cbc:ID>
+				</cac:IdentityDocumentReference>
+			</cac:DriverPerson>`
+		}).join('')
+
+		// 4. Locations (Delivery and Despatch addresses)
+		const deliveryAddress = despatch.getDeliveryAddress()
+		const despatchAddress = despatch.getDespatchAddress()
+
+		// 5. Packages (Containers) array mapping
+		const containersTags = containers.map((container, index) => `
+		<cac:TransportHandlingUnit>
+			<cac:Package>
+				<cbc:ID>${index}</cbc:ID>
+				<cbc:TraceID>${container.traceIdentity}</cbc:TraceID>
+			</cac:Package>
+		</cac:TransportHandlingUnit>`).join('')
+
+		// 6. Vehicles hardware configuration (Primary and Trailers/Secondary)
+		let vehiclesTag = ''
+		if (vehicles.length > 0) {
+			const primary = vehicles[0]
+
+			const primaryMeansTag = primary.registrationIdentity
+				? `\n\t\t\t<cac:ApplicableTransportMeans>\n\t\t\t\t<cbc:RegistrationNationalityID>${primary.registrationIdentity}</cbc:RegistrationNationalityID>\n\t\t\t</cac:ApplicableTransportMeans>`
+				: ''
+
+			const primaryAuthTag = primary.authorization
+				? `\n\t\t\t<cac:ShipmentDocumentReference>\n\t\t\t\t<cbc:ID schemeID="${primary.departmentCode}">${primary.authorization}</cbc:ID>\n\t\t\t</cac:ShipmentDocumentReference>`
+				: ''
+
+			// Secondary vehicles block sequence
+			let attachedEquipmentTags = ''
+			if (vehicles.length > 1) {
+				attachedEquipmentTags = vehicles.slice(1).map(vehicle => {
+					const attachedMeansTag = vehicle.registrationIdentity
+						? `\n\t\t\t\t<cac:ApplicableTransportMeans>\n\t\t\t\t\t<cbc:RegistrationNationalityID>${vehicle.registrationIdentity}</cbc:RegistrationNationalityID>\n\t\t\t\t</cac:ApplicableTransportMeans>`
+						: ''
+
+					const attachedAuthTag = vehicle.authorization
+						? `\n\t\t\t\t<cac:ShipmentDocumentReference>\n\t\t\t\t\t<cbc:ID schemeID="${vehicle.departmentCode}">${vehicle.authorization}</cbc:ID>\n\t\t\t\t</cac:ShipmentDocumentReference>`
+						: ''
+
+					return `
+				<cac:AttachedTransportEquipment>
+					<cbc:ID>${vehicle.identity}</cbc:ID>${attachedMeansTag}${attachedAuthTag}
+				</cac:AttachedTransportEquipment>`
+				}).join('')
+			}
+
+			vehiclesTag = `
+		<cac:TransportHandlingUnit>
+			<cac:TransportEquipment>
+				<cbc:ID>${primary.identity}</cbc:ID>${primaryMeansTag}${attachedEquipmentTags}${primaryAuthTag}
+			</cac:TransportEquipment>
+		</cac:TransportHandlingUnit>`
+		}
+
+		// 7. Port custom logistics data
+		let portTag = ''
+		const port = despatch.getPort()
+		if (port) {
+			const isPort = port.type
+			const catalogo = isPort ? "63" : "64"
+			const schemeName = isPort ? "Puertos" : "Aeropuertos"
+			const locationTypeCode = port.name.type ? "1" : "2"
+
+			portTag = `
+		<cac:FirstArrivalPortLocation>
+			<cbc:ID schemeAgencyName="PE:SUNAT" schemeName="${schemeName}" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo${catalogo}">${port.identity}</cbc:ID>
+			<cbc:LocationTypeCode>${locationTypeCode}</cbc:LocationTypeCode>
+			<cbc:Name>${port.name}</cbc:Name>
+		</cac:FirstArrivalPortLocation>`
+		}
+
+		// 8. Final assembly of the master string token
+		return `\
+<cac:Shipment>
+	<cbc:ID>SUNAT_Envio</cbc:ID>
+	<cbc:HandlingCode listAgencyName="PE:SUNAT" listName="Motivo de traslado" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20">${despatch.getHandlingCode(true)}</cbc:HandlingCode>
+	<cbc:GrossWeightMeasure unitCode="${despatch.getUnitCode()}">${despatch.getWeight()}</cbc:GrossWeightMeasure>${unitQuantityTag}${specialInstructionsTag}
+	<cac:ShipmentStage>
+		<cbc:TransportModeCode listName="Modalidad de traslado" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18">${!carrier ? '02' : '01'}</cbc:TransportModeCode>
+		<cac:TransitPeriod>
+			<cbc:StartDate>${Receipt.displayDate(despatch.getStartDate())}</cbc:StartDate>
+		</cac:TransitPeriod>${carrierPartyTag}${driversTags}
+	</cac:ShipmentStage>
+	<cac:Delivery>
+		<cac:DeliveryAddress>
+			<cbc:ID schemeAgencyName="PE:INEI" schemeName="Ubigeos">${deliveryAddress.ubigeo}</cbc:ID>
+			<cac:AddressLine>
+				<cbc:Line>${deliveryAddress.line}</cbc:Line>
+			</cac:AddressLine>
+		</cac:DeliveryAddress>
+		<cac:Despatch>
+			<cac:DespatchAddress>
+				<cbc:ID schemeAgencyName="PE:INEI" schemeName="Ubigeos">${despatchAddress.ubigeo}</cbc:ID>
+				<cac:AddressLine>
+					<cbc:Line>${despatchAddress.line}</cbc:Line>
+				</cac:AddressLine>
+			</cac:DespatchAddress>
+		</cac:Despatch>
+	</cac:Delivery>${containersTags}${vehiclesTag}${portTag}
+</cac:Shipment>`
+	}
 }
 
 export default TagsGenerator
