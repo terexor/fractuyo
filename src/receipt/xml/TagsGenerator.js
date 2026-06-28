@@ -145,6 +145,31 @@ class TagsGenerator {
 		// Return an empty string if no conditions match
 		return ''
 	}
+
+	static generateSignature(invoice) {
+		// Cache taxpayer details
+		const taxpayer = invoice.getTaxpayer()
+		const ruc = taxpayer.getIdentification().getNumber()
+
+		// Return the structured Signature node as a flat string
+		return `\
+<cac:Signature>
+	<cbc:ID>${ruc}</cbc:ID>
+	<cac:SignatoryParty>
+		<cac:PartyIdentification>
+			<cbc:ID>${ruc}</cbc:ID>
+		</cac:PartyIdentification>
+		<cac:PartyName>
+			<cbc:Name><![CDATA[${taxpayer.getName()}]]></cbc:Name>
+		</cac:PartyName>
+	</cac:SignatoryParty>
+	<cac:DigitalSignatureAttachment>
+		<cac:ExternalReference>
+			<cbc:URI>#terexoris</cbc:URI>
+		</cac:ExternalReference>
+	</cac:DigitalSignatureAttachment>
+</cac:Signature>`
+	}
 }
 
 export default TagsGenerator
