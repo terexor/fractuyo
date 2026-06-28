@@ -603,6 +603,26 @@ class TagsGenerator {
 	<cbc:TaxAmount currencyID="${currencyId}">${invoice.taxTotalAmount.toFixed(2)}</cbc:TaxAmount>${subtotalBlocks}
 </cac:TaxTotal>`
 	}
+
+	static generateTotal(invoice) {
+		const currencyId = invoice.getCurrencyId()
+
+		// 1. Handle Debit Notes ('08') uniquely via RequestedMonetaryTotal
+		if (invoice.getTypeCode() == 8) {
+			return `\
+<cac:RequestedMonetaryTotal>
+	<cbc:PayableAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:PayableAmount>
+</cac:RequestedMonetaryTotal>`
+		}
+
+		// 2. Default layout for Invoices and Credit Notes via LegalMonetaryTotal
+		return `\
+<cac:LegalMonetaryTotal>
+	<cbc:LineExtensionAmount currencyID="${currencyId}">${invoice.lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
+	<cbc:TaxInclusiveAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
+	<cbc:PayableAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:PayableAmount>
+</cac:LegalMonetaryTotal>`
+	}
 }
 
 export default TagsGenerator
