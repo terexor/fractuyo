@@ -253,7 +253,7 @@ class Invoice extends Sale {
 			TagsGenerator.generateTotal(this),
 			TagsGenerator.generateLines(this),
 			TagsGenerator.generateLowerWrapper(this)
-		];
+		]
 
 		// Together in string inmediately
 		this.xmlString = xmlParts.join("")
