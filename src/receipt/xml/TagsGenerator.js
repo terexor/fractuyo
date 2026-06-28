@@ -267,6 +267,48 @@ class TagsGenerator {
 	</cac:Party>
 </${supplierNodeName}>`
 	}
+
+	static generateCustomer(invoice) {
+		// Cache customer structures and type code
+		const customer = invoice.getCustomer()
+		const identification = customer?.getIdentification()
+		const address = customer?.getAddress()
+		const typeCode = invoice.getTypeCode()
+
+		// Resolve the wrapper node name based on the document type code
+		const customerNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingCustomerParty" :
+			(typeCode == 9 || typeCode == 31) ? "cac:DeliveryCustomerParty" :
+				"cac:CustomerParty"
+
+		// Fallback to default metadata values if identification is missing
+		const schemeID = identification?.getType() ?? "1"
+		const idNumber = identification?.getNumber() ?? "-"
+		const customerName = customer?.getName() ?? "Nemo" // Means "no-one" in latin (no homo)
+
+		// Build the optional RegistrationAddress block if the address line exists
+		let addressTag = ''
+		if (address?.line) {
+			addressTag = `
+				<cac:RegistrationAddress>
+					<cac:AddressLine>
+						<cbc:Line><![CDATA[${address.line}]]></cbc:Line>
+					</cac:AddressLine>
+				</cac:RegistrationAddress>`
+		}
+
+		// Return the full customer element as a structured template string
+		return `\
+<${customerNodeName}>
+	<cac:Party>
+		<cac:PartyIdentification>
+			<cbc:ID schemeID="${schemeID}" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">${idNumber}</cbc:ID>
+		</cac:PartyIdentification>
+		<cac:PartyLegalEntity>
+			<cbc:RegistrationName><![CDATA[${customerName}]]></cbc:RegistrationName>${addressTag}
+		</cac:PartyLegalEntity>
+	</cac:Party>
+</${customerNodeName}>`
+	}
 }
 
 export default TagsGenerator
