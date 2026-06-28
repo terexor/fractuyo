@@ -526,6 +526,29 @@ class TagsGenerator {
 		// Return the complete credit block sequence
 		return `${creditHeaderTag}${sharesTags}`
 	}
+
+	static generateCharge(invoice) {
+		// Cache the discount object
+		const discount = invoice.getDiscount()
+
+		// Return empty string if no discount applies
+		if (!discount) {
+			return ''
+		}
+
+		// Cache required attributes
+		const currencyId = invoice.getCurrencyId()
+
+		// Return the structured AllowanceCharge block as a flat string
+		return `\
+<cac:AllowanceCharge>
+	<cbc:ChargeIndicator>${String(discount.indicator)}</cbc:ChargeIndicator>
+	<cbc:AllowanceChargeReasonCode>${discount.getTypeCode()}</cbc:AllowanceChargeReasonCode>
+	<cbc:MultiplierFactorNumeric>${discount.factor.toFixed(5)}</cbc:MultiplierFactorNumeric>
+	<cbc:Amount currencyID="${currencyId}">${discount.amount.toFixed(2)}</cbc:Amount>
+	<cbc:BaseAmount currencyID="${currencyId}">${discount.baseAmount.toFixed(2)}</cbc:BaseAmount>
+</cac:AllowanceCharge>`
+	}
 }
 
 export default TagsGenerator
