@@ -623,6 +623,132 @@ class TagsGenerator {
 	<cbc:PayableAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:PayableAmount>
 </cac:LegalMonetaryTotal>`
 	}
+
+	static generateLines(invoice) {
+		const items = invoice.items
+		const typeCode = invoice.getTypeCode()
+		const isDespatch = (typeCode == 9 || typeCode == 31)
+
+		// Despatch guides do not manage currencies
+		const currencyId = !isDespatch ? invoice.getCurrencyId() : ""
+
+		// Resolve dynamic node names based on document type context
+		const lineNodeName = isDespatch ? "cac:DespatchLine" : `cac:${invoice.name}Line`
+		const quantityNodeName = (typeCode == 1 || typeCode == 3) ? "cbc:InvoicedQuantity" :
+			typeCode == 7 ? "cbc:CreditedQuantity" :
+				typeCode == 8 ? "cbc:DebitedQuantity" :
+					isDespatch ? "cbc:DeliveredQuantity" :
+						"cbc:Quantity"
+
+		// Catalog map to safely categorize taxes without cascading conditional branches
+		const TAX_DATA = {
+			VAT_1000: { id: "1000", name: "IGV", type: "VAT" },
+			VAT_9997: { id: "9997", name: "EXO", type: "VAT" },
+			FRE_9998: { id: "9998", name: "INA", type: "FRE" },
+			OTH_9999: { id: "9999", name: "OTROS CONCEPTOS DE PAGO", type: "OTH" }
+		}
+
+		// Map and join items iteratively as flat text templates
+		return items.map((item, index) => {
+			const itemIndex = index + 1 // Sequence starting at 1
+
+			// 1. Core quantity segment block
+			const quantityTag = `<${quantityNodeName} unitCode="${item.getUnitCode()}" unitCodeListID="UN/ECE rec 20" unitCodeListAgencyName="United Nations Economic Commission for Europe">${item.getQuantity().toFixed(10)}</${quantityNodeName}>`
+
+			// 2. Financial blocks conditional segments (Invoices, Debit/Credit Notes vs Despatch Guides)
+			let financialDetailsBlock = ''
+			if (isDespatch) {
+				financialDetailsBlock = `
+		<cac:OrderLineReference>
+			<cbc:LineID>${itemIndex}</cbc:LineID>
+		</cac:OrderLineReference>`
+			} else {
+				// Resolve catalog pointers dynamically via exception code
+				const exCode = item.getExemptionReasonCode()
+				let taxInfo = TAX_DATA.OTH_9999
+				if (exCode < 20) {
+					taxInfo = TAX_DATA.VAT_1000
+				} else if (exCode < 30) {
+					taxInfo = TAX_DATA.VAT_9997
+				} else if (exCode < 40) {
+					taxInfo = TAX_DATA.FRE_9998
+				}
+
+				// Generate internal Selective Consumption Tax (ISC) subtotal segment if applicable
+				let iscSubtotalTag = ''
+				if (item.getIscAmount() > 0) {
+					iscSubtotalTag = `
+			<cac:TaxSubtotal>
+				<cbc:TaxableAmount currencyID="${currencyId}">${item.getLineExtensionAmount().toFixed(2)}</cbc:TaxableAmount>
+				<cbc:TaxAmount currencyID="${currencyId}">${item.getIscAmount().toFixed(2)}</cbc:TaxAmount>
+				<cac:TaxCategory>
+					<cbc:Percent>${item.getIscPercentage()}</cbc:Percent>
+					<cbc:TierRange>01</cbc:TierRange>
+					<cac:TaxScheme>
+						<cbc:ID>2000</cbc:ID>
+						<cbc:Name>ISC</cbc:Name>
+						<cbc:TaxTypeCode>EXC</cbc:TaxTypeCode>
+					</cac:TaxScheme>
+				</cac:TaxCategory>
+			</cac:TaxSubtotal>`
+				}
+
+				// Build complex structural tax data blocks
+				const pricingReferenceBlock = `
+		<cac:PricingReference>
+			<cac:AlternativeConditionPrice>
+				<cbc:PriceAmount currencyID="${currencyId}">${item.getPricingReferenceAmount().toFixed(10)}</cbc:PriceAmount>
+				<cbc:PriceTypeCode>01</cbc:PriceTypeCode>
+			</cac:AlternativeConditionPrice>
+		</cac:PricingReference>`
+
+				const taxTotalBlock = `
+		<cac:TaxTotal>
+			<cbc:TaxAmount currencyID="${currencyId}">${item.getTaxTotalAmount().toFixed(2)}</cbc:TaxAmount>${iscSubtotalTag}
+			<cac:TaxSubtotal>
+				<cbc:TaxableAmount currencyID="${currencyId}">${item.getTaxableIgvAmount().toFixed(2)}</cbc:TaxableAmount>
+				<cbc:TaxAmount currencyID="${currencyId}">${item.getIgvAmount().toFixed(2)}</cbc:TaxAmount>
+				<cac:TaxCategory>
+					<cbc:Percent>${item.getIgvPercentage()}</cbc:Percent>
+					<cbc:TaxExemptionReasonCode>${item.getExemptionReasonCode()}</cbc:TaxExemptionReasonCode>
+					<cac:TaxScheme>
+						<cbc:ID>${taxInfo.id}</cbc:ID>
+						<cbc:Name>${taxInfo.name}</cbc:Name>
+						<cbc:TaxTypeCode>${taxInfo.type}</cbc:TaxTypeCode>
+					</cac:TaxScheme>
+				</cac:TaxCategory>
+			</cac:TaxSubtotal>
+		</cac:TaxTotal>`
+
+				financialDetailsBlock = `
+		<cbc:LineExtensionAmount currencyID="${currencyId}">${item.getLineExtensionAmount().toFixed(2)}</cbc:LineExtensionAmount>${pricingReferenceBlock}${taxTotalBlock}`
+			}
+
+			// 3. Structural Product Item Meta Block
+			const itemCode = item.getCode()
+			const itemCodeTag = itemCode ? `\n		<cac:SellersItemIdentification>\n			<cbc:ID>${itemCode}</cbc:ID>\n		</cac:SellersItemIdentification>` : ''
+
+			const classificationCode = item.getClassificationCode()
+			const classificationTag = classificationCode ? `\n		<cac:CommodityClassification>\n			<cbc:ItemClassificationCode listID="UNSPSC" listAgencyName="GS1 US" listName="Item Classification">${classificationCode}</cbc:ItemClassificationCode>\n		</cac:CommodityClassification>` : ''
+
+			const itemBlock = `
+		<cac:Item>
+			<cbc:Description><![CDATA[${item.getDescription()}]]></cbc:Description>${itemCodeTag}${classificationTag}
+		</cac:Item>`
+
+			// 4. Base Price block segment
+			const basePriceBlock = !isDespatch
+				? `\n	<cac:Price>\n		<cbc:PriceAmount currencyID="${currencyId}">${item.getUnitValue().toFixed(10)}</cbc:PriceAmount>\n	</cac:Price>`
+				: ''
+
+			// Assemble the complete line node token safely
+			return `\
+<${lineNodeName}>
+	<cbc:ID>${itemIndex}</cbc:ID>
+	${quantityTag}${financialDetailsBlock}${itemBlock}${basePriceBlock}
+</${lineNodeName}>`
+		}).join('\n')
+	}
 }
 
 export default TagsGenerator
