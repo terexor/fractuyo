@@ -455,6 +455,34 @@ class TagsGenerator {
 	</cac:Delivery>${containersTags}${vehiclesTag}${portTag}
 </cac:Shipment>`
 	}
+
+	static generatePaymentMeans(invoice) {
+		// 1. Return empty string if no detraction applies
+		if (!invoice.hasDetraction()) {
+			return ''
+		}
+
+		// Cache required structures and parameters
+		const detraction = invoice.getDetraction()
+		const currencyId = invoice.getCurrencyId()
+		const bankAccount = detraction.getFinancialAccount() || invoice.getTaxpayer().getDeductionsAccount()
+
+		// 2. Return the combined PaymentMeans and PaymentTerms blocks as a unified string
+		return `\
+<cac:PaymentMeans>
+	<cbc:ID>Detraccion</cbc:ID>
+	<cbc:PaymentMeansCode>003</cbc:PaymentMeansCode>
+	<cac:PayeeFinancialAccount>
+		<cbc:ID>${bankAccount}</cbc:ID>
+	</cac:PayeeFinancialAccount>
+</cac:PaymentMeans>
+<cac:PaymentTerms>
+	<cbc:ID>Detraccion</cbc:ID>
+	<cbc:PaymentMeansID>${detraction.getCode()}</cbc:PaymentMeansID>
+	<cbc:PaymentPercent>${detraction.getPercentage()}</cbc:PaymentPercent>
+	<cbc:Amount currencyID="${currencyId}">${detraction.getAmount().toFixed(2)}</cbc:Amount>
+</cac:PaymentTerms>`
+	}
 }
 
 export default TagsGenerator
