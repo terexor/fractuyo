@@ -4,7 +4,7 @@ import Share from "./Share.js"
 import Sale from "./Sale.js"
 import Charge from "./Charge.js"
 import Detraction from "./Detraction.js"
-import NodesGenerator from "./xml/NodesGenerator.js"
+import TagsGenerator from "./xml/TagsGenerator.js"
 
 class Invoice extends Sale {
 	constructor(taxpayer, customer) {
@@ -231,49 +231,32 @@ class Invoice extends Sale {
 	}
 
 	toXml() {
-		this.createXmlWrapper();
+		// All parts of XML in array of strings
+		const xmlParts = [
+			TagsGenerator.generateUpperWrapper(this),
+			TagsGenerator.generateUblExtensions(this),
+			TagsGenerator.generateHeader(this),
+			TagsGenerator.generateIdentity(this),
+			TagsGenerator.generateDates(this),
+			TagsGenerator.generateTypeCode(this),
+			TagsGenerator.generateNotes(this),
+			TagsGenerator.generateCurrencyCode(this),
+			TagsGenerator.generateReference(this),
+			TagsGenerator.generateAdditionalDocumentReferences(this),
+			TagsGenerator.generateSignature(this),
+			TagsGenerator.generateSupplier(this),
+			TagsGenerator.generateCustomer(this),
+			TagsGenerator.generatePaymentMeans(this),
+			TagsGenerator.generatePaymentTerms(this),
+			TagsGenerator.generateCharge(this),
+			TagsGenerator.generateTaxes(this),
+			TagsGenerator.generateTotal(this),
+			TagsGenerator.generateLines(this),
+			TagsGenerator.generateLowerWrapper(this)
+		];
 
-		// Master fragment for the body
-		const bodyFragment = this.xmlDocument.createDocumentFragment()
-
-		bodyFragment.appendChild(NodesGenerator.generateUblExtensions(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateHeader(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateIdentity(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateDates(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateTypeCode(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateNotes(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateCurrencyCode(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateReference(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateAdditionalDocumentReferences(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateCustomer(this))
-
-		bodyFragment.appendChild(NodesGenerator.generatePaymentMeans(this))
-
-		bodyFragment.appendChild(NodesGenerator.generatePaymentTerms(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateCharge(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateTaxes(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateTotal(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateLines(this))
-
-		// The real insertion to the real DOM
-		this.xmlDocument.documentElement.appendChild(bodyFragment)
+		// Together in string inmediately
+		this.xmlString = xmlParts.join("")
 	}
 
 	/**
