@@ -271,7 +271,6 @@ class Despatch extends Receipt {
 		const responseText = await Endpoint.fetchStatus(ticketNumber)
 		if (responseText.error) {
 			throw new Error(`Error #${responseText.error.numError} - ${responseText.error.desError}`)
-			
 		}
 		return responseText
 	}
