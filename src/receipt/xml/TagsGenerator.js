@@ -209,6 +209,64 @@ class TagsGenerator {
 </cac:AdditionalDocumentReference>`
 		}).join('\n')
 	}
+
+	static generateSupplier(invoice) { //Supplier (current taxpayer)
+		// Cache taxpayer structures and type code
+		const taxpayer = invoice.getTaxpayer()
+		const address = taxpayer.getAddress()
+		const identification = taxpayer.getIdentification()
+		const typeCode = invoice.getTypeCode()
+
+		// Resolve the wrapper node name based on the document type code
+		const supplierNodeName = (typeCode == 1 || typeCode == 3 || typeCode == 7 || typeCode == 8) ? "cac:AccountingSupplierParty" :
+			(typeCode == 9 || typeCode == 31) ? "cac:DespatchSupplierParty" :
+				"cac:SupplierParty"
+
+		// Gather optional contact values
+		const tel = taxpayer.getTelephone()
+		const email = taxpayer.getEmail()
+		const web = taxpayer.getWeb()
+
+		// Build the contact block if any data exists
+		let contactTag = ''
+		if (tel || email || web) {
+			const telTag = tel ? `\n\t\t<cbc:Telephone>${tel}</cbc:Telephone>` : ''
+			const emailTag = email ? `\n\t\t<cbc:ElectronicMail>${email}</cbc:ElectronicMail>` : ''
+			const webTag = web ? `\n\t\t<cbc:Note>${web}</cbc:Note>` : ''
+
+			contactTag = `\n\t<cac:Contact>${telTag}${emailTag}${webTag}\n\t</cac:Contact>`
+		}
+
+		// Return the full supplier element as a structured template string
+		return `\
+<${supplierNodeName}>
+	<cac:Party>
+		<cac:PartyIdentification>
+			<cbc:ID schemeID="${identification.getType()}" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">${identification.getNumber()}</cbc:ID>
+		</cac:PartyIdentification>
+		<cac:PartyName>
+			<cbc:Name><![CDATA[${taxpayer.getTradeName()}]]></cbc:Name>
+		</cac:PartyName>
+		<cac:PartyLegalEntity>
+			<cbc:RegistrationName><![CDATA[${taxpayer.getName()}]]></cbc:RegistrationName>
+			<cac:RegistrationAddress>
+				<cbc:ID>${address.ubigeo}</cbc:ID>
+				<cbc:AddressTypeCode>${address.typecode}</cbc:AddressTypeCode>
+				<cbc:CitySubdivisionName>${address.urbanization}</cbc:CitySubdivisionName>
+				<cbc:CityName>${address.city}</cbc:CityName>
+				<cbc:CountrySubentity>${address.subentity}</cbc:CountrySubentity>
+				<cbc:District>${address.district}</cbc:District>
+				<cac:AddressLine>
+					<cbc:Line><![CDATA[${address.line}]]></cbc:Line>
+				</cac:AddressLine>
+				<cac:Country>
+					<cbc:IdentificationCode>${address.country}</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:RegistrationAddress>
+		</cac:PartyLegalEntity>${contactTag}
+	</cac:Party>
+</${supplierNodeName}>`
+	}
 }
 
 export default TagsGenerator
