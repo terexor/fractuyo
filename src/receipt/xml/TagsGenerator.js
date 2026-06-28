@@ -97,6 +97,54 @@ class TagsGenerator {
 		// Return the DocumentCurrencyCode tag with the currency ID directly as a string
 		return `<cbc:DocumentCurrencyCode>${invoice.getCurrencyId()}</cbc:DocumentCurrencyCode>`
 	}
+
+	static generateReference(invoice) {
+		const typeCode = invoice.getTypeCode()
+
+		// Reference logic for Invoices ('01' or '03') with Order Reference data
+		if ((typeCode == 1 || typeCode == 3) && invoice.getOrderReference()) {
+			const orderRefId = invoice.getOrderReference()
+			const orderRefText = invoice.getOrderReferenceText()
+
+			// Include CustomerReference tag only if it has text content
+			const customerRefTag = orderRefText
+				? `\n\t<cbc:CustomerReference><![CDATA[${orderRefText}]]></cbc:CustomerReference>`
+				: ''
+
+			return `\
+<cac:OrderReference>
+	<cbc:ID>${orderRefId}</cbc:ID>${customerRefTag}
+</cac:OrderReference>`
+		}
+
+		// Reference logic for Credit or Debit Notes ('07' or '08')
+		if (typeCode == 7 || typeCode == 8) {
+			let billingDocumentReferenceId
+			let billingDocumentReferenceTypeCode
+
+			if (invoice.billingDocumentReference) {
+				const billingDocumentReference = invoice.billingDocumentReference
+				billingDocumentReferenceId = billingDocumentReference.getId()
+				billingDocumentReferenceTypeCode = billingDocumentReference.getTypeCode(true)
+			} else {
+				// Backward compatibility with deprecated methods
+				// This block must be removed when deprecated method is removed
+				billingDocumentReferenceId = invoice.getDocumentReference()
+				billingDocumentReferenceTypeCode = invoice.getDocumentReferenceTypeCode(true)
+			}
+
+			return `\
+<cac:BillingReference>
+	<cac:InvoiceDocumentReference>
+		<cbc:ID>${billingDocumentReferenceId}</cbc:ID>
+		<cbc:DocumentTypeCode>${billingDocumentReferenceTypeCode}</cbc:DocumentTypeCode>
+	</cac:InvoiceDocumentReference>
+</cac:BillingReference>`
+		}
+
+		// Return an empty string if no conditions match
+		return ''
+	}
 }
 
 export default TagsGenerator
