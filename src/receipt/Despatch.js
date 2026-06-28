@@ -6,7 +6,7 @@ import Identification from "../person/Identification.js"
 import Address from "../person/Address.js"
 import Endpoint from "../webservice/Endpoint.js"
 import Rest from "../webservice/Rest.js"
-import NodesGenerator from "./xml/NodesGenerator.js"
+import TagsGenerator from "./xml/TagsGenerator.js"
 
 class Despatch extends Receipt {
 	#note // description
@@ -184,37 +184,26 @@ class Despatch extends Receipt {
 	}
 
 	toXml() {
-		this.createXmlWrapper();
+		// All parts of XML in array of strings
+		const xmlParts = [
+			TagsGenerator.generateUpperWrapper(this),
+			TagsGenerator.generateUblExtensions(this),
+			TagsGenerator.generateHeader(this),
+			TagsGenerator.generateIdentity(this),
+			TagsGenerator.generateDates(this),
+			TagsGenerator.generateTypeCode(this),
+			TagsGenerator.generateNotes(this),
+			TagsGenerator.generateAdditionalDocumentReferences(this),
+			TagsGenerator.generateSignature(this),
+			TagsGenerator.generateSupplier(this),
+			TagsGenerator.generateCustomer(this),
+			TagsGenerator.generateShipment(this),
+			TagsGenerator.generateLines(this),
+			TagsGenerator.generateLowerWrapper(this)
+		]
 
-		// Master fragment for the body
-		const bodyFragment = this.xmlDocument.createDocumentFragment()
-
-		bodyFragment.appendChild(NodesGenerator.generateUblExtensions(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateHeader(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateIdentity(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateDates(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateTypeCode(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateNotes(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateAdditionalDocumentReferences(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateSignature(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateSupplier(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateCustomer(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateShipment(this))
-
-		bodyFragment.appendChild(NodesGenerator.generateLines(this))
-
-		// The real insertion to the real DOM
-		this.xmlDocument.documentElement.appendChild(bodyFragment)
+		// Together in string inmediately
+		this.xmlString = xmlParts.join("")
 	}
 
 	getQrData() {
