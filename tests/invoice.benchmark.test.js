@@ -79,7 +79,7 @@ test.serial("First XML generation", async tester => {
 	tester.pass()
 })
 
-test.serial("benchmark: direct hardware execution", t => {
+test.serial("benchmark: direct hardware execution (using string literals)", t => {
 	let totalTime = 0
 	console.log(`--- Processing ${ITERATIONS} invoices & customers ---`)
 
