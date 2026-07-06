@@ -1,5 +1,4 @@
 import test from 'ava'
-import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 import { Application } from "xmldsigjs"
 
@@ -10,10 +9,6 @@ let taxpayer
 let despatch
 
 test.before(async t => {
-	const { window } = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-	global.window = window
-	global.document = window.document
-
 	Application.setEngine("NodeJS", globalThis.crypto)
 })
 
