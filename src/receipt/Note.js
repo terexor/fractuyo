@@ -159,6 +159,7 @@ class Note extends Sale {
 			TagsGenerator.generateCurrencyCode(this),
 			TagsGenerator.generateDiscrepancy(this),
 			TagsGenerator.generateReference(this),
+			TagsGenerator.generateDespatchDocumentReferences(this),
 			TagsGenerator.generateSignature(this),
 			TagsGenerator.generateSupplier(this),
 			TagsGenerator.generateCustomer(this),
