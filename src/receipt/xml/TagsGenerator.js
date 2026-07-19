@@ -1,4 +1,5 @@
 import Receipt from "../Receipt.js"
+import PrepaidPaymentReference from "../PrepaidPaymentReference.js"
 
 /**
  * Generation of XML nodes using string literals.
@@ -180,10 +181,21 @@ class TagsGenerator {
 	}
 
 	static generateAdditionalDocumentReferences(receipt) {
-		const additionalDocumentReferences = receipt.additionalDocumentReferences
+		const allReferences = []
+		if (receipt.additionalDocumentReferences) {
+			for (const r of receipt.additionalDocumentReferences) {
+				allReferences.push(r)
+			}
+		}
 
-		// Return empty string if there are no additional document references
-		if (!additionalDocumentReferences || additionalDocumentReferences.length == 0) {
+		// We add them and we detect them using: instanceof PrepaidPaymentReference
+		if (receipt.prepaidPaymentReferences) {
+			for (const r of receipt.prepaidPaymentReferences) {
+				allReferences.push(r)
+			}
+		}
+
+		if (allReferences.length == 0) {
 			return ''
 		}
 
@@ -192,30 +204,33 @@ class TagsGenerator {
 		const isNotDespatch = !(typeCode == 9 || typeCode == 31)
 		const ruc = receipt.getTaxpayer().getIdentification().getNumber()
 
-		// Map through each reference and map it to a string template
-		return additionalDocumentReferences.map(ref => {
-			const id = ref.getId()
-			const docTypeCode = ref.getTypeCode(true)
+		let xml = ""
+		let prepaidIndex = 1
 
-			// Render IssuerParty block only for despatch guides (typeCode 9 or 31)
-			let issuerPartyTag = ''
-			if (!isNotDespatch) {
-				// If issuerId is not set, use own RUC
-				const issuerId = ref.getIssuerId() || ruc
-				issuerPartyTag = `
-<cac:IssuerParty>
-	<cac:PartyIdentification>
-		<cbc:ID schemeID="6">${issuerId}</cbc:ID>
-	</cac:PartyIdentification>
-</cac:IssuerParty>`
+		for (const docRef of allReferences) {
+			const isPrepaid = docRef instanceof PrepaidPaymentReference 
+
+			// We will be appending mandatory nodes
+			let nodeContent = `<cbc:ID>${docRef.getId()}</cbc:ID>`
+
+			const code = docRef.getTypeCode(true)
+			nodeContent += `<cbc:DocumentTypeCode>${code ? code : (isPrepaid ? "02" : "")}</cbc:DocumentTypeCode>`
+
+			// Nodo condicional de estado para anticipos
+			if (isPrepaid) {
+				nodeContent += `<cbc:DocumentStatusCode>${prepaidIndex++}</cbc:DocumentStatusCode>`
 			}
 
-			return `\
-<cac:AdditionalDocumentReference>
-	<cbc:ID>${id}</cbc:ID>
-	<cbc:DocumentTypeCode>${docTypeCode}</cbc:DocumentTypeCode>${issuerPartyTag}
-</cac:AdditionalDocumentReference>`
-		}).join('\n')
+			// Just for invoice and notes, do nothing else, UNLESS it's prepaid (which needs IssuerParty)
+			if (!(isNotDespatch && !isPrepaid)) {
+				nodeContent += `<cac:IssuerParty><cac:PartyIdentification><cbc:ID schemeID="6">${docRef.getIssuerId() || ruc}</cbc:ID></cac:PartyIdentification></cac:IssuerParty>`
+			}
+
+			// All content
+			xml += `<cac:AdditionalDocumentReference>${nodeContent}\n</cac:AdditionalDocumentReference>`
+		}
+
+		return xml
 	}
 
 	static generateDespatchDocumentReferences(receipt) {
