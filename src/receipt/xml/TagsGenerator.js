@@ -576,6 +576,28 @@ class TagsGenerator {
 </cac:AllowanceCharge>`
 	}
 
+	static generatePrepaidPayment(invoice) {
+		const prepaidPayments = invoice.prepaidPaymentReferences
+		if (!prepaidPayments || prepaidPayments.length === 0) {
+			return ''
+		}
+
+		const currencyId = invoice.getCurrencyId()
+		let xml = ''
+
+		for (let i = 0; i < prepaidPayments.length; ++i) {
+			const prepaidPayment = prepaidPayments[i]
+
+			xml += `\
+<cac:PrepaidPayment>
+	<cbc:ID>${i + 1}</cbc:ID>
+	<cbc:PaidAmount currencyID="${currencyId}">${prepaidPayment.getAmount().toFixed(2)}</cbc:PaidAmount>
+</cac:PrepaidPayment>`
+		}
+
+		return xml
+	}
+
 	static generateTaxes(invoice) {
 		const currencyId = invoice.getCurrencyId()
 
