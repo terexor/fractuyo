@@ -643,7 +643,7 @@ class TagsGenerator {
 		// 1. Process ISC (Selective Consumption Tax) if applicable
 		if (invoice.iscAmount > 0) {
 			subtotalBlocks += createSubtotalString(
-				invoice.getOperationAmount(0),
+				invoice.getNetOperationAmount(0),
 				invoice.iscAmount,
 				{ id: "2000", name: "ISC", type: "EXC" }
 			)
@@ -651,20 +651,20 @@ class TagsGenerator {
 
 		// 2. Loop through the system tax configuration catalog
 		for (let i = 0; i < 4; i++) {
-			const amount = invoice.getOperationAmount(i)
+			const amount = invoice.getNetOperationAmount(i)
 			if (amount <= 0) {
 				continue
 			}
 
-			const taxValue = (i === 0) ? invoice.igvAmount : 0
+			const taxValue = (i === 0) ? invoice.netIgvAmount : 0
 			subtotalBlocks += createSubtotalString(amount, taxValue, TAX_CONFIG[i])
 		}
 
 		// 3. Wrap everything inside the core TaxTotal master element
 		return `\
-<cac:TaxTotal>
-	<cbc:TaxAmount currencyID="${currencyId}">${invoice.taxTotalAmount.toFixed(2)}</cbc:TaxAmount>${subtotalBlocks}
-</cac:TaxTotal>`
+	<cac:TaxTotal>
+		<cbc:TaxAmount currencyID="${currencyId}">${invoice.netTaxTotalAmount.toFixed(2)}</cbc:TaxAmount>${subtotalBlocks}
+	</cac:TaxTotal>`
 	}
 
 	static generateTotal(invoice) {
