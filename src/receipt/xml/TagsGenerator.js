@@ -683,7 +683,8 @@ class TagsGenerator {
 <cac:LegalMonetaryTotal>
 	<cbc:LineExtensionAmount currencyID="${currencyId}">${invoice.lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
 	<cbc:TaxInclusiveAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
-	<cbc:PayableAmount currencyID="${currencyId}">${invoice.taxInclusiveAmount.toFixed(2)}</cbc:PayableAmount>
+	${invoice.prepaidAmount > 0 ? `<cbc:PrepaidAmount currencyID="${currencyId}">${invoice.prepaidAmount.toFixed(2)}</cbc:PrepaidAmount>` : ''}
+	<cbc:PayableAmount currencyID="${currencyId}">${invoice.payableAmount.toFixed(2)}</cbc:PayableAmount>
 </cac:LegalMonetaryTotal>`
 	}
 
