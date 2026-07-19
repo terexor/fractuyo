@@ -218,6 +218,24 @@ class TagsGenerator {
 		}).join('\n')
 	}
 
+	static generateDespatchDocumentReferences(receipt) {
+		const despatchDocumentReferences = receipt.despatchDocumentReferences
+		if (!despatchDocumentReferences || despatchDocumentReferences.length === 0) {
+			return ''
+		}
+
+		let xml = ''
+		for (const despatchDocumentReference of despatchDocumentReferences) {
+			xml += `\
+<cac:DespatchDocumentReference>
+	<cbc:ID>${despatchDocumentReference.getId()}</cbc:ID>
+	<cbc:DocumentTypeCode>${despatchDocumentReference.getTypeCode(true)}</cbc:DocumentTypeCode>
+</cac:DespatchDocumentReference>`
+		}
+
+		return xml
+	}
+
 	static generateSupplier(invoice) { //Supplier (current taxpayer)
 		// Cache taxpayer structures and type code
 		const taxpayer = invoice.getTaxpayer()
