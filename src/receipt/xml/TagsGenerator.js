@@ -569,26 +569,36 @@ class TagsGenerator {
 	}
 
 	static generateCharge(invoice) {
-		// Cache the discount object
-		const discount = invoice.getDiscount()
-
-		// Return empty string if no discount applies
-		if (!discount) {
+		const allowanceCharges = invoice.getAllowanceCharges()
+		if (!allowanceCharges || allowanceCharges.length === 0) {
 			return ''
 		}
 
 		// Cache required attributes
 		const currencyId = invoice.getCurrencyId()
+		let xml = ''
 
-		// Return the structured AllowanceCharge block as a flat string
-		return `\
+		for (const discount of allowanceCharges) {
+			// Checking optional fields for appending when needed
+			const factorTag = discount.factor !== undefined 
+				? `\n\t<cbc:MultiplierFactorNumeric>${discount.factor.toFixed(5)}</cbc:MultiplierFactorNumeric>` 
+				: ''
+
+			const baseAmountTag = discount.baseAmount !== undefined 
+				? `\n\t<cbc:BaseAmount currencyID="${currencyId}">${discount.baseAmount.toFixed(2)}</cbc:BaseAmount>` 
+				: ''
+
+			xml += `\
 <cac:AllowanceCharge>
 	<cbc:ChargeIndicator>${String(discount.indicator)}</cbc:ChargeIndicator>
 	<cbc:AllowanceChargeReasonCode>${discount.getTypeCode()}</cbc:AllowanceChargeReasonCode>
-	<cbc:MultiplierFactorNumeric>${discount.factor.toFixed(5)}</cbc:MultiplierFactorNumeric>
+	${factorTag}
 	<cbc:Amount currencyID="${currencyId}">${discount.amount.toFixed(2)}</cbc:Amount>
-	<cbc:BaseAmount currencyID="${currencyId}">${discount.baseAmount.toFixed(2)}</cbc:BaseAmount>
+	${baseAmountTag}
 </cac:AllowanceCharge>`
+		}
+
+		return xml
 	}
 
 	static generatePrepaidPayment(invoice) {
