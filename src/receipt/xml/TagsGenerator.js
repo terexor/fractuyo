@@ -369,6 +369,8 @@ class TagsGenerator {
 
 		// 2. Carrier block structure
 		let carrierPartyTag = ''
+		let loadingTransportEventTag = ''
+
 		if (carrier) {
 			carrierPartyTag = `
 			<cac:CarrierParty>
@@ -379,6 +381,12 @@ class TagsGenerator {
 					<cbc:RegistrationName><![CDATA[${carrier.getName()}]]></cbc:RegistrationName>
 				</cac:PartyLegalEntity>
 			</cac:CarrierParty>`
+
+			// Mandatory when public transportation is used
+			loadingTransportEventTag = `
+			<cac:LoadingTransportEvent>
+				<cbc:OccurrenceDate>${Receipt.displayDate(despatch.getOccurrenceDate())}</cbc:OccurrenceDate>
+			</cac:LoadingTransportEvent>`
 		}
 
 		// 3. Drivers array collection mapping
@@ -476,7 +484,10 @@ class TagsGenerator {
 		<cbc:TransportModeCode listName="Modalidad de traslado" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18">${!carrier ? '02' : '01'}</cbc:TransportModeCode>
 		<cac:TransitPeriod>
 			<cbc:StartDate>${Receipt.displayDate(despatch.getStartDate())}</cbc:StartDate>
-		</cac:TransitPeriod>${carrierPartyTag}${driversTags}
+		</cac:TransitPeriod>
+		${carrierPartyTag}
+		${loadingTransportEventTag}
+		${driversTags}
 	</cac:ShipmentStage>
 	<cac:Delivery>
 		<cac:DeliveryAddress>
