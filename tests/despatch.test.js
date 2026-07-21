@@ -78,6 +78,26 @@ test.serial("creating despatch", (tester) => {
 		carrier.setName("Transportists SA")
 		carrier.setIdentification(new Identification(6, "20000000001"))
 		despatch.setCarrier(carrier)
+
+		despatch.setOccurrenceDate(new Date())
+	} else {
+		const mainVehicle = new Vehicle("ABC999")
+		despatch.addVehicle(mainVehicle)
+
+		const secondVehicle = new Vehicle("ABC000")
+		despatch.addVehicle(secondVehicle)
+
+		const mainDriver = new Driver("71936980X")
+		mainDriver.setName("George")
+		mainDriver.setFamilyName("Garro")
+		mainDriver.setIdentification(new Identification(1, "71936980"))
+		despatch.addDriver(mainDriver)
+
+		const anotherDriver = new Driver("74166745Q")
+		anotherDriver.setName("Walter")
+		anotherDriver.setFamilyName("Felipe")
+		anotherDriver.setIdentification(new Identification(1, "74166745"))
+		despatch.addDriver(anotherDriver)
 	}
 
 	const despatchAddress = new Address()
@@ -89,24 +109,6 @@ test.serial("creating despatch", (tester) => {
 	deliveryAddress.line = "An address in Peru"
 	deliveryAddress.ubigeo = "150101"
 	despatch.setDeliveryAddress(deliveryAddress)
-
-	const mainVehicle = new Vehicle("ABC999")
-	despatch.addVehicle(mainVehicle)
-
-	const secondVehicle = new Vehicle("ABC000")
-	despatch.addVehicle(secondVehicle)
-
-	const mainDriver = new Driver("71936980X")
-	mainDriver.setName("George")
-	mainDriver.setFamilyName("Garro")
-	mainDriver.setIdentification(new Identification(1, "71936980"))
-	despatch.addDriver(mainDriver)
-
-	const anotherDriver = new Driver("74166745Q")
-	anotherDriver.setName("Walter")
-	anotherDriver.setFamilyName("Felipe")
-	anotherDriver.setIdentification(new Identification(1, "74166745"))
-	despatch.addDriver(anotherDriver)
 
 	const airport = new Port(false, "LIM")
 	airport.setName("Internacional Jorge Chavez")
