@@ -17,6 +17,7 @@ class Despatch extends Receipt {
 	#unitQuantity // quantity of "bultos" or "pallets"
 
 	#startDate
+	#occurrenceDate // used when is public transportation
 
 	#deliveryAddress
 	#despatchAddress
@@ -98,6 +99,16 @@ class Despatch extends Receipt {
 
 	getStartDate() {
 		return this.#startDate
+	}
+
+	setOccurrenceDate(date) {
+		if (date) {
+			this.#occurrenceDate = date
+		}
+	}
+
+	getOccurrenceDate() {
+		return this.#occurrenceDate
 	}
 
 	setDeliveryAddress(address) {
@@ -212,6 +223,10 @@ class Despatch extends Receipt {
 
 	validate(validateNumeration) {
 		super.validate(validateNumeration)
+
+		if (this.#carrier && !this.#occurrenceDate) {
+			throw new Error("No hay fecha de entrega de bienes al transportista.")
+		}
 
 		if (!(this.#startDate instanceof Date)) {
 			throw new Error("No hay fecha de partida.")
