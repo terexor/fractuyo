@@ -419,17 +419,30 @@ class Sale extends Receipt {
 
 		// about totals
 		{
-			const legalMonetaryTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "LegalMonetaryTotal")[0]
-			this.lineExtensionAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "LineExtensionAmount")[0].textContent)
-			this.taxInclusiveAmount = parseFloat(legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxInclusiveAmount")[0].textContent)
+			// Look for LegalMonetaryTotal or RequestedMonetaryTotal (for Debit note)
+			const monetaryTotal = xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "LegalMonetaryTotal")[0]
+				|| xmlDoc.getElementsByTagNameNS(Receipt.namespaces.cac, "RequestedMonetaryTotal")[0]
 
-			const prepaidAmountNode = legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PrepaidAmount")[0]
-			if (prepaidAmountNode) {
-				this.prepaidAmount = parseFloat(prepaidAmountNode.textContent)
-			}
-			const payableAmountNode = legalMonetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PayableAmount")[0]
-			if (payableAmountNode) {
-				this.payableAmount = parseFloat(payableAmountNode.textContent)
+			if (monetaryTotal) {
+				const lineExtNode = monetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "LineExtensionAmount")[0]
+				if (lineExtNode) {
+					this.lineExtensionAmount = parseFloat(lineExtNode.textContent)
+				}
+
+				const taxIncNode = monetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "TaxInclusiveAmount")[0]
+				if (taxIncNode) {
+					this.taxInclusiveAmount = parseFloat(taxIncNode.textContent)
+				}
+
+				const prepaidAmountNode = monetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PrepaidAmount")[0]
+				if (prepaidAmountNode) {
+					this.prepaidAmount = parseFloat(prepaidAmountNode.textContent)
+				}
+
+				const payableAmountNode = monetaryTotal.getElementsByTagNameNS(Receipt.namespaces.cbc, "PayableAmount")[0]
+				if (payableAmountNode) {
+					this.payableAmount = parseFloat(payableAmountNode.textContent)
+				}
 			}
 		}
 
