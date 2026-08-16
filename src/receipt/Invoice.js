@@ -7,6 +7,8 @@ import PrepaidPaymentReference from "./PrepaidPaymentReference.js"
 import Detraction from "./Detraction.js"
 import TagsGenerator from "./xml/TagsGenerator.js"
 
+/** @typedef {import('./DocumentReference.js').default} DocumentReference */
+
 class Invoice extends Sale {
 	constructor(taxpayer, customer) {
 		super(taxpayer, customer, "Invoice")
@@ -54,9 +56,12 @@ class Invoice extends Sale {
 		let totalAmount = 0
 
 		for (const ref of this.prepaidPaymentReferences) {
-			this.#prepaidBaseAmount += ref.getBaseAmount() || 0
-			this.#prepaidTaxAmount += ref.getTaxAmount() || 0
-			totalAmount += ref.getAmount() || 0
+			// Conditional just to avoid TS complain
+			if (ref instanceof PrepaidPaymentReference) {
+				this.#prepaidBaseAmount += ref.getBaseAmount() || 0
+				this.#prepaidTaxAmount += ref.getTaxAmount() || 0
+				totalAmount += ref.getAmount() || 0
+			}
 		}
 		this.prepaidAmount = totalAmount // inherited setter from Sale
 	}

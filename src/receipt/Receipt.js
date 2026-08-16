@@ -520,7 +520,7 @@ class Receipt {
 		const result = await Receipt.#xmllintInstance({
 			xml: [{
 				fileName: this.getId() + ".xml",
-				contents: (new XMLSerializer().serializeToString(this.xmlDocument))
+				contents: this.#xmlString
 			}],
 			schema: mainXsdContent,
 			preload: importedXsdContents
