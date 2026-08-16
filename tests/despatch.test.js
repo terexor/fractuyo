@@ -101,8 +101,8 @@ test.serial("creating despatch", (tester) => {
 	}
 
 	const despatchAddress = new Address()
-	despatchAddress.line = "Partida 4300"
-	despatchAddress.ubigeo = "230000"
+	despatchAddress.line = "A southern direction"
+	despatchAddress.ubigeo = "220101"
 	despatch.setDespatchAddress(despatchAddress)
 
 	const deliveryAddress = new Address()
