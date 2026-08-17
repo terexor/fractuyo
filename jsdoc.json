@@ -19,5 +19,8 @@
 		"collapse": true,
 		"typedefs": true,
 		"removeTrailingSlash": true
-	}
+	},
+	"plugins": [
+		"jsdoc-plugin-typescript"
+	]
 }
